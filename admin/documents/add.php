@@ -12,6 +12,10 @@ $db = get_db();
 $tree = new DocumentTree($db);
 $documents = $tree->getAllDocuments();
 
+// 获取URL参数用于自动填充
+$parent_id_param = $_GET['parent_id'] ?? null;
+$sort_order_param = $_GET['sort_order'] ?? 0;
+
 // 处理表单提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'] ?? '';
@@ -81,8 +85,9 @@ include '../sidebar.php';
                                     <?php 
                                     if (!empty($documents)) {
                                         foreach ($documents as $doc): 
+                                            $selected = ($parent_id_param !== null && $doc['id'] == $parent_id_param) ? 'selected' : '';
                                     ?>
-                                        <option value="<?php echo $doc['id']; ?>">
+                                        <option value="<?php echo $doc['id']; ?>" <?php echo $selected; ?>>
                                             <?php echo str_repeat('&nbsp;&nbsp;', $doc['level']) . htmlspecialchars($doc['title']); ?>
                                         </option>
                                     <?php 
@@ -101,7 +106,7 @@ include '../sidebar.php';
                             <div class="form-group sort-field">
                                 <label for="sort_order">排序权重</label>
                                 <input type="number" class="form-control" id="sort_order" name="sort_order" 
-                                       value="0" min="0" placeholder="数值越大越靠前">
+                                       value="<?php echo htmlspecialchars($sort_order_param); ?>" min="0" placeholder="数值越大越靠前">
                             </div>
                         </div>
                     </div>

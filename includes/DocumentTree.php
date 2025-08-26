@@ -213,6 +213,66 @@ class DocumentTree {
     }
     
     /**
+     * 获取所有文档（按层级关系排序，用于管理后台）
+     */
+    public function getAllDocumentsByHierarchy() {
+        $stmt = $this->db->query("SELECT d.*, u.username
+                                FROM documents d 
+                                LEFT JOIN users u ON d.user_id = u.id 
+                                ORDER BY d.parent_id ASC, d.sort_order ASC, d.id ASC");
+        $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // 构建树形结构
+        return $this->buildHierarchy($documents);
+    }
+    
+    /**
+     * 获取文档的最大排序值
+     */
+    public function getMaxSortOrder($parent_id = null) {
+        $sql = "SELECT MAX(sort_order) FROM documents WHERE parent_id " . 
+               ($parent_id === null ? "IS NULL" : "= " . intval($parent_id));
+        $stmt = $this->db->query($sql);
+        return $stmt->fetchColumn() ?? 0;
+    }
+    
+    /**
+     * 获取文档的下级文档最大排序值
+     */
+    public function getMaxChildSortOrder($parent_id) {
+        $stmt = $this->db->prepare("SELECT MAX(sort_order) FROM documents WHERE parent_id = ?");
+        $stmt->execute([$parent_id]);
+        return $stmt->fetchColumn() ?? -1;
+    }
+    
+    /**
+     * 获取文档的父ID
+     */
+    public function getParentId($document_id) {
+        $stmt = $this->db->prepare("SELECT parent_id FROM documents WHERE id = ?");
+        $stmt->execute([$document_id]);
+        return $stmt->fetchColumn();
+    }
+    
+    /**
+     * 构建层级结构
+     */
+    private function buildHierarchy($documents, $parent_id = null, $level = 0) {
+        $result = [];
+        foreach ($documents as $doc) {
+            if ($doc['parent_id'] == $parent_id) {
+                $doc['level'] = $level;
+                $result[] = $doc;
+                
+                // 递归获取子文档
+                $children = $this->buildHierarchy($documents, $doc['id'], $level + 1);
+                $result = array_merge($result, $children);
+            }
+        }
+        return $result;
+    }
+    
+    /**
      * 获取所有文档（扁平化列表）
      */
     public function getAllDocuments() {
