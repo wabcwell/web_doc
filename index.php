@@ -112,7 +112,7 @@ $stats = $stmt->fetch();
 
         .document-item {
             display: block;
-            padding: 8px 20px;
+            padding: 8px 20px 8px 8px;
             text-decoration: none;
             color: #495057;
             font-size: 14px;
@@ -135,19 +135,50 @@ $stats = $stmt->fetch();
         }
 
         .document-item.level-1 {
-            padding-left: 35px;
+            padding-left: 30px;
         }
 
         .document-item.level-2 {
-            padding-left: 50px;
+            padding-left: 45px;
         }
 
         .document-item.level-3 {
-            padding-left: 65px;
+            padding-left: 60px;
         }
 
         .document-item.level-4 {
-            padding-left: 80px;
+            padding-left: 75px;
+        }
+
+        .document-toggle {
+            cursor: pointer;
+            color: #6c757d;
+            transition: transform 0.2s ease;
+            display: inline-block;
+            width: 16px;
+            text-align: center;
+            margin-right: 4px;
+        }
+
+        .document-toggle:hover {
+            color: #007bff;
+        }
+
+        .document-toggle.collapsed {
+            transform: rotate(-90deg);
+        }
+
+        .document-toggle.expanded {
+            transform: rotate(0deg);
+        }
+
+        .document-children {
+            transition: max-height 0.3s ease;
+            overflow: hidden;
+        }
+
+        .document-children.collapsed {
+            max-height: 0;
         }
 
         .empty-state {
@@ -364,18 +395,34 @@ $stats = $stmt->fetch();
                     foreach ($documents as $doc) {
                         $active = isset($_GET['document']) && $_GET['document'] == $doc['id'] ? 'active' : '';
                         $indent_class = $level > 0 ? 'level-' . $level : '';
+                        $has_children = !empty($doc['children']);
                         
+                        echo '<div class="document-node" data-document-id="' . $doc['id'] . '">';
                         echo '<a href="?document=' . $doc['id'] . '" ';
                         echo 'class="document-item ' . $active . ' ' . $indent_class . '" ';
                         echo 'data-title="' . htmlspecialchars($doc['title']) . '">';
-                        echo str_repeat('&nbsp;&nbsp;', $level);
+                        
+                        // 添加展开/收起箭头（默认展开）
+                        if ($has_children) {
+                            echo '<span class="document-toggle expanded" data-toggle="' . $doc['id'] . '">';
+                            echo '<i class="bi bi-chevron-down"></i>';
+                            echo '</span>';
+                        } else {
+                            echo '<span style="display: inline-block; width: 16px; margin-right: 4px;"></span>';
+                        }
+                        
                         echo '<i class="bi bi-file-text"></i> ';
                         echo htmlspecialchars($doc['title']);
                         echo '</a>';
                         
-                        if (!empty($doc['children'])) {
+                        // 子文档容器（默认展开）
+                        if ($has_children) {
+                            echo '<div class="document-children" id="children-' . $doc['id'] . '">';
                             render_document_tree($doc['children'], $level + 1);
+                            echo '</div>';
                         }
+                        
+                        echo '</div>';
                     }
                 }
                 
@@ -452,14 +499,71 @@ $stats = $stmt->fetch();
                 const title = doc.getAttribute('data-title').toLowerCase();
                 if (title.includes(searchTerm)) {
                     doc.style.display = 'block';
+                    // 如果匹配，展开其父级
+                    const parent = doc.closest('.document-node');
+                    if (parent) {
+                        const parentId = parent.getAttribute('data-document-id');
+                        const childrenContainer = document.getElementById('children-' + parentId);
+                        if (childrenContainer) {
+                            childrenContainer.classList.remove('collapsed');
+                            const toggle = parent.querySelector('.document-toggle');
+                            if (toggle) {
+                                toggle.classList.remove('collapsed');
+                                toggle.classList.add('expanded');
+                            }
+                        }
+                    }
                 } else {
                     doc.style.display = 'none';
                 }
             });
         });
 
-        // 高亮代码块
-        Prism.highlightAll();
+        // 展开/收起功能
+        document.addEventListener('DOMContentLoaded', function() {
+            // 为所有展开/收起箭头添加点击事件
+            document.querySelectorAll('.document-toggle').forEach(toggle => {
+                toggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const documentId = this.getAttribute('data-toggle');
+                    const childrenContainer = document.getElementById('children-' + documentId);
+                    
+                    if (childrenContainer) {
+                        // 切换收起/展开状态
+                        childrenContainer.classList.toggle('collapsed');
+                        this.classList.toggle('collapsed');
+                        this.classList.toggle('expanded');
+                        
+                        // 更新图标
+                        const icon = this.querySelector('i');
+                        if (childrenContainer.classList.contains('collapsed')) {
+                            icon.className = 'bi bi-chevron-right';
+                        } else {
+                            icon.className = 'bi bi-chevron-down';
+                        }
+                    }
+                });
+            });
+
+            // 所有文档默认已展开，无需额外处理
+        });
+
+        // 展开到当前文档路径的功能已移除（所有文档默认展开）
+
+        // 移动端菜单切换
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('show');
+        }
+
+        // 代码高亮
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof Prism !== 'undefined') {
+                Prism.highlightAll();
+            }
+        });
 
         // 键盘导航
         document.addEventListener('keydown', function(e) {
