@@ -175,7 +175,7 @@ function check_login() {
  * 检查是否为管理员
  */
 function check_admin() {
-    return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
+    return isset($_SESSION['role']) && $_SESSION['role'] === 'admin';
 }
 
 ?>

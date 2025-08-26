@@ -1,12 +1,11 @@
 <?php
 require_once '../../config.php';
+require_once '../../includes/init.php';
+require_once '../../includes/auth.php';
 require_once '../../includes/DocumentTree.php';
 
 // 检查用户权限
-if (!check_admin()) {
-    header('Location: ../login.php');
-    exit;
-}
+Auth::requireLogin();
 
 // 获取文档ID
 $id = $_GET['id'] ?? 0;

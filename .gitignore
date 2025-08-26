@@ -1,0 +1,26 @@
+# 忽略数据库文件
+database/docs.db
+
+# 忽略上传的文件
+uploads/*
+!uploads/.gitkeep
+
+# 忽略日志文件
+*.log
+
+# 忽略临时文件
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# 忽略IDE配置文件
+.vscode/
+.idea/
+
+# 忽略cookies文件
+cookies.txt
+
+# 忽略测试文件
+test_*.php
+debug_*.php
