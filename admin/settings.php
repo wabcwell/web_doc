@@ -2,10 +2,11 @@
 require_once __DIR__ . '/../includes/init.php';
 require_once __DIR__ . '/../includes/auth.php';
 
-// 检查是否已登录
-if (!Auth::isLoggedIn()) {
-    header('Location: login.php');
-    exit;
+// 检查是否为管理员，普通用户直接拒绝访问
+if (!Auth::isAdmin()) {
+    $_SESSION['error'] = '权限不足，需要管理员权限才能访问系统设置';
+    header('Location: dashboard.php');
+    exit();
 }
 
 // 读取配置文件

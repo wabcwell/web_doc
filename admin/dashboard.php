@@ -5,6 +5,11 @@ require_once __DIR__ . '/../includes/DocumentTree.php';
 
 Auth::requireLogin();
 
+// 获取会话消息
+$success = $_SESSION['success'] ?? '';
+$error = $_SESSION['error'] ?? '';
+unset($_SESSION['success'], $_SESSION['error']);
+
 $documentTree = new DocumentTree();
 $totalDocuments = $documentTree->getTotalDocuments();
 $totalUsers = $documentTree->getTotalUsers();
@@ -28,6 +33,20 @@ include 'sidebar.php';
     <div class="main-content">
         <div class="container-fluid">
             <h1>仪表盘</h1>
+
+            <?php if ($error): ?>
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> <?php echo htmlspecialchars($error); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if ($success): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle"></i> <?php echo htmlspecialchars($success); ?>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            <?php endif; ?>
             
             <!-- 统计卡片 -->
             <div class="row">

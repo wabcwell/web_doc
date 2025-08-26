@@ -15,6 +15,7 @@
                 <i class="bi bi-file-text"></i> 文档管理
             </a>
         </li>
+        <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
         <li>
             <a href="/admin/users.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'users.php') ? 'active' : ''; ?>">
                 <i class="bi bi-people"></i> 用户管理
@@ -25,6 +26,7 @@
                 <i class="bi bi-gear"></i> 系统设置
             </a>
         </li>
+        <?php endif; ?>
     </ul>
     
     <div class="sidebar-footer">

@@ -25,9 +25,15 @@ class Auth {
     public static function requireAdmin() {
         self::requireLogin();
         if (!self::isAdmin()) {
+            $_SESSION['error'] = '权限不足，需要管理员权限';
             header('Location: dashboard.php');
             exit();
         }
+    }
+
+    // 检查是否为普通用户
+    public static function isUser() {
+        return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'user';
     }
 
     // 用户登录
