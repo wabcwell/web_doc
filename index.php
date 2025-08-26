@@ -28,9 +28,9 @@ if ($document_id > 0) {
     }
 }
 
-// 如果没有选择文档，获取第一篇公开文档
-if (!$current_document && !empty($tree)) {
-    $stmt = $db->prepare("SELECT * FROM documents WHERE is_public = 1 ORDER BY sort_order DESC, created_at ASC LIMIT 1");
+// 如果没有选择文档，获取第一个顶级公开文档（权重值最小）
+if (!$current_document) {
+    $stmt = $db->prepare("SELECT * FROM documents WHERE is_public = 1 AND parent_id IS NULL ORDER BY sort_order ASC, created_at ASC LIMIT 1");
     $stmt->execute();
     $current_document = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -69,7 +69,7 @@ $stats = $stmt->fetch();
     <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" rel="stylesheet">
     <style>
         :root {
-            --sidebar-width: 300px;
+            --sidebar-width: 260px;
             --header-height: 85px;
             --search-height: 70px;
             --header-total-height: calc(var(--header-height) + var(--search-height));
@@ -91,13 +91,81 @@ $stats = $stmt->fetch();
             display: flex;
             flex-direction: column;
             z-index: 1000;
+            transition: transform 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            transform: translateX(-100%);
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            top: 160px;
+            left: 260px;
+            z-index: 1001;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #e9ecef;
+            border-radius: 0 4px 4px 0;
+            padding: 8px 8px;
+            cursor: pointer;
+            transition: left 0.3s ease, opacity 0.2s ease, visibility 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            height: 37px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-toggle.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar-toggle.collapsed {
+            left: 0px;
+        }
+
+        /* 当侧边栏收起时，按钮始终显示 */
+        .sidebar-toggle.always-visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .sidebar-toggle:hover {
+            background: rgba(248, 249, 250, 0.95);
+        }
+
+        .sidebar-toggle i {
+            font-size: 12px;
+            color: #6c757d;
+            line-height: 1;
         }
 
         .main-content {
-            margin-left: var(--sidebar-width);
+            margin-left: 260px;
             min-height: 100vh;
-            background: #fff;
+            background: #f8f9fa;
+            width: calc(100vw - 260px);
+            overflow-x: hidden;
+            transition: margin-left 0.3s ease, width 0.3s ease;
         }
+
+        .main-content.expanded {
+            margin-left: 0;
+            width: 100vw;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            min-height: 100vh;
+            background: #f8f9fa;
+            width: calc(100vw - 260px);
+            overflow-x: hidden;
+        }
+
+
 
         .sidebar-header {
             padding: 15px 20px 10px 20px;
@@ -223,14 +291,20 @@ $stats = $stmt->fetch();
         }
 
         .content-header {
-            padding: 10px 40px 5px 40px;
+            padding: 30px 30px 15px 30px;
             border-bottom: 1px solid #e9ecef;
             background: #fff;
+            width: clamp(500px, calc(100% - 60px), 1080px);
+            margin: 0 30px;
         }
 
         .content-body {
-            padding: 15px 40px 40px 40px;
-            max-width: none;
+            padding: 15px 30px 40px 30px;
+            width: clamp(500px, calc(100% - 60px), 1080px);
+            margin: 0 30px;
+            background: #fff;
+            min-height: 1080px;
+            box-sizing: border-box;
         }
 
         .document-meta {
@@ -404,8 +478,12 @@ $stats = $stmt->fetch();
     </style>
 </head>
 <body>
+    <button class="sidebar-toggle" id="sidebarToggle" title="收起/展开目录">
+        <i class="bi bi-chevron-left" id="toggleIcon"></i>
+    </button>
+
     <!-- 左侧文档列表 -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h5 class="mb-0">
                 <i class="bi bi-journal-text"></i> 文档中心
@@ -520,6 +598,97 @@ $stats = $stmt->fetch();
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-php.min.js"></script>
     <script>
+        // 侧边栏收起/展开功能
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const sidebar = document.getElementById('sidebar');
+            const mainContent = document.querySelector('.main-content');
+            const toggleIcon = document.getElementById('toggleIcon');
+            let hideTimer = null;
+
+            // 从localStorage读取侧边栏状态
+            let isSidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+
+            // 初始化侧边栏状态
+            function initSidebarState() {
+                if (isSidebarCollapsed) {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('expanded');
+                    sidebarToggle.classList.add('collapsed');
+                    toggleIcon.className = 'bi bi-chevron-right';
+                } else {
+                    sidebar.classList.remove('collapsed');
+                    mainContent.classList.remove('expanded');
+                    sidebarToggle.classList.remove('collapsed');
+                    toggleIcon.className = 'bi bi-chevron-left';
+                }
+                // 更新按钮显示状态
+                updateButtonVisibility();
+            }
+
+            // 显示收起按钮
+            function showToggleButton() {
+                if (!isSidebarCollapsed) {
+                    sidebarToggle.classList.add('visible');
+                }
+                // 清除之前的计时器
+                if (hideTimer) {
+                    clearTimeout(hideTimer);
+                    hideTimer = null;
+                }
+            }
+
+            // 隐藏收起按钮
+            function hideToggleButton() {
+                if (!isSidebarCollapsed) {
+                    hideTimer = setTimeout(() => {
+                        sidebarToggle.classList.remove('visible');
+                    }, 2000);
+                }
+            }
+
+            // 更新按钮显示状态
+            function updateButtonVisibility() {
+                if (isSidebarCollapsed) {
+                    // 收起状态下始终显示
+                    sidebarToggle.classList.add('always-visible');
+                    sidebarToggle.classList.remove('visible');
+                } else {
+                    // 展开状态下使用悬停显示
+                    sidebarToggle.classList.remove('always-visible');
+                }
+            }
+
+            // 切换侧边栏状态
+            sidebarToggle.addEventListener('click', function() {
+                isSidebarCollapsed = !isSidebarCollapsed;
+                
+                if (isSidebarCollapsed) {
+                    sidebar.classList.add('collapsed');
+                    mainContent.classList.add('expanded');
+                    sidebarToggle.classList.add('collapsed');
+                    toggleIcon.className = 'bi bi-chevron-right';
+                } else {
+                    sidebar.classList.remove('collapsed');
+                    mainContent.classList.remove('expanded');
+                    sidebarToggle.classList.remove('collapsed');
+                    toggleIcon.className = 'bi bi-chevron-left';
+                }
+                
+                // 更新按钮显示状态
+                updateButtonVisibility();
+                
+                // 保存状态到localStorage
+                localStorage.setItem('sidebarCollapsed', isSidebarCollapsed);
+            });
+
+            // 鼠标悬停事件监听（仅在展开状态下有效）
+            sidebar.addEventListener('mouseenter', showToggleButton);
+            sidebar.addEventListener('mouseleave', hideToggleButton);
+            
+            // 收起按钮自身的悬停处理（仅在展开状态下有效）
+            sidebarToggle.addEventListener('mouseenter', showToggleButton);
+            sidebarToggle.addEventListener('mouseleave', hideToggleButton);
+
         // 搜索功能
         document.getElementById('searchInput').addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
@@ -576,6 +745,9 @@ $stats = $stmt->fetch();
                     }
                 });
             });
+
+            // 页面加载时初始化侧边栏状态
+            initSidebarState();
 
             // 所有文档默认已展开，无需额外处理
         });
