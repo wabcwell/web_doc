@@ -149,7 +149,7 @@ include '../sidebar.php';
                 const formData = new FormData();
                 formData.append('image', blob);
                 
-                fetch('../../upload.php', {
+                fetch('../upload.php', {
                     method: 'POST',
                     body: formData
                 })

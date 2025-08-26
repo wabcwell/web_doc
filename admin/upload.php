@@ -1,5 +1,5 @@
 <?php
-require_once 'config.php';
+require_once '../config.php';
 
 // 检查用户权限
 if (!isset($_SESSION['user_id']) && !check_admin()) {
@@ -17,7 +17,7 @@ if (!isset($_FILES['image'])) {
     exit;
 }
 
-$uploadDir = 'uploads/';
+$uploadDir = '../uploads/';
 if (!is_dir($uploadDir)) {
     mkdir($uploadDir, 0755, true);
 }
