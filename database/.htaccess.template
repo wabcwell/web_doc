@@ -1,0 +1,3 @@
+# 将此文件重命名为 .htaccess
+# 禁止所有HTTP访问
+Deny from all

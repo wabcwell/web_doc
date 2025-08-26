@@ -24,3 +24,10 @@ cookies.txt
 # 忽略测试文件
 test_*.php
 debug_*.php
+
+# 忽略安全配置文件（允许模板存在）
+database/.htaccess
+database/Web.config
+database/index.html
+.htaccess
+Web.config
