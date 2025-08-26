@@ -71,6 +71,8 @@ $stats = $stmt->fetch();
         :root {
             --sidebar-width: 300px;
             --header-height: 60px;
+            --search-height: 70px;
+            --header-total-height: calc(var(--header-height) + var(--search-height));
         }
 
         body {
@@ -86,7 +88,8 @@ $stats = $stmt->fetch();
             height: 100vh;
             background: #fff;
             border-right: 1px solid #e9ecef;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
             z-index: 1000;
         }
 
@@ -100,10 +103,39 @@ $stats = $stmt->fetch();
             padding: 20px;
             border-bottom: 1px solid #e9ecef;
             background: #fff;
+            flex-shrink: 0;
+            height: var(--header-height);
+        }
+
+        .search-box {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            background: #fff;
+            flex-shrink: 0;
+            height: var(--search-height);
         }
 
         .sidebar-content {
-            padding: 0;
+            flex: 1;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .sidebar-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .sidebar-content::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
         }
 
         .document-tree {
@@ -336,11 +368,6 @@ $stats = $stmt->fetch();
             border-radius: 12px;
             font-size: 12px;
             margin-left: 5px;
-        }
-
-        .search-box {
-            padding: 15px 20px;
-            border-bottom: 1px solid #e9ecef;
         }
 
         .search-input {
