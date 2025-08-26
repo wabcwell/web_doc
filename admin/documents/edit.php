@@ -78,7 +78,7 @@ include '../sidebar.php';
                             <div class="form-group title-field">
                                 <label for="title">文档标题 *</label>
                                 <input type="text" class="form-control" id="title" name="title" required 
-                                       value="<?php echo htmlspecialchars($document['title']); ?>">
+                                       value="<?php echo htmlspecialchars($document['title'] ?? ''); ?>">
                             </div>
                             
                             <div class="form-group public-checkbox">
@@ -114,14 +114,14 @@ include '../sidebar.php';
                             <div class="form-group tags-field">
                                 <label for="tags">标签</label>
                                 <input type="text" class="form-control" id="tags" name="tags" 
-                                       value="<?php echo htmlspecialchars($document['tags']); ?>" 
+                                       value="<?php echo htmlspecialchars($document['tags'] ?? ''); ?>" 
                                        placeholder="多个标签用逗号分隔">
                             </div>
                             
                             <div class="form-group sort-field">
                                 <label for="sort_order">排序权重</label>
                                 <input type="number" class="form-control" id="sort_order" name="sort_order" 
-                                       value="<?php echo htmlspecialchars($document['sort_order']); ?>" min="0" 
+                                       value="<?php echo htmlspecialchars($document['sort_order'] ?? 0); ?>" min="0" 
                                        placeholder="数值越大越靠前">
                             </div>
                         </div>
@@ -136,7 +136,7 @@ include '../sidebar.php';
                     <div class="card-body">
                         <div class="form-group">
                             <div id="editor"></div>
-                            <textarea name="content" id="content" style="display: none;"><?php echo htmlspecialchars($document['content']); ?></textarea>
+                            <textarea name="content" id="content" style="display: none;"><?php echo htmlspecialchars($document['content'] ?? ''); ?></textarea>
                         </div>
                     </div>
                 </div>

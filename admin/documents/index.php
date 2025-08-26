@@ -60,7 +60,7 @@ include '../sidebar.php';
                                         <th>作者</th>
                                         <th>更新时间</th>
                                         <th>状态</th>
-                                        <th style="width: 200px;">操作</th>
+                                        <th style="width: 140px; text-align: center;">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -99,22 +99,23 @@ include '../sidebar.php';
                                                 <?php echo $status; ?>
                                             </span>
                                         </td>
-                                        <td>
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <a href="edit.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-primary" title="编辑">
-                                                    <i class="bi bi-pencil"></i>
+                                        <td style="width: 120px;">
+                                            <div style="display: flex; gap: 2px; align-items: center; justify-content: center; margin: 0 auto;">
+                                                <a href="edit.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="编辑">
+                                                    <i class="bi bi-pencil" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
                                                 <a href="add.php?parent_id=<?php echo $documentTree->getParentId($doc['id']); ?>&sort_order=<?php echo $next_sort_order; ?>" 
-                                                   class="btn btn-outline-success" title="添加同级文档">
-                                                    <i class="bi bi-plus-circle"></i>
+                                                   class="btn btn-outline-warning btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="添加同级文档">
+                                                    <i class="bi bi-plus-circle" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
                                                 <a href="add.php?parent_id=<?php echo $doc['id']; ?>&sort_order=<?php echo $next_child_sort; ?>" 
-                                                   class="btn btn-outline-info" title="添加下级文档">
-                                                    <i class="bi bi-plus-square"></i>
+                                                   class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="添加下级文档">
+                                                    <i class="bi bi-arrow-return-right" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
-                                                <a href="delete.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-danger" title="删除" onclick="return confirm('确定要删除该文档吗？')">
-                                                    <i class="bi bi-trash"></i>
-                                                </a>
+                                                <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="删除" 
+                                                        onclick="confirmDelete(<?php echo $doc['id']; ?>, '<?php echo htmlspecialchars(addslashes($doc['title'])); ?>')">
+                                                    <i class="bi bi-trash" style="font-size: 14px; margin: 0 auto;"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -127,5 +128,58 @@ include '../sidebar.php';
             </div>
         </div>
     </div>
+
+    <!-- 删除确认模态框 -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">确认删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <p>您确定要删除文档 <strong id="deleteDocumentTitle"></strong> 吗？</p>
+                    <p class="text-danger mb-0">
+                        <i class="bi bi-exclamation-triangle-fill"></i> 
+                        此操作不可撤销，文档将被永久删除。
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <a href="#" id="confirmDeleteBtn" class="btn btn-danger">确认删除</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 删除确认函数
+        function confirmDelete(id, title) {
+            document.getElementById('deleteDocumentTitle').textContent = title;
+            document.getElementById('confirmDeleteBtn').href = 'delete.php?id=' + id;
+            
+            // 显示模态框
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
+        }
+
+        // 页面加载完成后的处理
+        document.addEventListener('DOMContentLoaded', function() {
+            // 处理URL参数显示提示消息
+            const urlParams = new URLSearchParams(window.location.search);
+            const success = urlParams.get('success');
+            const error = urlParams.get('error');
+
+            if (success) {
+                // 显示成功提示（可选）
+                console.log('Success:', success);
+            }
+            if (error) {
+                // 显示错误提示（可选）
+                console.error('Error:', error);
+            }
+        });
+    </script>
 </body>
 </html>
