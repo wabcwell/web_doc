@@ -486,7 +486,11 @@ $stats = $stmt->fetch();
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h5 class="mb-0">
-                <i class="bi bi-journal-text"></i> <?php echo htmlspecialchars($site_name); ?>
+                <?php if ($logo_type === 'text'): ?>
+                    <i class="bi bi-journal-text"></i> <?php echo htmlspecialchars($site_name); ?>
+                <?php else: ?>
+                    <img src="<?php echo htmlspecialchars($logo_path); ?>" alt="Logo" style="max-height: 30px; max-width: 150px; vertical-align: middle;">
+                <?php endif; ?>
                 <span class="stats-badge"><?php echo $stats['total_docs']; ?></span>
             </h5>
             <p class="text-muted small mb-0">浏览所有公开文档</p>

@@ -61,7 +61,7 @@ try {
     // 提交事务
     $db->commit();
     
-    header('Location: index.php?success=文档删除成功，子文档已自动调整');
+    header('Location: index.php?success=delete');
     exit;
     
 } catch (Exception $e) {

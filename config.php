@@ -8,9 +8,10 @@
 $db_path = __DIR__ . '/database/docs.db';
 
 // 网站配置
+$logo_type = 'text'; //text或者img
 $site_name = '文档中心';
 $site_url = 'http://localhost:8000';
-
+$logo_path = '/uploads/logo/logo_1756211306.png';  // Logo文件路径
 // 上传配置
 $upload_path = __DIR__ . '/uploads';
 $upload_url = '/uploads';

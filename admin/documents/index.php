@@ -51,6 +51,12 @@ include '../sidebar.php';
                     <strong>添加成功！</strong> 文档已成功创建。
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="关闭"></button>
                 </div>
+                <?php elseif ($_GET['success'] === 'delete'): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-trash-fill"></i>
+                    <strong>删除成功！</strong> 文档已删除，子文档已自动调整层级。
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="关闭"></button>
+                </div>
                 <?php endif; ?>
             <?php endif; ?>
 
