@@ -33,7 +33,7 @@ if (!$document) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'] ?? '';
     $content = $_POST['content'] ?? '';
-    $parent_id = $_POST['parent_id'] ?? null;
+    $parent_id = $_POST['parent_id'] ?? 0;
     $sort_order = $_POST['sort_order'] ?? 0;
     $tags = $_POST['tags'] ?? '';
     $is_public = isset($_POST['is_public']) ? 1 : 0;
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, parent_id = ?, sort_order = ?, tags = ?, is_public = ?, updated_at = datetime('now') WHERE id = ?");
         $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public, $id]);
         
-        header('Location: index.php?success=1');
+        header('Location: index.php?success=update');
         exit;
     }
 }
@@ -95,7 +95,7 @@ include '../sidebar.php';
                             <div class="form-group parent-field">
                                 <label for="parent_id">父文档</label>
                                 <select class="form-control" id="parent_id" name="parent_id">
-                                    <option value="">无父文档（顶级文档）</option>
+                                    <option value="0">无父文档（顶级文档）</option>
                                     <?php 
                                     if (!empty($documents)) {
                                         foreach ($documents as $doc): 

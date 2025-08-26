@@ -13,14 +13,14 @@ $tree = new DocumentTree($db);
 $documents = $tree->getAllDocuments();
 
 // 获取URL参数用于自动填充
-$parent_id_param = $_GET['parent_id'] ?? null;
+$parent_id_param = $_GET['parent_id'] ?? 0;
 $sort_order_param = $_GET['sort_order'] ?? 0;
 
 // 处理表单提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'] ?? '';
     $content = $_POST['content'] ?? '';
-    $parent_id = $_POST['parent_id'] ?? null;
+    $parent_id = $_POST['parent_id'] ?? 0;
     $sort_order = $_POST['sort_order'] ?? 0;
     $tags = $_POST['tags'] ?? '';
     $is_public = isset($_POST['is_public']) ? 1 : 0;
@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $db->prepare("INSERT INTO documents (title, content, parent_id, sort_order, tags, is_public, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))");
         $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public]);
         
-        header('Location: index.php?success=1');
+        header('Location: index.php?success=add');
         exit;
     }
 }
@@ -81,7 +81,7 @@ include '../sidebar.php';
                             <div class="form-group parent-field">
                                 <label for="parent_id">父文档</label>
                                 <select class="form-control" id="parent_id" name="parent_id">
-                                    <option value="">无父文档（顶级文档）</option>
+                                    <option value="0">无父文档（顶级文档）</option>
                                     <?php 
                                     if (!empty($documents)) {
                                         foreach ($documents as $doc): 

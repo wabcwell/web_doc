@@ -9,7 +9,7 @@ $documentTree = new DocumentTree();
 $documents = $documentTree->getAllDocumentsByHierarchy();
 
 // 获取参数用于添加按钮
-$parent_id = isset($_GET['parent_id']) ? intval($_GET['parent_id']) : null;
+$parent_id = isset($_GET['parent_id']) ? intval($_GET['parent_id']) : 0;
 $sort_order = isset($_GET['sort_order']) ? intval($_GET['sort_order']) : 0;
 $action = isset($_GET['action']) ? $_GET['action'] : '';
 
@@ -36,6 +36,23 @@ include '../sidebar.php';
                     <i class="bi bi-plus-circle"></i> 添加文档
                 </a>
             </div>
+            
+            <!-- 成功提示消息 -->
+            <?php if (isset($_GET['success'])): ?>
+                <?php if ($_GET['success'] === 'update'): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-check-circle-fill"></i>
+                    <strong>更新成功！</strong> 文档已成功更新。
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="关闭"></button>
+                </div>
+                <?php elseif ($_GET['success'] === 'add'): ?>
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="bi bi-plus-circle-fill"></i>
+                    <strong>添加成功！</strong> 文档已成功创建。
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="关闭"></button>
+                </div>
+                <?php endif; ?>
+            <?php endif; ?>
 
             <div class="card">
                 <div class="card-header">

@@ -12,11 +12,11 @@ class DocumentTree {
     /**
      * 获取文档树形结构
      */
-    public function getTree($parent_id = null) {
+    public function getTree($parent_id = 0) {
         $sql = "SELECT d.*, u.username 
                 FROM documents d 
                 LEFT JOIN users u ON d.user_id = u.id 
-                WHERE d.parent_id " . ($parent_id === null ? "IS NULL" : "= " . intval($parent_id)) . " 
+                WHERE d.parent_id = " . intval($parent_id) . " 
                 ORDER BY d.sort_order ASC, d.id ASC";
         
         $stmt = $this->db->prepare($sql);
@@ -55,7 +55,7 @@ class DocumentTree {
         $sql = "SELECT d.*, u.username 
                 FROM documents d 
                 LEFT JOIN users u ON d.user_id = u.id 
-                WHERE d.parent_id " . ($parent_id === null ? "IS NULL" : "= " . intval($parent_id)) . " 
+                WHERE d.parent_id = " . intval($parent_id) . " 
                 AND d.id != ? 
                 ORDER BY d.sort_order ASC, d.id ASC";
         
@@ -229,9 +229,8 @@ class DocumentTree {
     /**
      * 获取文档的最大排序值
      */
-    public function getMaxSortOrder($parent_id = null) {
-        $sql = "SELECT MAX(sort_order) FROM documents WHERE parent_id " . 
-               ($parent_id === null ? "IS NULL" : "= " . intval($parent_id));
+    public function getMaxSortOrder($parent_id = 0) {
+        $sql = "SELECT MAX(sort_order) FROM documents WHERE parent_id = " . intval($parent_id);
         $stmt = $this->db->query($sql);
         return $stmt->fetchColumn() ?? 0;
     }
@@ -257,7 +256,7 @@ class DocumentTree {
     /**
      * 构建层级结构
      */
-    private function buildHierarchy($documents, $parent_id = null, $level = 0) {
+    private function buildHierarchy($documents, $parent_id = 0, $level = 0) {
         $result = [];
         foreach ($documents as $doc) {
             if ($doc['parent_id'] == $parent_id) {

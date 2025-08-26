@@ -8,7 +8,7 @@
 $db_path = __DIR__ . '/database/docs.db';
 
 // 网站配置
-$site_name = '简洁文档系统';
+$site_name = '文档中心';
 $site_url = 'http://localhost:8000';
 
 // 上传配置

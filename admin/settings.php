@@ -139,24 +139,7 @@ include 'sidebar.php';
                             </div>
                         </div>
                         
-                        <!-- 配置信息 -->
-                        <div class="card settings-form mt-4">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-info-circle"></i> 配置信息
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <p class="mb-2">
-                                    <strong>配置文件路径：</strong><br>
-                                    <code><?php echo realpath($config_file); ?></code>
-                                </p>
-                                <p class="mb-0">
-                                    <strong>说明：</strong>
-                                    所有配置修改将直接写入config.php文件，不涉及数据库操作。
-                                </p>
-                            </div>
-                        </div>
+
         </div>
     </div>
 </body>

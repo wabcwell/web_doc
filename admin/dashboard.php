@@ -49,7 +49,7 @@ include 'sidebar.php';
             <?php endif; ?>
             
             <!-- 统计卡片 -->
-            <div class="row">
+            <div class="row g-2 mb-3">
                 <div class="col-md-6">
                     <div class="card">
                         <div class="card-body">
@@ -69,7 +69,7 @@ include 'sidebar.php';
             </div>
 
             <!-- 最近更新 -->
-            <div class="card">
+            <div class="card mb-3">
                 <div class="card-header">
                     <h5 class="mb-0">最近更新</h5>
                 </div>

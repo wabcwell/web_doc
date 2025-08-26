@@ -30,7 +30,7 @@ if ($document_id > 0) {
 
 // 如果没有选择文档，获取第一个顶级公开文档（权重值最小）
 if (!$current_document) {
-    $stmt = $db->prepare("SELECT * FROM documents WHERE is_public = 1 AND parent_id IS NULL ORDER BY sort_order ASC, created_at ASC LIMIT 1");
+    $stmt = $db->prepare("SELECT * FROM documents WHERE is_public = 1 AND parent_id = 0 ORDER BY sort_order ASC, created_at ASC LIMIT 1");
     $stmt->execute();
     $current_document = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -486,7 +486,7 @@ $stats = $stmt->fetch();
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <h5 class="mb-0">
-                <i class="bi bi-journal-text"></i> 文档中心
+                <i class="bi bi-journal-text"></i> <?php echo htmlspecialchars($site_name); ?>
                 <span class="stats-badge"><?php echo $stats['total_docs']; ?></span>
             </h5>
             <p class="text-muted small mb-0">浏览所有公开文档</p>
