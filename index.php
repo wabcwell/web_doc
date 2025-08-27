@@ -64,9 +64,9 @@ $stats = $stmt->fetch();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($title); ?> - 文档系统</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism.min.css" rel="stylesheet">
+    <link href="assets/css/static/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/static/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="assets/css/static/prism.min.css" rel="stylesheet">
     <style>
         :root {
             --sidebar-width: 260px;
@@ -149,20 +149,11 @@ $stats = $stmt->fetch();
             background: #f8f9fa;
             width: calc(100vw - 260px);
             overflow-x: hidden;
-            transition: margin-left 0.3s ease, width 0.3s ease;
         }
 
         .main-content.expanded {
             margin-left: 0;
             width: 100vw;
-        }
-
-        .main-content {
-            margin-left: 260px;
-            min-height: 100vh;
-            background: #f8f9fa;
-            width: calc(100vw - 260px);
-            overflow-x: hidden;
         }
 
 
@@ -295,16 +286,21 @@ $stats = $stmt->fetch();
             border-bottom: 1px solid #e9ecef;
             background: #fff;
             width: clamp(500px, calc(100% - 60px), 1080px);
-            margin: 0 30px;
+            margin: 0 auto;
         }
 
         .content-body {
             padding: 15px 30px 40px 30px;
             width: clamp(500px, calc(100% - 60px), 1080px);
-            margin: 0 30px;
+            margin: 0 auto;
             background: #fff;
             min-height: 1080px;
             box-sizing: border-box;
+        }
+
+        .content-header {
+            width: clamp(500px, calc(100% - 60px), 1080px);
+            margin: 0 auto;
         }
 
         .document-meta {
@@ -596,11 +592,11 @@ $stats = $stmt->fetch();
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-python.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-php.min.js"></script>
+    <script src="assets/js/static/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/static/prism.min.js"></script>
+    <script src="assets/js/static/prism-javascript.min.js"></script>
+    <script src="assets/js/static/prism-python.min.js"></script>
+    <script src="assets/js/static/prism-php.min.js"></script>
     <script>
         // 侧边栏收起/展开功能
             const sidebarToggle = document.getElementById('sidebarToggle');
