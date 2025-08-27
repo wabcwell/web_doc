@@ -37,6 +37,11 @@ switch ($format) {
     case 'md':
         export_md($document);
         break;
+    case 'jpg':
+    case 'png':
+        // 图片格式通过前端html2canvas处理，这里返回一个引导页面
+        export_image_guide($document, $format);
+        break;
     default:
         die('不支持的导出格式');
 }
@@ -74,6 +79,173 @@ function export_html($document, $Parsedown) {
     
     header('Content-Type: text/html; charset=utf-8');
     header('Content-Disposition: attachment; filename="' . $document['title'] . '.html"');
+    echo $output;
+}
+
+function export_image_guide($document, $format) {
+    $title = htmlspecialchars($document['title']);
+    $format_upper = strtoupper($format);
+    $updated_at = date('Y-m-d H:i', strtotime($document['updated_at']));
+    $content = nl2br(htmlspecialchars($document['content']));
+    
+    $output = '<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>导出为 ' . $format_upper . ' 图片 - ' . $title . '</title>
+    <link rel="stylesheet" href="assets/css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/static/bootstrap-icons.min.css">
+    <style>
+        body { 
+            padding: 20px; 
+            background: #f8f9fa;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+        .icon {
+            font-size: 48px;
+            color: #0d6efd;
+            margin-bottom: 20px;
+        }
+        .btn-export {
+            background: #0d6efd;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-export:hover {
+            background: #0b5ed7;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            color: #6c757d;
+        }
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #0d6efd;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="text-center">
+            <i class="bi bi-image icon"></i>
+            <h2>导出为 ' . $format_upper . ' 图片</h2>
+            <p class="text-muted mb-4">文档：<strong>' . $title . '</strong></p>
+            
+            <button class="btn-export" onclick="exportImage()">
+                <i class="bi bi-download"></i> 开始导出
+            </button>
+            
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>正在生成图片，请稍候...</p>
+            </div>
+            
+            <div class="mt-4">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i> 
+                    图片将通过浏览器自动生成并下载，可能需要几秒钟时间
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        function exportImage() {
+            const loading = document.getElementById("loading");
+            const button = document.querySelector(".btn-export");
+            
+            // 显示加载状态
+            button.style.display = "none";
+            loading.style.display = "block";
+            
+            // 获取文档内容
+            const title = "' . addslashes($title) . '"; 
+            
+            // 创建临时内容区域
+            const tempDiv = document.createElement("div");
+            tempDiv.innerHTML = `
+                <div style="padding: 40px; background: white; max-width: 800px; margin: 0 auto;">
+                    <h1 style="margin-bottom: 20px; color: #333; border-bottom: 2px solid #0d6efd; padding-bottom: 10px;">${title}</h1>
+                    <div style="color: #6c757d; font-size: 14px; margin-bottom: 30px;">
+                        <p><strong>更新时间：</strong>' . $updated_at . '</p>
+                    </div>
+                    <div style="line-height: 1.8; color: #333;">
+                        ' . $content . '
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(tempDiv);
+            
+            html2canvas(tempDiv, {
+                backgroundColor: "#f8f9fa",
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                width: 800,
+                height: tempDiv.scrollHeight
+            }).then(canvas => {
+                // 创建下载链接
+                const link = document.createElement("a");
+                link.download = `${title}.' . $format . '`;
+                
+                if ("' . $format . '" === "jpg") {
+                    link.href = canvas.toDataURL("image/jpeg", 0.9);
+                } else {
+                    link.href = canvas.toDataURL("image/png");
+                }
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // 清理临时元素
+                document.body.removeChild(tempDiv);
+                
+                // 返回上一页
+                setTimeout(() => {
+                    window.history.back();
+                }, 1000);
+                
+            }).catch(error => {
+                console.error("导出失败:", error);
+                alert("图片导出失败，请重试");
+                window.history.back();
+            });
+        }
+        
+        // 自动触发导出
+        setTimeout(exportImage, 500);
+    </script>
+</body>
+</html>';
+    
+    header('Content-Type: text/html; charset=utf-8');
     echo $output;
 }
 
@@ -172,7 +344,7 @@ function export_pdf($document, $Parsedown) {
 </html>';
     
     header('Content-Type: text/html; charset=utf-8');
-    header('Content-Disposition: attachment; filename="' . $document['title'] . '.pdf.html"');
+    header('Content-Disposition: attachment; filename="' . $document['title'] . '.pdf"');
     echo $output;
 }
 
