@@ -124,7 +124,7 @@ web_doc/
 #### 删除场景
 
 1. **删除顶级文档**
-   - **父级调整**：直接子文档的父级设为null（成为顶级文档）
+   - **父级调整**：直接子文档的父级设为0（成为顶级文档）
    - **排序继承**：子文档排序权重 = 被删除的父级顶级文档的排序值（所有子文档相同）
 
 2. **删除非顶级文档**
@@ -153,41 +153,6 @@ web_doc/
 - **users**: 用户表
 - **documents**: 文档表
 
-### 主要文件
-
-#### 用户认证与管理
-- `includes/auth.php`: 用户认证和权限管理
-- `includes/init.php`: 系统初始化配置
-- `admin/user/index.php`: 用户列表管理页面
-- `admin/user/add_user.php`: 添加新用户
-- `admin/user/edit_user.php`: 编辑用户信息
-- `admin/user/delete_user.php`: 删除用户
-
-#### 文档管理
-- `includes/DocumentTree.php`: 文档树处理和文档管理核心
-- `admin/documents/index.php`: 文档列表管理
-- `admin/documents/add.php`: 添加新文档
-- `admin/documents/edit.php`: 编辑文档
-- `admin/documents/delete.php`: 删除文档
-- `admin/documents/view.php`: 查看文档详情
-- `admin/documents/view_his.php`: 文档历史版本查看
-
-#### 回收站管理
-- `admin/doc_recycle/index.php`: 回收站列表
-- `admin/doc_recycle/restore.php`: 文档恢复功能
-- `admin/doc_recycle/permdel.php`: 永久删除功能
-- `admin/doc_recycle/view.php`: 回收文档详情查看
-
-#### 系统配置
-- `config.php`: 系统配置文件
-- `database/router.php`: 数据库路由配置
-- `admin/settings.php`: 系统设置页面
-- `admin/dashboard.php`: 管理面板首页
-
-#### 前台功能
-- `index.php`: 前台首页（文档浏览）
-- `search.php`: 文档搜索功能
-- `export.php`: 文档导出功能
 
 ## 待办事项 (To-Do)
 
