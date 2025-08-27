@@ -7,7 +7,7 @@ $results = [];
 
 if ($query) {
     // 搜索文档
-    $stmt = $pdo->prepare("SELECT d.*, c.name as category_name FROM documents d LEFT JOIN categories c ON d.category_id = c.id WHERE d.title LIKE ? OR d.content LIKE ? ORDER BY d.updated_at DESC");
+    $stmt = $pdo->prepare("SELECT * FROM documents WHERE title LIKE ? OR content LIKE ? ORDER BY updated_at DESC");
     $search_term = '%' . $query . '%';
     $stmt->execute([$search_term, $search_term]);
     $results = $stmt->fetchAll();
@@ -107,13 +107,6 @@ if ($query) {
                         ?>
                             <div class="search-result">
                                 <h4><a href="index.php?id=<?php echo $result['id']; ?>"><?php echo $title; ?></a></h4>
-                                <div class="category">
-                                    <?php if ($result['category_name']): ?>
-                                        目录：<?php echo htmlspecialchars($result['category_name']); ?>
-                                    <?php else: ?>
-                                        未分类
-                                    <?php endif; ?>
-                                </div>
                                 <div class="date">更新时间：<?php echo date('Y-m-d H:i', strtotime($result['updated_at'])); ?></div>
                                 <div class="content">
                                     <?php echo $Parsedown->text($content . '...'); ?>

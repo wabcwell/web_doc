@@ -23,18 +23,9 @@ function init_database() {
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         
         // 创建表
-        $db->exec("CREATE TABLE IF NOT EXISTS categories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            parent_id INTEGER DEFAULT 0,
-            content TEXT,
-            sort_order INTEGER DEFAULT 0,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )");
-        
         $db->exec("CREATE TABLE IF NOT EXISTS documents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            category_id INTEGER,
+            parent_id INTEGER DEFAULT 0,
             title TEXT NOT NULL,
             content TEXT,
             sort_order INTEGER DEFAULT 0,
@@ -57,11 +48,8 @@ function init_database() {
         $db->exec("INSERT OR IGNORE INTO users (username, password, role) VALUES 
             ('admin', '" . password_hash('admin123', PASSWORD_DEFAULT) . "', 'admin')");
         
-        $db->exec("INSERT OR IGNORE INTO categories (name, parent_id, content) VALUES 
-            ('开始使用', 0, '# 欢迎使用文档系统\n\n这是一个简洁的文档管理系统。')");
-        
-        $db->exec("INSERT OR IGNORE INTO documents (category_id, title, content, user_id) VALUES 
-            (1, '欢迎使用', '# 欢迎使用\n\n这是您的第一篇文档。', 1)");
+        $db->exec("INSERT OR IGNORE INTO documents (parent_id, title, content, user_id) VALUES 
+            (0, '欢迎使用', '# 欢迎使用\n\n这是您的第一篇文档。', 1)");
     }
 }
 
@@ -89,24 +77,14 @@ function sanitize($data) {
 }
 
 /**
- * 获取目录树
- */
-function get_category_tree($parent_id = 0) {
-    $db = get_db();
-    $stmt = $db->prepare("SELECT * FROM categories WHERE parent_id = ? ORDER BY sort_order ASC, id ASC");
-    $stmt->execute([$parent_id]);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-/**
  * 获取文档列表
  */
-function get_documents($category_id = null) {
+function get_documents($parent_id = null) {
     $db = get_db();
     
-    if ($category_id) {
-        $stmt = $db->prepare("SELECT * FROM documents WHERE category_id = ? ORDER BY sort_order ASC, id ASC");
-        $stmt->execute([$category_id]);
+    if ($parent_id !== null) {
+        $stmt = $db->prepare("SELECT * FROM documents WHERE parent_id = ? ORDER BY sort_order ASC, id ASC");
+        $stmt->execute([$parent_id]);
     } else {
         $stmt = $db->query("SELECT * FROM documents ORDER BY sort_order ASC, id ASC");
     }
@@ -125,16 +103,6 @@ function get_document($id) {
 }
 
 /**
- * 获取单个目录
- */
-function get_category($id) {
-    $db = get_db();
-    $stmt = $db->prepare("SELECT * FROM categories WHERE id = ?");
-    $stmt->execute([$id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
-/**
  * 搜索文档
  */
 function search_documents($keyword) {
@@ -143,25 +111,6 @@ function search_documents($keyword) {
     $keyword = "%$keyword%";
     $stmt->execute([$keyword, $keyword]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-/**
- * 获取面包屑导航
- */
-function get_breadcrumb($category_id) {
-    $breadcrumb = [];
-    
-    while ($category_id > 0) {
-        $category = get_category($category_id);
-        if ($category) {
-            array_unshift($breadcrumb, $category);
-            $category_id = $category['parent_id'];
-        } else {
-            break;
-        }
-    }
-    
-    return $breadcrumb;
 }
 
 /**
