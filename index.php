@@ -562,11 +562,41 @@ $stats = $stmt->fetch();
                      <?php endif; ?>
                  </div>
                  <?php if ($current_document): ?>
-                     <div>
-                         <a href="export.php?id=<?php echo $current_document['id']; ?>&format=html" class="btn btn-outline-primary btn-sm">
-                             <i class="bi bi-download"></i> 导出
-                         </a>
+                     <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
+                     <i class="bi bi-download"></i> 导出
+                 </button>
+                 
+                 <!-- 导出格式选择模态框 -->
+                 <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+                     <div class="modal-dialog modal-sm">
+                         <div class="modal-content">
+                             <div class="modal-header">
+                                 <h5 class="modal-title" id="exportModalLabel">选择导出格式</h5>
+                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                             </div>
+                             <div class="modal-body">
+                                 <div class="d-grid gap-2">
+                                     <a href="export.php?id=<?php echo $current_document['id']; ?>&format=pdf" target="_blank" class="btn btn-outline-danger">
+                                         <i class="bi bi-file-earmark-pdf"></i> PDF格式
+                                     </a>
+                                     <a href="export.php?id=<?php echo $current_document['id']; ?>&format=md" target="_blank" class="btn btn-outline-primary">
+                                         <i class="bi bi-file-earmark-text"></i> Markdown格式
+                                     </a>
+                                     <a href="export.php?id=<?php echo $current_document['id']; ?>&format=html" target="_blank" class="btn btn-outline-success">
+                                         <i class="bi bi-file-earmark-code"></i> HTML格式
+                                     </a>
+                                     <hr>
+                                     <button type="button" class="btn btn-outline-info" onclick="exportAsImage('png')" data-bs-dismiss="modal">
+                                         <i class="bi bi-image"></i> PNG图片
+                                     </button>
+                                     <button type="button" class="btn btn-outline-warning" onclick="exportAsImage('jpg')" data-bs-dismiss="modal">
+                                         <i class="bi bi-file-earmark-image"></i> JPG图片
+                                     </button>
+                                 </div>
+                             </div>
+                         </div>
                      </div>
+                 </div>
                  <?php endif; ?>
              </div>
          </div>
@@ -597,6 +627,7 @@ $stats = $stmt->fetch();
     <script src="assets/js/static/prism-javascript.min.js"></script>
     <script src="assets/js/static/prism-python.min.js"></script>
     <script src="assets/js/static/prism-php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script>
         // 侧边栏收起/展开功能
             const sidebarToggle = document.getElementById('sidebarToggle');
@@ -758,6 +789,84 @@ $stats = $stmt->fetch();
         function toggleSidebar() {
             const sidebar = document.querySelector('.sidebar');
             sidebar.classList.toggle('show');
+        }
+
+        // 图片导出功能
+        function exportAsImage(format) {
+            const contentElement = document.querySelector('.content-body');
+            const title = document.querySelector('.content-header h1')?.textContent || 'document';
+            
+            if (!contentElement) {
+                alert('无法找到文档内容');
+                return;
+            }
+
+            // 显示加载提示
+            const loadingToast = document.createElement('div');
+            loadingToast.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: rgba(0,0,0,0.8);
+                color: white;
+                padding: 20px;
+                border-radius: 8px;
+                z-index: 9999;
+                font-family: Arial, sans-serif;
+            `;
+            loadingToast.innerHTML = '<i class="bi bi-hourglass-split"></i> 正在生成图片...';
+            document.body.appendChild(loadingToast);
+
+            // 临时样式调整
+            const originalOverflow = contentElement.style.overflow;
+            contentElement.style.overflow = 'visible';
+
+            html2canvas(contentElement, {
+                backgroundColor: '#ffffff',
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                width: Math.min(contentElement.scrollWidth, 1200),
+                height: contentElement.scrollHeight
+            }).then(canvas => {
+                // 恢复原始样式
+                contentElement.style.overflow = originalOverflow;
+                
+                // 移除加载提示
+                document.body.removeChild(loadingToast);
+
+                // 创建下载链接
+                const link = document.createElement('a');
+                link.download = `${title}.${format}`;
+                
+                if (format === 'jpg') {
+                    // 转换为JPEG
+                    const imgData = canvas.toDataURL('image/jpeg', 0.9);
+                    link.href = imgData;
+                } else {
+                    // PNG格式
+                    const imgData = canvas.toDataURL('image/png');
+                    link.href = imgData;
+                }
+                
+                // 触发下载
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+            }).catch(error => {
+                // 恢复原始样式
+                contentElement.style.overflow = originalOverflow;
+                
+                // 移除加载提示
+                if (document.body.contains(loadingToast)) {
+                    document.body.removeChild(loadingToast);
+                }
+                
+                console.error('导出失败:', error);
+                alert('图片导出失败，请重试');
+            });
         }
 
         // 代码高亮
