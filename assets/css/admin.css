@@ -663,12 +663,13 @@ tr:hover {
 .table a.text-decoration-none {
     color: #495057;
     font-weight: 500;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .table a.text-decoration-none:hover {
-    color: #007cba;
+    color: #6610f2;
     text-decoration: none;
+    font-weight: 600;
 }
 
 /* 深色主题适配 */
@@ -687,10 +688,10 @@ tr:hover {
     }
     
     .table a.text-decoration-none {
-        color: #e9ecef;
+        color: #adb5bd;
     }
     
     .table a.text-decoration-none:hover {
-        color: #3498db;
+        color: #a78bfa;
     }
 }
