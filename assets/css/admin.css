@@ -661,13 +661,13 @@ tr:hover {
 
 /* 文档列表链接样式优化 */
 .table a.text-decoration-none {
-    color: #495057;
+    color: #0b7275;
     font-weight: 500;
     transition: all 0.2s ease;
 }
 
 .table a.text-decoration-none:hover {
-    color: #6610f2;
+    color: #085c5f;
     text-decoration: none;
     font-weight: 600;
 }
@@ -688,10 +688,10 @@ tr:hover {
     }
     
     .table a.text-decoration-none {
-        color: #adb5bd;
+        color: #6c9aa0;
     }
     
     .table a.text-decoration-none:hover {
-        color: #a78bfa;
+        color: #5a8b91;
     }
 }
