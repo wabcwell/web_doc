@@ -24,6 +24,7 @@ cookies.txt
 # 忽略测试文件
 test_*.php
 debug_*.php
+lake_*.html
 
 # 忽略初始化文档文件
 init_docs.php
