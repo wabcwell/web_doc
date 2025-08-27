@@ -1,9 +1,10 @@
 <?php
+require_once '../../config.php';
 require_once '../../includes/auth.php';
 require_once '../../includes/init.php';
 
 // 检查登录和权限
-check_admin_auth();
+Auth::requireLogin();
 
 // 获取文档ID
 $document_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -75,7 +76,6 @@ $edit_logs = get_edit_logs($document_id);
 $versions = get_document_versions($document_id);
 $current_version = get_current_version_number($document_id);
 
-include '../sidebar.php';
 ?>
 
 <!DOCTYPE html>
@@ -86,6 +86,8 @@ include '../sidebar.php';
     <title>文档历史记录 - <?php echo htmlspecialchars($document['title']); ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <link href="../../assets/css/admin.css" rel="stylesheet">
     <style>
         .version-card {
             border-left: 4px solid #0d6efd;
@@ -107,7 +109,7 @@ include '../sidebar.php';
             border-left-color: #dc3545;
         }
         .diff-content {
-            max-height: 200px;
+            max-height: 600px;
             overflow-y: auto;
             background: #f8f9fa;
             padding: 10px;
@@ -120,18 +122,27 @@ include '../sidebar.php';
             top: 10px;
             right: 10px;
         }
+        /* 版本预览模态框高度调整 */
+        #versionModal .modal-dialog {
+            height: 90vh;
+            margin: 5vh auto;
+        }
+        #versionModal .modal-content {
+            height: 100%;
+        }
+        #versionModal .modal-body {
+            max-height: calc(90vh - 120px);
+            overflow-y: auto;
+        }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- 侧边栏 -->
-            <div class="col-md-3 col-lg-2">
-                <?php include '../sidebar.php'; ?>
-            </div>
-            
-            <!-- 主内容 -->
-            <div class="col-md-9 col-lg-10">
+    <div class="d-flex">
+        <!-- 侧边栏 -->
+        <?php include '../sidebar.php'; ?>
+        
+        <div class="main-content">
+            <div class="container-fluid">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <div>
                         <h1 class="h3">文档历史记录</h1>
@@ -163,9 +174,85 @@ include '../sidebar.php';
                 <?php endif; ?>
 
                 <div class="row">
-                    <!-- 编辑日志 -->
-                    <div class="col-lg-6">
+                    <!-- 左侧：历史文档内容 -->
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-file-text"></i> 历史文档内容
+                                    <span id="currentVersionLabel" class="badge bg-primary ms-2">最新版本</span>
+                                </h5>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" onclick="showLatestVersion()" id="backToLatestBtn" style="display: none;">
+                                    <i class="bi bi-arrow-left"></i> 返回最新版本
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div id="versionContentDisplay" class="markdown-content">
+                                    <!-- 默认显示最新版本内容 -->
+                                    <?php 
+                                    require_once '../../Parsedown.php';
+                                    $Parsedown = new Parsedown();
+                                    echo $Parsedown->text($document['content']);
+                                    ?>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右侧：版本历史和编辑记录 -->
+                    <div class="col-md-4">
+                        <!-- 版本历史 -->
                         <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="bi bi-clock-history"></i> 版本历史
+                                    <span class="badge bg-secondary ms-2"><?php echo count($versions); ?></span>
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <?php if (empty($versions)): ?>
+                                    <p class="text-muted text-center">暂无历史版本</p>
+                                <?php else: ?>
+                                    <div class="list-group">
+                                        <?php foreach ($versions as $index => $version): ?>
+                                            <div class="list-group-item position-relative version-card">
+                                                <?php if ($index === 0): ?>
+                                                    <span class="badge bg-success current-badge">当前</span>
+                                                <?php endif; ?>
+                                                
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
+                                                        <h6 class="mb-1">版本 <?php echo $version['version_number']; ?></h6>
+                                                        <small class="text-muted">
+                                                            由 <?php echo htmlspecialchars($version['username']); ?> 创建于
+                                                            <?php echo date('Y-m-d H:i', strtotime($version['created_at'])); ?>
+                                                        </small>
+                                                    </div>
+                                                    <div class="btn-group" role="group">
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                                onclick='showVersionContent(<?php echo $version["version_number"]; ?>, <?php echo json_encode($version["title"]); ?>, <?php echo json_encode($version["content"]); ?>)'
+                                                                title="查看内容">
+                                                            <i class="bi bi-eye"></i>
+                                                        </button>
+                                                        <?php if ($index > 0): ?>
+                                                            <form method="post" class="d-inline" onsubmit="return confirm('确定要回滚到这个版本吗？当前内容将被保存为新版本。')">
+                                                                <input type="hidden" name="rollback_version" value="<?php echo $version['version_number']; ?>">
+                                                                <button type="submit" class="btn btn-sm btn-outline-warning" title="回滚到此版本">
+                                                                    <i class="bi bi-arrow-clockwise"></i>
+                                                                </button>
+                                                            </form>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+
+                        <!-- 编辑记录 -->
+                        <div class="card">
                             <div class="card-header">
                                 <h5 class="mb-0">
                                     <i class="bi bi-list-ul"></i> 编辑记录
@@ -176,7 +263,7 @@ include '../sidebar.php';
                                 <?php if (empty($edit_logs)): ?>
                                     <p class="text-muted text-center">暂无编辑记录</p>
                                 <?php else: ?>
-                                    <div class="timeline">
+                                    <div class="timeline" style="max-height: 400px; overflow-y: auto;">
                                         <?php foreach ($edit_logs as $log): ?>
                                             <div class="log-item <?php echo htmlspecialchars($log['action']); ?>">
                                                 <div class="d-flex justify-content-between align-items-start">
@@ -218,105 +305,97 @@ include '../sidebar.php';
                             </div>
                         </div>
                     </div>
-
-                    <!-- 版本历史 -->
-                    <div class="col-lg-6">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-clock-history"></i> 版本历史
-                                    <span class="badge bg-secondary ms-2"><?php echo count($versions); ?></span>
-                                </h5>
-                            </div>
-                            <div class="card-body">
-                                <?php if (empty($versions)): ?>
-                                    <p class="text-muted text-center">暂无历史版本</p>
-                                <?php else: ?>
-                                    <div class="list-group">
-                                        <?php foreach ($versions as $index => $version): ?>
-                                            <div class="list-group-item position-relative version-card">
-                                                <?php if ($index === 0): ?>
-                                                    <span class="badge bg-success current-badge">当前</span>
-                                                <?php endif; ?>
-                                                
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <h6 class="mb-1">版本 <?php echo $version['version_number']; ?></h6>
-                                                        <small class="text-muted">
-                                                            由 <?php echo htmlspecialchars($version['username']); ?> 创建于
-                                                            <?php echo date('Y-m-d H:i', strtotime($version['created_at'])); ?>
-                                                        </small>
-                                                    </div>
-                                                    <div class="btn-group" role="group">
-                                                        <button type="button" class="btn btn-sm btn-outline-primary" 
-                                                                onclick="viewVersion(<?php echo $version['version_number']; ?>)"
-                                                                title="查看内容">
-                                                            <i class="bi bi-eye"></i>
-                                                        </button>
-                                                        <?php if ($index > 0): ?>
-                                                            <form method="post" class="d-inline" onsubmit="return confirm('确定要回滚到这个版本吗？当前内容将被保存为新版本。')">
-                                                                <input type="hidden" name="rollback_version" value="<?php echo $version['version_number']; ?>">
-                                                                <button type="submit" class="btn btn-sm btn-outline-warning" title="回滚到此版本">
-                                                                    <i class="bi bi-arrow-clockwise"></i>
-                                                                </button>
-                                                            </form>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        <?php endforeach; ?>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 版本内容模态框 -->
-    <div class="modal fade" id="versionModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">版本内容预览</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div id="versionContent">
-                        <!-- 内容将通过JavaScript加载 -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
     <script>
-        function viewVersion(versionNumber) {
-            // 这里可以通过AJAX获取版本内容，现在简化处理
-            const versions = <?php echo json_encode($versions); ?>;
-            const version = versions.find(v => v.version_number === versionNumber);
+        // 创建简单的Markdown解析器
+        function parseMarkdown(text) {
+            if (!text) return '<p>无内容</p>';
             
-            if (version) {
-                document.getElementById('versionContent').innerHTML = `
-                    <h6>版本 ${version.version_number}</h6>
-                    <p><strong>标题:</strong> ${version.title}</p>
-                    <p><strong>创建时间:</strong> ${version.created_at}</p>
-                    <p><strong>创建用户:</strong> ${version.username}</p>
-                    <hr>
-                    <div class="diff-content">
-                        ${marked.parse(version.content || '无内容')}
-                    </div>
-                `;
-                
-                new bootstrap.Modal(document.getElementById('versionModal')).show();
-            }
+            // 处理代码块
+            text = text.replace(/```(\w+)?\n([\s\S]*?)```/g, function(match, lang, code) {
+                const language = lang || 'plaintext';
+                return '<pre><code class="language-' + language + '">' + escapeHtml(code.trim()) + '</code></pre>';
+            });
+            
+            // 处理行内代码
+            text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+            
+            // 处理标题
+            text = text.replace(/^### (.*$)/gim, '<h3>$1</h3>');
+            text = text.replace(/^## (.*$)/gim, '<h2>$1</h2>');
+            text = text.replace(/^# (.*$)/gim, '<h1>$1</h1>');
+            
+            // 处理粗体
+            text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            text = text.replace(/__(.*?)__/g, '<strong>$1</strong>');
+            
+            // 处理斜体
+            text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+            text = text.replace(/_(.*?)_/g, '<em>$1</em>');
+            
+            // 处理链接
+            text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+            
+            // 处理段落
+            text = text.replace(/\n\n/g, '</p><p>');
+            text = '<p>' + text + '</p>';
+            
+            // 处理剩余的换行
+            text = text.replace(/\n/g, '<br>');
+            
+            return text;
+        }
+        
+        // HTML转义函数
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // 显示指定版本的内容
+        function showVersionContent(versionNumber, title, content) {
+            const contentDisplay = document.getElementById('versionContentDisplay');
+            const versionLabel = document.getElementById('currentVersionLabel');
+            const backButton = document.getElementById('backToLatestBtn');
+            
+            // 更新版本标签
+            versionLabel.textContent = `版本 ${versionNumber}`;
+            versionLabel.className = 'badge bg-info ms-2';
+            
+            // 显示返回按钮
+            backButton.style.display = 'inline-block';
+            
+            // 更新内容
+            contentDisplay.innerHTML = parseMarkdown(content);
+            
+            // 重新应用代码高亮
+            setTimeout(() => {
+                if (typeof Prism !== 'undefined') {
+                    Prism.highlightAll();
+                }
+            }, 100);
+            
+            // 保持页面位置不变，不滚动
+        }
+        
+        // 显示最新版本内容
+        function showLatestVersion() {
+            // 重新加载页面以显示最新版本
+            window.location.href = window.location.pathname + window.location.search;
         }
     </script>
-    
-    <!-- 引入marked.js用于Markdown渲染 -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </body>
 </html>
