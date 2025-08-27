@@ -16,7 +16,7 @@ class DocumentTree {
         $sql = "SELECT d.*, u.username 
                 FROM documents d 
                 LEFT JOIN users u ON d.user_id = u.id 
-                WHERE d.parent_id = " . intval($parent_id) . " 
+                WHERE d.parent_id = " . intval($parent_id) . " AND d.del_status = 0
                 ORDER BY d.sort_order ASC, d.id ASC";
         
         $stmt = $this->db->prepare($sql);
@@ -37,7 +37,7 @@ class DocumentTree {
         $stmt = $this->db->prepare("SELECT d.*, u.username 
                                   FROM documents d 
                                   LEFT JOIN users u ON d.user_id = u.id 
-                                  WHERE d.parent_id = ? 
+                                  WHERE d.parent_id = ? AND d.del_status = 0
                                   ORDER BY d.sort_order ASC, d.id ASC");
         $stmt->execute([$parent_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -48,14 +48,14 @@ class DocumentTree {
      */
     public function getSiblings($document_id) {
         // 获取当前文档的父ID
-        $stmt = $this->db->prepare("SELECT parent_id FROM documents WHERE id = ?");
+        $stmt = $this->db->prepare("SELECT parent_id FROM documents WHERE id = ? AND del_status = 0");
         $stmt->execute([$document_id]);
         $parent_id = $stmt->fetchColumn();
         
         $sql = "SELECT d.*, u.username 
                 FROM documents d 
                 LEFT JOIN users u ON d.user_id = u.id 
-                WHERE d.parent_id = " . intval($parent_id) . " 
+                WHERE d.parent_id = " . intval($parent_id) . " AND d.del_status = 0
                 AND d.id != ? 
                 ORDER BY d.sort_order ASC, d.id ASC";
         
@@ -71,12 +71,12 @@ class DocumentTree {
         $depth = 0;
         $current_id = $document_id;
         
-        while ($current_id) {
-            $stmt = $this->db->prepare("SELECT parent_id FROM documents WHERE id = ?");
+        while ($current_id > 0) {
+            $stmt = $this->db->prepare("SELECT parent_id FROM documents WHERE id = ? AND del_status = 0");
             $stmt->execute([$current_id]);
             $parent_id = $stmt->fetchColumn();
             
-            if ($parent_id) {
+            if ($parent_id > 0) {
                 $depth++;
                 $current_id = $parent_id;
             } else {
@@ -88,30 +88,24 @@ class DocumentTree {
     }
     
     /**
-     * 获取文档的面包屑路径
+     * 获取文档的面包屑导航
      */
     public function getBreadcrumbs($document_id) {
         $breadcrumbs = [];
         $current_id = $document_id;
         
-        while ($current_id) {
-            $stmt = $this->db->prepare("SELECT id, title, parent_id FROM documents WHERE id = ?");
+        while ($current_id > 0) {
+            $stmt = $this->db->prepare("SELECT id, title, parent_id FROM documents WHERE id = ? AND del_status = 0");
             $stmt->execute([$current_id]);
-            $doc = $stmt->fetch(PDO::FETCH_ASSOC);
+            $document = $stmt->fetch(PDO::FETCH_ASSOC);
             
-            if ($doc) {
-                array_unshift($breadcrumbs, [
-                    'id' => $doc['id'],
-                    'title' => $doc['title']
-                ]);
-                $current_id = $doc['parent_id'];
+            if ($document) {
+                array_unshift($breadcrumbs, $document);
+                $current_id = $document['parent_id'];
             } else {
                 break;
             }
         }
-        
-        // 移除最后一个（当前文档）
-        array_pop($breadcrumbs);
         
         return $breadcrumbs;
     }
@@ -120,7 +114,7 @@ class DocumentTree {
      * 获取所有文档总数
      */
     public function getTotalDocuments() {
-        $stmt = $this->db->query("SELECT COUNT(*) FROM documents");
+        $stmt = $this->db->query("SELECT COUNT(*) FROM documents WHERE del_status = 0");
         return $stmt->fetchColumn();
     }
     
@@ -135,10 +129,11 @@ class DocumentTree {
     /**
      * 获取最近更新的文档
      */
-    public function getRecentDocuments($limit = 5) {
+    public function getRecentDocuments($limit = 10) {
         $stmt = $this->db->prepare("SELECT d.*, u.username 
                                   FROM documents d 
                                   LEFT JOIN users u ON d.user_id = u.id 
+                                  WHERE d.del_status = 0
                                   ORDER BY d.updated_at DESC 
                                   LIMIT ?");
         $stmt->execute([$limit]);
@@ -219,6 +214,7 @@ class DocumentTree {
         $stmt = $this->db->query("SELECT d.*, u.username
                                 FROM documents d 
                                 LEFT JOIN users u ON d.user_id = u.id 
+                                WHERE d.del_status = 0
                                 ORDER BY d.parent_id ASC, d.sort_order ASC, d.id ASC");
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
@@ -230,9 +226,9 @@ class DocumentTree {
      * 获取文档的最大排序值
      */
     public function getMaxSortOrder($parent_id = 0) {
-        $sql = "SELECT MAX(sort_order) FROM documents WHERE parent_id = " . intval($parent_id);
-        $stmt = $this->db->query($sql);
-        return $stmt->fetchColumn() ?? 0;
+        $stmt = $this->db->prepare("SELECT COALESCE(MAX(sort_order), 0) FROM documents WHERE parent_id = ? AND del_status = 0");
+        $stmt->execute([$parent_id]);
+        return $stmt->fetchColumn();
     }
     
     /**

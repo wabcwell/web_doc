@@ -165,9 +165,9 @@ include '../sidebar.php';
                 </div>
                 <div class="modal-body">
                     <p>您确定要删除文档 <strong id="deleteDocumentTitle"></strong> 吗？</p>
-                    <p class="text-danger mb-0">
-                        <i class="bi bi-exclamation-triangle-fill"></i> 
-                        此操作不可撤销，文档将被永久删除。
+                    <p class="text-info mb-0">
+                        <i class="bi bi-info-circle-fill"></i> 
+                        文档将被移动到回收站，您可以在回收站中恢复或永久删除。
                     </p>
                 </div>
                 <div class="modal-footer">

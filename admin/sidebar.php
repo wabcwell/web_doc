@@ -11,8 +11,13 @@
             </a>
         </li>
         <li>
-            <a href="/admin/documents/index.php" class="<?php echo (strpos($_SERVER['PHP_SELF'], '/admin/documents/') !== false) ? 'active' : ''; ?>">
+            <a href="/admin/documents/index.php" class="<?php echo (strpos($_SERVER['PHP_SELF'], '/admin/documents/') !== false && strpos($_SERVER['PHP_SELF'], '/admin/doc_recycle/') === false) ? 'active' : ''; ?>">
                 <i class="bi bi-file-text"></i> 文档管理
+            </a>
+        </li>
+        <li>
+            <a href="/admin/doc_recycle/index.php" class="<?php echo (strpos($_SERVER['PHP_SELF'], '/admin/doc_recycle/') !== false) ? 'active' : ''; ?>">
+                <i class="bi bi-recycle"></i> 回收站
             </a>
         </li>
         <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>

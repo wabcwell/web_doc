@@ -32,6 +32,8 @@ function init_database() {
             view_count INTEGER DEFAULT 0,
             user_id INTEGER,
             is_public INTEGER DEFAULT 1,
+            del_status INTEGER DEFAULT 0,
+            deleted_at DATETIME,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
@@ -111,10 +113,10 @@ function get_documents($parent_id = null) {
     $db = get_db();
     
     if ($parent_id !== null) {
-        $stmt = $db->prepare("SELECT * FROM documents WHERE parent_id = ? ORDER BY sort_order ASC, id ASC");
+        $stmt = $db->prepare("SELECT * FROM documents WHERE parent_id = ? AND del_status = 0 ORDER BY sort_order ASC, id ASC");
         $stmt->execute([$parent_id]);
     } else {
-        $stmt = $db->query("SELECT * FROM documents ORDER BY sort_order ASC, id ASC");
+        $stmt = $db->query("SELECT * FROM documents WHERE del_status = 0 ORDER BY sort_order ASC, id ASC");
     }
     
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -125,7 +127,7 @@ function get_documents($parent_id = null) {
  */
 function get_document($id) {
     $db = get_db();
-    $stmt = $db->prepare("SELECT * FROM documents WHERE id = ?");
+    $stmt = $db->prepare("SELECT * FROM documents WHERE id = ? AND del_status = 0");
     $stmt->execute([$id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
@@ -135,7 +137,7 @@ function get_document($id) {
  */
 function search_documents($keyword) {
     $db = get_db();
-    $stmt = $db->prepare("SELECT * FROM documents WHERE title LIKE ? OR content LIKE ? ORDER BY created_at DESC");
+    $stmt = $db->prepare("SELECT * FROM documents WHERE (title LIKE ? OR content LIKE ?) AND del_status = 0 ORDER BY created_at DESC");
     $keyword = "%$keyword%";
     $stmt->execute([$keyword, $keyword]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -179,7 +181,7 @@ function save_document_version($document_id, $title, $content, $user_id) {
     $next_version = $stmt->fetch(PDO::FETCH_ASSOC)['next_version'];
     
     // 插入新版本
-    $stmt = $db->prepare("INSERT INTO documents_version (document_id, title, content, user_id, version_number) 
+    $stmt = $db->prepare("INSERT INTO documents_version (document_id, title, content, created_by, version_number) 
                         VALUES (?, ?, ?, ?, ?)");
     $stmt->execute([$document_id, $title, $content, $user_id, $next_version]);
     
@@ -204,7 +206,7 @@ function get_document_versions($document_id) {
     $db = get_db();
     $stmt = $db->prepare("SELECT dv.*, u.username 
                         FROM documents_version dv 
-                        JOIN users u ON dv.user_id = u.id 
+                        JOIN users u ON dv.created_by = u.id 
                         WHERE dv.document_id = ? 
                         ORDER BY dv.version_number DESC 
                         LIMIT 20");

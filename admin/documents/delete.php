@@ -17,7 +17,7 @@ if (!$id) {
 $db = get_db();
 
 // 检查文档是否存在，并获取父级ID
-$stmt = $db->prepare("SELECT id, title, parent_id FROM documents WHERE id = ?");
+$stmt = $db->prepare("SELECT id, title, parent_id FROM documents WHERE id = ? AND del_status = 0");
 $stmt->execute([$id]);
 $document = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -27,7 +27,7 @@ if (!$document) {
 }
 
 // 获取被删除文档的直接子文档
-$stmt = $db->prepare("SELECT id FROM documents WHERE parent_id = ? ORDER BY sort_order ASC");
+$stmt = $db->prepare("SELECT id FROM documents WHERE parent_id = ? AND del_status = 0 ORDER BY sort_order ASC");
 $stmt->execute([$id]);
 $children = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -65,8 +65,8 @@ try {
         ''
     );
     
-    // 执行删除文档
-    $stmt = $db->prepare("DELETE FROM documents WHERE id = ?");
+    // 执行软删除（标记为已删除）
+    $stmt = $db->prepare("UPDATE documents SET del_status = 1, deleted_at = datetime('now') WHERE id = ?");
     $stmt->execute([$id]);
     
     // 提交事务
