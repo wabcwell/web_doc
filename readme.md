@@ -58,12 +58,31 @@
 web_doc/
 ├── admin/              # 管理后台
 │   ├── documents/      # 文档管理
-│   │   ├── view_his.php    # 文档历史查看页面
+│   │   ├── index.php   # 文档列表
+│   │   ├── add.php     # 添加文档
+│   │   ├── edit.php    # 编辑文档
+│   │   ├── delete.php  # 删除文档
+│   │   ├── view.php    # 查看文档
+│   │   └── view_his.php    # 文档历史查看页面
+│   ├── doc_recycle/    # 文档回收站
+│   │   ├── index.php   # 回收站列表
+│   │   ├── restore.php # 恢复文档
+│   │   ├── permdel.php # 永久删除
+│   │   └── view.php    # 查看回收文档详情
+│   ├── user/           # 用户管理目录
+│   │   ├── index.php   # 用户列表
+│   │   ├── add_user.php    # 添加用户
+│   │   ├── edit_user.php   # 编辑用户
+│   │   └── delete_user.php # 删除用户
 │   ├── dashboard.php   # 管理面板
-│   ├── users.php       # 用户管理
-│   └── settings.php    # 系统设置
+│   ├── login.php       # 管理员登录
+│   ├── logout.php      # 退出登录
+│   ├── settings.php    # 系统设置
+│   ├── upload.php      # 文件上传
+│   └── sidebar.php     # 侧边栏模板
 ├── assets/             # 本地化静态资源
 │   ├── css/
+│   │   ├── admin.css   # 后台管理样式
 │   │   ├── static/     # 本地化CSS文件
 │   │   │   ├── bootstrap.min.css    # Bootstrap 5.3.0
 │   │   │   ├── bootstrap-icons.min.css  # Bootstrap Icons
@@ -78,11 +97,22 @@ web_doc/
 │   │       └── prism-*.min.js           # 各语言代码高亮
 │   ├── images/         # 图片资源
 │   └── icons/          # 图标文件
-├── database/           # SQLite数据库
+├── database/           # SQLite数据库相关
+│   ├── .htaccess.template  # 数据库访问保护模板
+│   ├── index.php       # 数据库管理入口
+│   └── router.php      # 数据库路由
 ├── includes/           # 核心功能文件
-├── uploads/            # 上传文件
-├── index.php          # 前台首页
-├── config.php         # 配置文件
+│   ├── auth.php        # 用户认证
+│   ├── init.php        # 初始化配置
+│   ├── DocumentTree.php # 文档树处理
+│   └── footer.php      # 页脚模板
+├── uploads/            # 上传文件存储目录
+├── index.php          # 前台首页（文档浏览）
+├── config.php         # 系统配置文件
+├── search.php         # 文档搜索功能
+├── export.php         # 文档导出功能
+├── init_docs.php      # 初始化示例文档
+├── docs.db            # SQLite数据库文件
 └── README.md          # 项目文档
 ```
 
@@ -272,9 +302,39 @@ web_doc/
 
 ### 主要文件
 
-- `includes/auth.php`: 用户认证
-- `includes/DocumentTree.php`: 文档管理
-- `config.php`: 系统配置
+#### 用户认证与管理
+- `includes/auth.php`: 用户认证和权限管理
+- `includes/init.php`: 系统初始化配置
+- `admin/user/index.php`: 用户列表管理页面
+- `admin/user/add_user.php`: 添加新用户
+- `admin/user/edit_user.php`: 编辑用户信息
+- `admin/user/delete_user.php`: 删除用户
+
+#### 文档管理
+- `includes/DocumentTree.php`: 文档树处理和文档管理核心
+- `admin/documents/index.php`: 文档列表管理
+- `admin/documents/add.php`: 添加新文档
+- `admin/documents/edit.php`: 编辑文档
+- `admin/documents/delete.php`: 删除文档
+- `admin/documents/view.php`: 查看文档详情
+- `admin/documents/view_his.php`: 文档历史版本查看
+
+#### 回收站管理
+- `admin/doc_recycle/index.php`: 回收站列表
+- `admin/doc_recycle/restore.php`: 文档恢复功能
+- `admin/doc_recycle/permdel.php`: 永久删除功能
+- `admin/doc_recycle/view.php`: 回收文档详情查看
+
+#### 系统配置
+- `config.php`: 系统配置文件
+- `database/router.php`: 数据库路由配置
+- `admin/settings.php`: 系统设置页面
+- `admin/dashboard.php`: 管理面板首页
+
+#### 前台功能
+- `index.php`: 前台首页（文档浏览）
+- `search.php`: 文档搜索功能
+- `export.php`: 文档导出功能
 
 ## 贡献指南
 

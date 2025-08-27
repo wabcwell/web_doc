@@ -1,13 +1,13 @@
 <?php
-require_once __DIR__ . '/../includes/init.php';
-require_once __DIR__ . '/../includes/Auth.php';
+require_once __DIR__ . '/../../includes/init.php';
+require_once __DIR__ . '/../../includes/Auth.php';
 
 Auth::requireAdmin();
 
 $db = get_db();
 
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    header('Location: users.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -23,7 +23,7 @@ $user_role = $stmt->fetchColumn();
 
 if ($user_role === 'admin' && $admin_count <= 1) {
     $_SESSION['error'] = '无法删除最后一个管理员账户';
-    header('Location: users.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -31,7 +31,7 @@ if ($user_role === 'admin' && $admin_count <= 1) {
 $current_user_id = $_SESSION['user_id'] ?? 0;
 if ($user_id === $current_user_id) {
     $_SESSION['error'] = '无法删除当前登录的账户';
-    header('Location: users.php');
+    header('Location: index.php');
     exit;
 }
 
@@ -43,5 +43,5 @@ if ($stmt->execute([$user_id])) {
     $_SESSION['error'] = '删除用户失败';
 }
 
-header('Location: users.php');
+header('Location: index.php');
 exit;

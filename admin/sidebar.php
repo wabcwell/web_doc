@@ -22,7 +22,7 @@
         </li>
         <?php if (isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin'): ?>
         <li>
-            <a href="/admin/users.php" class="<?php echo (basename($_SERVER['PHP_SELF']) == 'users.php') ? 'active' : ''; ?>">
+            <a href="/admin/user/" class="<?php echo (strpos($_SERVER['PHP_SELF'], '/admin/user/') !== false) ? 'active' : ''; ?>">
                 <i class="bi bi-people"></i> 用户管理
             </a>
         </li>

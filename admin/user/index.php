@@ -1,12 +1,12 @@
 <?php
-require_once __DIR__ . '/../includes/init.php';
-require_once __DIR__ . '/../includes/Auth.php';
-require_once __DIR__ . '/../includes/DocumentTree.php';
+require_once __DIR__ . '/../../includes/init.php';
+require_once __DIR__ . '/../../includes/Auth.php';
+require_once __DIR__ . '/../../includes/DocumentTree.php';
 
 // 检查是否为管理员，普通用户直接拒绝访问
 if (!Auth::isAdmin()) {
     $_SESSION['error'] = '权限不足，需要管理员权限才能访问用户管理';
-    header('Location: dashboard.php');
+    header('Location: ../dashboard.php');
     exit();
 }
 
@@ -19,7 +19,7 @@ $error = $_SESSION['error'] ?? '';
 unset($_SESSION['success'], $_SESSION['error']);
 
 $title = '用户管理';
-include 'sidebar.php';
+include __DIR__ . '/../sidebar.php';
 ?>
 
 <!DOCTYPE html>
@@ -29,8 +29,8 @@ include 'sidebar.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $title; ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../assets/css/static/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../assets/css/admin.css">
     <style>
         .table td, .table th {
             vertical-align: middle;

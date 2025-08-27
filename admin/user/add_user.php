@@ -1,6 +1,6 @@
 <?php
-require_once __DIR__ . '/../includes/init.php';
-require_once __DIR__ . '/../includes/Auth.php';
+require_once __DIR__ . '/../../includes/init.php';
+require_once __DIR__ . '/../../includes/Auth.php';
 
 Auth::requireAdmin();
 
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $title = '添加用户';
-include 'sidebar.php';
+include '../sidebar.php';
 ?>
 
 <!DOCTYPE html>
@@ -55,15 +55,15 @@ include 'sidebar.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $title; ?></title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../assets/css/static/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../assets/css/admin.css">
+    <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../../assets/css/admin.css">
 </head>
 <body>
     <div class="main-content">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1>添加用户</h1>
-                <a href="users.php" class="btn btn-secondary">
+                <a href="index.php" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> 返回列表
                 </a>
             </div>
@@ -121,7 +121,7 @@ include 'sidebar.php';
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-plus-circle"></i> 创建用户
                             </button>
-                            <a href="users.php" class="btn btn-secondary">取消</a>
+                            <a href="index.php" class="btn btn-secondary">取消</a>
                         </div>
                     </form>
                 </div>
