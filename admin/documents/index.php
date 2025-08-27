@@ -152,16 +152,15 @@ include '../sidebar.php';
                                                 <a href="edit.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="编辑">
                                                     <i class="bi bi-pencil" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
-                                                <a href="view_his.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-info btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="历史记录">
+                                                <a href="view_his.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-info btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="版本历史">
                                                     <i class="bi bi-clock-history" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
-                                                <a href="add.php?parent_id=<?php echo $documentTree->getParentId($doc['id']); ?>&sort_order=<?php echo $next_sort_order; ?>" 
-                                                   class="btn btn-outline-warning btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="添加同级文档">
-                                                    <i class="bi bi-plus-circle" style="font-size: 14px; margin: 0 auto;"></i>
+                                                <a href="edit_log.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="查看更新记录">
+                                                    <i class="bi bi-list-check" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
                                                 <a href="add.php?parent_id=<?php echo $doc['id']; ?>&sort_order=<?php echo $next_child_sort; ?>" 
                                                    class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="添加下级文档">
-                                                    <i class="bi bi-arrow-return-right" style="font-size: 14px; margin: 0 auto;"></i>
+                                                    <i class="bi bi-plus-circle" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
                                                 <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="删除" 
                                                         onclick="confirmDelete(<?php echo $doc['id']; ?>, '<?php echo htmlspecialchars(addslashes($doc['title'])); ?>')">

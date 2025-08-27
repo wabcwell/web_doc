@@ -32,9 +32,25 @@ if (!$document) {
 // 获取面包屑导航
 $breadcrumbs = $tree->getBreadcrumbs($id);
 
-// 获取所有历史版本
-$stmt = $db->prepare("SELECT dv.*, u.username FROM documents_version dv LEFT JOIN users u ON dv.created_by = u.id WHERE dv.document_id = ? ORDER BY dv.version_number DESC");
-$stmt->execute([$id]);
+// 获取分页参数
+$show_all = isset($_GET['show_all']) && $_GET['show_all'] == '1';
+$limit = $show_all ? null : 10; // 默认显示10条，查看全部时不限制
+
+// 获取所有历史版本用于计数
+$count_stmt = $db->prepare("SELECT COUNT(*) FROM documents_version WHERE document_id = ?");
+$count_stmt->execute([$id]);
+$total_versions = $count_stmt->fetchColumn();
+
+// 获取分页后的历史版本
+$sql = "SELECT dv.*, u.username FROM documents_version dv LEFT JOIN users u ON dv.created_by = u.id WHERE dv.document_id = ? ORDER BY dv.version_number DESC";
+if ($limit) {
+    $sql .= " LIMIT ?";
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$id, $limit]);
+} else {
+    $stmt = $db->prepare($sql);
+    $stmt->execute([$id]);
+}
 $versions = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // 获取操作记录
@@ -144,6 +160,29 @@ include '../sidebar.php';
                                 echo $Parsedown->text($current_content['content']);
                                 ?>
                             </div>
+                            
+                            <?php if (!empty($current_content['tags'])): ?>
+                            <hr>
+                            <div class="document-tags">
+                                <h6 class="mb-2">
+                                    <i class="bi bi-tags"></i> 标签
+                                </h6>
+                                <div>
+                                    <?php 
+                                    $tags = array_map('trim', explode(',', $current_content['tags']));
+                                    $tags = array_filter($tags);
+                                    foreach ($tags as $tag): 
+                                        if (trim($tag)): ?>
+                                        <span class="badge bg-light text-dark border me-1 mb-1">
+                                            <i class="bi bi-hash"></i> <?php echo htmlspecialchars(trim($tag)); ?>
+                                        </span>
+                                    <?php 
+                                        endif;
+                                    endforeach; 
+                                    ?>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -152,50 +191,69 @@ include '../sidebar.php';
                 <div class="col-md-4">
                     <!-- 历史版本列表 -->
                     <div class="card mb-4">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">历史版本</h5>
+                            <?php if (!$show_all && $total_versions > 10): ?>
+                                <a href="?id=<?php echo $id; ?>&show_all=1" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-list"></i> 查看所有
+                                </a>
+                            <?php elseif ($show_all && $total_versions > 10): ?>
+                                <a href="?id=<?php echo $id; ?>" class="btn btn-sm btn-outline-secondary">
+                                    <i class="bi bi-chevron-up"></i> 收起
+                                </a>
+                            <?php endif; ?>
                         </div>
                         <div class="card-body p-0">
                             <div class="list-group list-group-flush">
-                                <a href="?id=<?php echo $id; ?>" 
-                                   class="list-group-item list-group-item-action version-item <?php echo !$version_id ? 'active' : ''; ?>">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">最新版本</h6>
-                                        <small><?php echo date('m-d H:i', strtotime($document['updated_at'])); ?></small>
-                                    </div>
-                                    <p class="mb-1 small">当前版本</p>
-                                </a>
-                                
-                                <?php foreach ($versions as $version): ?>
-                                    <a href="?id=<?php echo $id; ?>&version=<?php echo $version['id']; ?>" 
-                                       class="list-group-item list-group-item-action version-item <?php echo $version_id == $version['id'] ? 'active' : ''; ?>">
-                                        <div class="d-flex w-100 justify-content-between">
-                                            <h6 class="mb-1">版本 <?php echo $version['version_number']; ?></h6>
-                                            <small><?php echo date('m-d H:i', strtotime($version['created_at'])); ?></small>
+                                <?php 
+                                // 显示分页后的版本记录
+                                foreach ($versions as $index => $version): 
+                                    $is_latest = $index === 0 && $show_all; // 只有在查看全部时才标记第一条为最新
+                                    $is_active = $version_id == $version['id'] || (!$version_id && $index === 0);
+                                    $display_index = $show_all ? $index : $index; // 调整索引计算
+                                ?>
+                                    <a href="?id=<?php echo $id; ?>&version=<?php echo $version['id']; ?><?php echo $show_all ? '&show_all=1' : ''; ?>" 
+                                       class="list-group-item list-group-item-action version-item <?php echo $is_active ? 'active' : ''; ?>">
+                                        <div class="d-flex w-100 justify-content-between align-items-center">
+                                            <h6 class="mb-1">版本 <?php echo $total_versions - $index; ?></h6>
+                                            <?php if ($is_latest): ?>
+                                                <span class="badge bg-success">最新</span>
+                                            <?php endif; ?>
                                         </div>
-                                        <p class="mb-1 small">作者: <?php echo htmlspecialchars($version['username']); ?></p>
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <small class="text-muted"><?php echo date('Y-m-d H:i', strtotime($version['created_at'])); ?></small>
+                                            <small class="text-muted"><?php echo htmlspecialchars($version['username']); ?></small>
+                                        </div>
                                         
-                                        <?php if ($version_id == $version['id'] && $version['version_number'] < count($versions)): ?>
+                                        <?php if ($is_active && $index > 0): ?>
                                              <div class="mt-2">
                                                  <button type="button" 
                                                          class="btn btn-sm btn-outline-primary rollback-btn"
                                                          data-version-id="<?php echo $version['id']; ?>"
-                                                         data-version-number="<?php echo $version['version_number']; ?>">
+                                                         data-version-number="<?php echo $total_versions - $index; ?>">
                                                      <i class="bi bi-arrow-clockwise"></i> 回滚到此版本
                                                  </button>
                                              </div>
-                                         <?php elseif (!$version_id && $version['version_number'] == count($versions) - 1): ?>
+                                         <?php elseif (!$version_id && $index === 0): ?>
                                              <div class="mt-2">
                                                  <button type="button" 
                                                          class="btn btn-sm btn-outline-primary rollback-btn"
                                                          data-version-id="<?php echo $version['id']; ?>"
-                                                         data-version-number="<?php echo $version['version_number']; ?>">
+                                                         data-version-number="<?php echo $total_versions - ($show_all ? $index : $index); ?>">
                                                      <i class="bi bi-arrow-clockwise"></i> 回滚到此版本
                                                  </button>
                                              </div>
                                          <?php endif; ?>
                                     </a>
                                 <?php endforeach; ?>
+                                
+                                <?php if (!$show_all && $total_versions > 10): ?>
+                                    <div class="list-group-item text-center">
+                                        <a href="?id=<?php echo $id; ?>&show_all=1" class="text-decoration-none">
+                                            查看全部 <?php echo $total_versions; ?> 个版本
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
