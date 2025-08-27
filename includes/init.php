@@ -22,37 +22,41 @@ function init_database() {
         $db = new PDO('sqlite:' . $db_path);
         $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         
-        // 创建表
+        // 创建表 - 更新为与实际数据库完全一致的结构
         $db->exec("CREATE TABLE IF NOT EXISTS documents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            parent_id INTEGER DEFAULT 0,
             title TEXT NOT NULL,
             content TEXT,
+            parent_id INTEGER,
             sort_order INTEGER DEFAULT 0,
-            view_count INTEGER DEFAULT 0,
-            user_id INTEGER,
+            user_id INTEGER DEFAULT 1,
             is_public INTEGER DEFAULT 1, -- 0=私有, 1=公开
-            is_formal INTEGER DEFAULT 0, -- 0=草稿, 1=正式文档
+            tags TEXT,
+            view_count INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
             del_status INTEGER DEFAULT 0,
-            deleted_at DATETIME,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            deleted_at TEXT,
+            is_formal INTEGER DEFAULT 0, -- 0=草稿, 1=正式文档
+            FOREIGN KEY (parent_id) REFERENCES documents(id) ON DELETE SET NULL,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
         )");
         
         $db->exec("CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
+            email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             role TEXT DEFAULT 'editor',
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
         
-        // 创建编辑日志表
+        // 创建编辑日志表 - 更新为与实际数据库完全一致的结构
         $db->exec("CREATE TABLE IF NOT EXISTS edit_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             document_id INTEGER NOT NULL,
             user_id INTEGER NOT NULL,
-            action TEXT NOT NULL,
+            action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete', 'rollback')),
             old_title TEXT,
             new_title TEXT,
             old_content TEXT,
@@ -62,18 +66,27 @@ function init_database() {
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         )");
         
-        // 创建文档版本表
+        // 创建编辑日志索引
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_edit_log_document_id ON edit_log(document_id)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_edit_log_user_id ON edit_log(user_id)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_edit_log_created_at ON edit_log(created_at)");
+        
+        // 创建文档版本表 - 更新为与实际数据库完全一致的结构
         $db->exec("CREATE TABLE IF NOT EXISTS documents_version (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             document_id INTEGER NOT NULL,
             title TEXT NOT NULL,
             content TEXT,
-            user_id INTEGER NOT NULL,
             version_number INTEGER NOT NULL,
+            created_by INTEGER NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
         )");
+        
+        // 创建文档版本索引
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_documents_version_document_id ON documents_version(document_id)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_documents_version_created_by ON documents_version(created_by)");
         
         // 添加默认数据
         $db->exec("INSERT OR IGNORE INTO users (username, password, role) VALUES 
