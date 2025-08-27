@@ -127,6 +127,9 @@ include '../sidebar.php';
                                                 <a href="edit.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="编辑">
                                                     <i class="bi bi-pencil" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
+                                                <a href="view_his.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-info btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="历史记录">
+                                                    <i class="bi bi-clock-history" style="font-size: 14px; margin: 0 auto;"></i>
+                                                </a>
                                                 <a href="add.php?parent_id=<?php echo $documentTree->getParentId($doc['id']); ?>&sort_order=<?php echo $next_sort_order; ?>" 
                                                    class="btn btn-outline-warning btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="添加同级文档">
                                                     <i class="bi bi-plus-circle" style="font-size: 14px; margin: 0 auto;"></i>

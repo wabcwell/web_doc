@@ -39,8 +39,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $is_public = isset($_POST['is_public']) ? 1 : 0;
     
     if (!empty($title)) {
+        // 获取当前文档信息用于记录日志和保存版本
+        $old_document = get_document($id);
+        
+        // 更新文档
         $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, parent_id = ?, sort_order = ?, tags = ?, is_public = ?, updated_at = datetime('now') WHERE id = ?");
         $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public, $id]);
+        
+        // 记录编辑日志
+        log_edit(
+            $id,
+            $_SESSION['user_id'],
+            'update',
+            $old_document['title'],
+            $title,
+            $old_document['content'],
+            $content
+        );
+        
+        // 保存新版本
+        save_document_version($id, $title, $content, $_SESSION['user_id']);
         
         header('Location: index.php?success=update');
         exit;

@@ -29,6 +29,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt = $db->prepare("INSERT INTO documents (title, content, parent_id, sort_order, tags, is_public, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))");
         $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public]);
         
+        $document_id = $db->lastInsertId();
+        
+        // 记录创建日志
+        log_edit(
+            $document_id,
+            $_SESSION['user_id'],
+            'create',
+            '',
+            $title,
+            '',
+            $content
+        );
+        
+        // 保存初始版本
+        save_document_version($document_id, $title, $content, $_SESSION['user_id']);
+        
         header('Location: index.php?success=add');
         exit;
     }

@@ -54,6 +54,17 @@ try {
         }
     }
     
+    // 记录删除日志
+    log_edit(
+        $id,
+        $_SESSION['user_id'],
+        'delete',
+        $document['title'],
+        '',
+        '',
+        ''
+    );
+    
     // 执行删除文档
     $stmt = $db->prepare("DELETE FROM documents WHERE id = ?");
     $stmt->execute([$id]);
