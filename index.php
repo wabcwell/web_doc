@@ -465,10 +465,21 @@ $stats = $stmt->fetch();
 
             .main-content {
                 margin-left: 0;
+                width: 100vw;
             }
 
             .content-body {
                 padding: 20px;
+                width: 100%;
+                margin: 0;
+                box-sizing: border-box;
+            }
+
+            .content-header {
+                width: 100%;
+                margin: 0;
+                padding: 20px 20px 10px 20px;
+                box-sizing: border-box;
             }
         }
     </style>
