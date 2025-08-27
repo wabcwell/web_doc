@@ -16,7 +16,7 @@ class DocumentTree {
         $sql = "SELECT d.*, u.username, d.is_formal 
                 FROM documents d 
                 LEFT JOIN users u ON d.user_id = u.id 
-                WHERE d.parent_id = " . intval($parent_id) . " AND d.del_status = 0
+                WHERE d.parent_id = " . intval($parent_id) . " AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
                 ORDER BY d.sort_order ASC, d.id ASC";
         
         $stmt = $this->db->prepare($sql);
@@ -37,7 +37,7 @@ class DocumentTree {
         $stmt = $this->db->prepare("SELECT d.*, u.username 
                                   FROM documents d 
                                   LEFT JOIN users u ON d.user_id = u.id 
-                                  WHERE d.parent_id = ? AND d.del_status = 0
+                                  WHERE d.parent_id = ? AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
                                   ORDER BY d.sort_order ASC, d.id ASC");
         $stmt->execute([$parent_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -55,7 +55,7 @@ class DocumentTree {
         $sql = "SELECT d.*, u.username 
                 FROM documents d 
                 LEFT JOIN users u ON d.user_id = u.id 
-                WHERE d.parent_id = " . intval($parent_id) . " AND d.del_status = 0
+                WHERE d.parent_id = " . intval($parent_id) . " AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
                 AND d.id != ? 
                 ORDER BY d.sort_order ASC, d.id ASC";
         
@@ -111,10 +111,10 @@ class DocumentTree {
     }
     
     /**
-     * 获取所有文档总数
+     * 获取所有文档总数（公开且正式）
      */
     public function getTotalDocuments() {
-        $stmt = $this->db->query("SELECT COUNT(*) FROM documents WHERE del_status = 0");
+        $stmt = $this->db->query("SELECT COUNT(*) FROM documents WHERE del_status = 0 AND is_public = 1 AND is_formal = 1");
         return $stmt->fetchColumn();
     }
     
@@ -133,7 +133,7 @@ class DocumentTree {
         $stmt = $this->db->prepare("SELECT d.*, u.username 
                                   FROM documents d 
                                   LEFT JOIN users u ON d.user_id = u.id 
-                                  WHERE d.del_status = 0
+                                  WHERE d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
                                   ORDER BY d.updated_at DESC 
                                   LIMIT ?");
         $stmt->execute([$limit]);

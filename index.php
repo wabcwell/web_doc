@@ -18,7 +18,7 @@ $content = '';
 $title = '文档中心';
 
 if ($document_id > 0) {
-    $stmt = $db->prepare("SELECT * FROM documents WHERE id = ? AND is_public = 1");
+    $stmt = $db->prepare("SELECT * FROM documents WHERE id = ? AND is_public = 1 AND is_formal = 1 AND del_status = 0");
     $stmt->execute([$document_id]);
     $current_document = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -28,9 +28,9 @@ if ($document_id > 0) {
     }
 }
 
-// 如果没有选择文档，获取第一个顶级公开文档（权重值最小）
+// 如果没有选择文档，获取第一个顶级公开且正式的文档（权重值最小）
 if (!$current_document) {
-    $stmt = $db->prepare("SELECT * FROM documents WHERE is_public = 1 AND parent_id = 0 ORDER BY sort_order ASC, created_at ASC LIMIT 1");
+    $stmt = $db->prepare("SELECT * FROM documents WHERE is_public = 1 AND is_formal = 1 AND del_status = 0 AND parent_id = 0 ORDER BY sort_order ASC, created_at ASC LIMIT 1");
     $stmt->execute();
     $current_document = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -55,7 +55,7 @@ if ($content) {
 }
 
 // 统计信息
-$stmt = $db->query("SELECT COUNT(*) as total_docs FROM documents WHERE is_public = 1");
+$stmt = $db->query("SELECT COUNT(*) as total_docs FROM documents WHERE is_public = 1 AND is_formal = 1 AND del_status = 0");
 $stats = $stmt->fetch();
 ?>
 <!DOCTYPE html>
