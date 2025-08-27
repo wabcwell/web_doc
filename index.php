@@ -562,41 +562,31 @@ $stats = $stmt->fetch();
                      <?php endif; ?>
                  </div>
                  <?php if ($current_document): ?>
-                     <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#exportModal">
-                     <i class="bi bi-download"></i> 导出
-                 </button>
-                 
-                 <!-- 导出格式选择模态框 -->
-                 <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
-                     <div class="modal-dialog modal-sm">
-                         <div class="modal-content">
-                             <div class="modal-header">
-                                 <h5 class="modal-title" id="exportModalLabel">选择导出格式</h5>
-                                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
-                             </div>
-                             <div class="modal-body">
-                                 <div class="d-grid gap-2">
-                                     <a href="export.php?id=<?php echo $current_document['id']; ?>&format=pdf" target="_blank" class="btn btn-outline-danger">
-                                         <i class="bi bi-file-earmark-pdf"></i> PDF格式
-                                     </a>
-                                     <a href="export.php?id=<?php echo $current_document['id']; ?>&format=md" target="_blank" class="btn btn-outline-primary">
-                                         <i class="bi bi-file-earmark-text"></i> Markdown格式
-                                     </a>
-                                     <a href="export.php?id=<?php echo $current_document['id']; ?>&format=html" target="_blank" class="btn btn-outline-success">
-                                         <i class="bi bi-file-earmark-code"></i> HTML格式
-                                     </a>
-                                     <hr>
-                                     <button type="button" class="btn btn-outline-info" onclick="exportAsImage('png')" data-bs-dismiss="modal">
-                                         <i class="bi bi-image"></i> PNG图片
-                                     </button>
-                                     <button type="button" class="btn btn-outline-warning" onclick="exportAsImage('jpg')" data-bs-dismiss="modal">
-                                         <i class="bi bi-file-earmark-image"></i> JPG图片
-                                     </button>
-                                 </div>
-                             </div>
+                     <button type="button" class="btn btn-outline-primary btn-sm" onclick="showExportMenu()">
+                         <i class="bi bi-download"></i> 导出
+                     </button>
+                     
+                     <!-- 导出菜单 -->
+                     <div id="exportMenu" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 8px; min-width: 180px;">
+                         <div style="padding: 4px 0;">
+                             <a href="export.php?id=<?php echo $current_document['id']; ?>&format=pdf" target="_blank" class="dropdown-item" style="display: block; padding: 8px 12px; color: #dc3545; text-decoration: none; border-radius: 4px;">
+                                 <i class="bi bi-file-earmark-pdf"></i> PDF格式
+                             </a>
+                             <a href="export.php?id=<?php echo $current_document['id']; ?>&format=md" target="_blank" class="dropdown-item" style="display: block; padding: 8px 12px; color: #0d6efd; text-decoration: none; border-radius: 4px;">
+                                 <i class="bi bi-file-earmark-text"></i> Markdown格式
+                             </a>
+                             <a href="export.php?id=<?php echo $current_document['id']; ?>&format=html" target="_blank" class="dropdown-item" style="display: block; padding: 8px 12px; color: #198754; text-decoration: none; border-radius: 4px;">
+                                 <i class="bi bi-file-earmark-code"></i> HTML格式
+                             </a>
+                             <hr style="margin: 8px 0; border: 0; border-top: 1px solid #dee2e6;">
+                             <button type="button" class="dropdown-item" onclick="exportAsImage('png'); hideExportMenu();" style="display: block; width: 100%; padding: 8px 12px; color: #0dcaf0; background: none; border: none; text-align: left; cursor: pointer; border-radius: 4px;">
+                                 <i class="bi bi-image"></i> PNG图片
+                             </button>
+                             <button type="button" class="dropdown-item" onclick="exportAsImage('jpg'); hideExportMenu();" style="display: block; width: 100%; padding: 8px 12px; color: #fd7e14; background: none; border: none; text-align: left; cursor: pointer; border-radius: 4px;">
+                                 <i class="bi bi-file-earmark-image"></i> JPG图片
+                             </button>
                          </div>
                      </div>
-                 </div>
                  <?php endif; ?>
              </div>
          </div>
@@ -876,11 +866,46 @@ $stats = $stmt->fetch();
             }
         });
 
+        // 导出菜单控制
+        function showExportMenu() {
+            const menu = document.getElementById('exportMenu');
+            const button = event.target;
+            
+            // 获取按钮位置
+            const rect = button.getBoundingClientRect();
+            
+            // 设置菜单位置
+            menu.style.top = (rect.bottom + 5) + 'px';
+            menu.style.left = rect.left + 'px';
+            menu.style.display = 'block';
+            
+            // 添加点击外部关闭事件
+            setTimeout(() => {
+                document.addEventListener('click', closeExportMenuOnClickOutside);
+            }, 0);
+        }
+
+        function hideExportMenu() {
+            const menu = document.getElementById('exportMenu');
+            menu.style.display = 'none';
+            document.removeEventListener('click', closeExportMenuOnClickOutside);
+        }
+
+        function closeExportMenuOnClickOutside(event) {
+            const menu = document.getElementById('exportMenu');
+            const button = document.querySelector('.btn-outline-primary');
+            
+            if (!menu.contains(event.target) && !button.contains(event.target)) {
+                hideExportMenu();
+            }
+        }
+
         // 键盘导航
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 document.getElementById('searchInput').value = '';
                 document.getElementById('searchInput').dispatchEvent(new Event('input'));
+                hideExportMenu();
             }
         });
     </script>
