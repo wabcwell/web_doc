@@ -13,7 +13,7 @@ class DocumentTree {
      * 获取文档树形结构
      */
     public function getTree($parent_id = 0) {
-        $sql = "SELECT d.*, u.username 
+        $sql = "SELECT d.*, u.username, d.is_formal 
                 FROM documents d 
                 LEFT JOIN users u ON d.user_id = u.id 
                 WHERE d.parent_id = " . intval($parent_id) . " AND d.del_status = 0
@@ -180,8 +180,32 @@ class DocumentTree {
                 <td><?php echo date('Y-m-d H:i', strtotime($doc['created_at'])); ?></td>
                 <td><?php echo date('Y-m-d H:i', strtotime($doc['updated_at'])); ?></td>
                 <td>
-                    <span class="badge bg-<?php echo $doc['is_public'] ? 'success' : 'secondary'; ?>">
-                        <?php echo $doc['is_public'] ? '公开' : '私有'; ?>
+                    <?php 
+                    $visibility_status = $doc['is_public'] ? '公开' : '私有';
+                    $visibility_class = $doc['is_public'] ? 'success' : 'secondary';
+                    ?>
+                    <span class="badge bg-<?php echo $visibility_class; ?>">
+                        <?php echo $visibility_status; ?>
+                    </span>
+                </td>
+                <td>
+                    <?php 
+                    switch($doc['is_formal']) {
+                        case 0:
+                            $status = '草稿';
+                            $status_class = 'warning';
+                            break;
+                        case 1:
+                            $status = '正式';
+                            $status_class = 'primary';
+                            break;
+                        default:
+                            $status = '未知';
+                            $status_class = 'dark';
+                    }
+                    ?>
+                    <span class="badge bg-<?php echo $status_class; ?>">
+                        <?php echo $status; ?>
                     </span>
                 </td>
                 <td>

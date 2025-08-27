@@ -23,11 +23,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $parent_id = $_POST['parent_id'] ?? 0;
     $sort_order = $_POST['sort_order'] ?? 0;
     $tags = $_POST['tags'] ?? '';
-    $is_public = isset($_POST['is_public']) ? 1 : 0;
+    $is_public = isset($_POST['is_public']) ? intval($_POST['is_public']) : 1;
+    $is_formal = isset($_POST['is_formal']) ? intval($_POST['is_formal']) : 0;
     
     if (!empty($title)) {
-        $stmt = $db->prepare("INSERT INTO documents (title, content, parent_id, sort_order, tags, is_public, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))");
-        $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public]);
+        $stmt = $db->prepare("INSERT INTO documents (title, content, parent_id, sort_order, tags, is_public, is_formal, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))");
+        $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal]);
         
         $document_id = $db->lastInsertId();
         
@@ -84,11 +85,20 @@ include '../sidebar.php';
                                        placeholder="请输入文档标题">
                             </div>
                             
-                            <div class="form-group public-checkbox">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="is_public" name="is_public" value="1" checked>
-                                    <label for="is_public">公开文档</label>
-                                </div>
+                            <div class="form-group">
+                                <label for="is_public">可见性</label>
+                                <select class="form-control" id="is_public" name="is_public">
+                                    <option value="1" selected>公开</option>
+                                    <option value="0">私有</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="is_formal">文档状态</label>
+                                <select class="form-control" id="is_formal" name="is_formal">
+                                    <option value="0" selected>草稿</option>
+                                    <option value="1">正式</option>
+                                </select>
                             </div>
                         </div>
                         

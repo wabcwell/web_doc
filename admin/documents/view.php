@@ -106,10 +106,36 @@ include '../sidebar.php';
                                 <dt class="col-sm-4">作者</dt>
                                 <dd class="col-sm-8"><?php echo htmlspecialchars($document['username'] ?? '未知用户'); ?></dd>
                                 
+                                <dt class="col-sm-4">可见性</dt>
+                                <dd class="col-sm-8">
+                                    <?php 
+                                    $visibility_status = $document['is_public'] ? '公开' : '私有';
+                                    $visibility_class = $document['is_public'] ? 'success' : 'secondary';
+                                    ?>
+                                    <span class="badge bg-<?php echo $visibility_class; ?>">
+                                        <?php echo $visibility_status; ?>
+                                    </span>
+                                </dd>
+                                
                                 <dt class="col-sm-4">状态</dt>
                                 <dd class="col-sm-8">
-                                    <span class="badge bg-<?php echo $document['is_public'] ? 'success' : 'secondary'; ?>">
-                                        <?php echo $document['is_public'] ? '公开' : '私有'; ?>
+                                    <?php 
+                                    switch($document['is_formal']) {
+                                        case 0:
+                                            $status = '草稿';
+                                            $status_class = 'warning';
+                                            break;
+                                        case 1:
+                                            $status = '正式';
+                                            $status_class = 'primary';
+                                            break;
+                                        default:
+                                            $status = '未知';
+                                            $status_class = 'dark';
+                                    }
+                                    ?>
+                                    <span class="badge bg-<?php echo $status_class; ?>">
+                                        <?php echo $status; ?>
                                     </span>
                                 </dd>
                                 

@@ -82,14 +82,14 @@ include '../sidebar.php';
                                         <th>标题</th>
                                         <th>作者</th>
                                         <th>更新时间</th>
+                                        <th>可见性</th>
                                         <th>状态</th>
                                         <th style="width: 140px; text-align: center;">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($documents as $doc): 
-                                        $status = $doc['is_public'] ? '公开' : '私有';
-                                        $status_class = $doc['is_public'] ? 'success' : 'secondary';
+
                                         
                                         // 计算同级文档的下一个排序值
                                         $next_sort_order = $doc['sort_order'] + 1;
@@ -118,8 +118,33 @@ include '../sidebar.php';
                                         <td><?php echo htmlspecialchars($doc['username']); ?></td>
                                         <td><?php echo date('Y-m-d H:i', strtotime($doc['updated_at'])); ?></td>
                                         <td>
-                                            <span class="badge bg-<?php echo $status_class; ?>">
-                                                <?php echo $status; ?>
+                                            <?php 
+                                            $visibility_status = $doc['is_public'] ? '公开' : '私有';
+                                            $visibility_class = $doc['is_public'] ? 'success' : 'secondary';
+                                            ?>
+                                            <span class="badge bg-<?php echo $visibility_class; ?>">
+                                                <?php echo $visibility_status; ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <?php 
+                                            $is_formal = isset($doc['is_formal']) ? $doc['is_formal'] : 1; // 默认正式文档
+                                            switch($is_formal) {
+                                                case 0:
+                                                    $formal_status = '草稿';
+                                                    $formal_class = 'warning';
+                                                    break;
+                                                case 1:
+                                                    $formal_status = '正式';
+                                                    $formal_class = 'primary';
+                                                    break;
+                                                default:
+                                                    $formal_status = '正式';
+                                                    $formal_class = 'primary';
+                                            }
+                                            ?>
+                                            <span class="badge bg-<?php echo $formal_class; ?>">
+                                                <?php echo $formal_status; ?>
                                             </span>
                                         </td>
                                         <td style="width: 120px;">

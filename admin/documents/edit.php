@@ -36,15 +36,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $parent_id = $_POST['parent_id'] ?? 0;
     $sort_order = $_POST['sort_order'] ?? 0;
     $tags = $_POST['tags'] ?? '';
-    $is_public = isset($_POST['is_public']) ? 1 : 0;
+    $is_public = isset($_POST['is_public']) ? intval($_POST['is_public']) : 1;
+    $is_formal = isset($_POST['is_formal']) ? intval($_POST['is_formal']) : 0;
     
     if (!empty($title)) {
         // 获取当前文档信息用于记录日志和保存版本
         $old_document = get_document($id);
         
         // 更新文档
-        $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, parent_id = ?, sort_order = ?, tags = ?, is_public = ?, updated_at = datetime('now') WHERE id = ?");
-        $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public, $id]);
+        $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, parent_id = ?, sort_order = ?, tags = ?, is_public = ?, is_formal = ?, updated_at = datetime('now') WHERE id = ?");
+        $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal, $id]);
         
         // 记录编辑日志
         log_edit(
@@ -99,12 +100,20 @@ include '../sidebar.php';
                                        value="<?php echo htmlspecialchars($document['title'] ?? ''); ?>">
                             </div>
                             
-                            <div class="form-group public-checkbox">
-                                <div class="checkbox-group">
-                                    <input type="checkbox" id="is_public" name="is_public" value="1" 
-                                           <?php echo $document['is_public'] ? 'checked' : ''; ?>>
-                                    <label for="is_public">公开文档</label>
-                                </div>
+                            <div class="form-group">
+                                <label for="is_public">可见性</label>
+                                <select class="form-control" id="is_public" name="is_public">
+                                    <option value="1" <?php echo $document['is_public'] == 1 ? 'selected' : ''; ?>>公开</option>
+                                    <option value="0" <?php echo $document['is_public'] == 0 ? 'selected' : ''; ?>>私有</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="is_formal">文档状态</label>
+                                <select class="form-control" id="is_formal" name="is_formal">
+                                    <option value="0" <?php echo $document['is_formal'] == 0 ? 'selected' : ''; ?>>草稿</option>
+                                    <option value="1" <?php echo $document['is_formal'] == 1 ? 'selected' : ''; ?>>正式</option>
+                                </select>
                             </div>
                         </div>
                         

@@ -31,7 +31,8 @@ function init_database() {
             sort_order INTEGER DEFAULT 0,
             view_count INTEGER DEFAULT 0,
             user_id INTEGER,
-            is_public INTEGER DEFAULT 1,
+            is_public INTEGER DEFAULT 1, -- 0=私有, 1=公开
+            is_formal INTEGER DEFAULT 0, -- 0=草稿, 1=正式文档
             del_status INTEGER DEFAULT 0,
             deleted_at DATETIME,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
