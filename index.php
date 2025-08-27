@@ -70,7 +70,7 @@ $stats = $stmt->fetch();
     <style>
         :root {
             --sidebar-width: 260px;
-            --header-height: 85px;
+            --header-height: 110px;
             --search-height: 70px;
             --header-total-height: calc(var(--header-height) + var(--search-height));
         }
@@ -159,14 +159,20 @@ $stats = $stmt->fetch();
 
 
         .sidebar-header {
-            padding: 15px 20px 10px 20px;
-            border-bottom: 1px solid #e9ecef;
+            padding: 15px 20px;
             background: #fff;
             flex-shrink: 0;
             height: var(--header-height);
             display: flex;
             flex-direction: column;
             justify-content: center;
+            align-items: flex-start;
+            text-align: left;
+        }
+
+        .sidebar-header h5 {
+            font-size: 1.25rem;
+            font-weight: 600;
         }
 
         .search-box {
