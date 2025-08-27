@@ -149,21 +149,31 @@ include '../sidebar.php';
                                         </td>
                                         <td style="width: 120px;">
                                             <div style="display: flex; gap: 2px; align-items: center; justify-content: center; margin: 0 auto;">
-                                                <a href="edit.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="编辑">
+                                                <a href="edit.php?id=<?php echo $doc['id']; ?>" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s, border-color 0.2s;" title="编辑"
+                                                   onmouseover="this.style.backgroundColor='#b0bec5'; this.style.borderColor='#b0bec5';" 
+                                                   onmouseout="this.style.backgroundColor='#90a4ae'; this.style.borderColor='#90a4ae';">
                                                     <i class="bi bi-pencil" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
-                                                <a href="view_his.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-info btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="版本历史">
+                                                <a href="view_his.php?id=<?php echo $doc['id']; ?>" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s, border-color 0.2s;" title="版本历史"
+                                                   onmouseover="this.style.backgroundColor='#ffcc80'; this.style.borderColor='#ffcc80';" 
+                                                   onmouseout="this.style.backgroundColor='#ffb74d'; this.style.borderColor='#ffb74d';">
                                                     <i class="bi bi-clock-history" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
-                                                <a href="edit_log.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="查看更新记录">
+                                                <a href="edit_log.php?id=<?php echo $doc['id']; ?>" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s, border-color 0.2s;" title="查看更新记录"
+                                                   onmouseover="this.style.backgroundColor='#90caf9'; this.style.borderColor='#90caf9';" 
+                                                   onmouseout="this.style.backgroundColor='#64b5f6'; this.style.borderColor='#64b5f6';">
                                                     <i class="bi bi-list-check" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
                                                 <a href="add.php?parent_id=<?php echo $doc['id']; ?>&sort_order=<?php echo $next_child_sort; ?>" 
-                                                   class="btn btn-outline-primary btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="添加下级文档">
+                                                   class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s, border-color 0.2s;" title="添加下级文档"
+                                                   onmouseover="this.style.backgroundColor='#b0bec5'; this.style.borderColor='#b0bec5';" 
+                                                   onmouseout="this.style.backgroundColor='#90a4ae'; this.style.borderColor='#90a4ae';">
                                                     <i class="bi bi-plus-circle" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
-                                                <button type="button" class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0;" title="删除" 
-                                                        onclick="confirmDelete(<?php echo $doc['id']; ?>, '<?php echo htmlspecialchars(addslashes($doc['title'])); ?>')">
+                                                <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s, border-color 0.2s;" title="删除" 
+                                                        onclick="confirmDelete(<?php echo $doc['id']; ?>, '<?php echo htmlspecialchars(addslashes($doc['title'])); ?>')"
+                                                        onmouseover="this.style.backgroundColor='#ffab91'; this.style.borderColor='#ffab91';" 
+                                                        onmouseout="this.style.backgroundColor='#ff8a65'; this.style.borderColor='#ff8a65';">
                                                     <i class="bi bi-trash" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </button>
                                             </div>

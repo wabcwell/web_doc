@@ -94,20 +94,29 @@ $title = '查看已删除文档: ' . htmlspecialchars($document['title']);
         <div class="main-content">
 
 <div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1><?php echo htmlspecialchars($document['title'] ?? '未知文档'); ?></h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="index.php">回收站</a></li>
+                    <?php foreach ($breadcrumbs as $crumb): ?>
+                        <li class="breadcrumb-item"><a href="../../documents/view.php?id=<?php echo $crumb['id']; ?>" target="_blank"><?php echo htmlspecialchars($crumb['title']); ?></a></li>
+                    <?php endforeach; ?>
+                    <li class="breadcrumb-item active"><?php echo htmlspecialchars($document['title'] ?? '未知文档'); ?></li>
+                </ol>
+            </nav>
+        </div>
+        <div>
+            <a href="index.php" class="btn me-2" style="background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#b0bec5'; this.style.borderColor='#b0bec5'" onmouseout="this.style.backgroundColor='#90a4ae'; this.style.borderColor='#90a4ae'">
+                <i class="bi bi-arrow-left"></i> 返回回收站
+            </a>
+        </div>
+    </div>
+
     <div class="row">
         <div class="col-md-12">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        <i class="bi bi-file-text"></i> 查看已删除文档
-                    </h5>
-                    <div>
-                        <a href="index.php" class="btn btn-secondary btn-sm">
-                            <i class="bi bi-arrow-left"></i> 返回回收站
-                        </a>
-                    </div>
-                </div>
-                <div class="card-body">
                     <?php if (isset($_SESSION['error'])): ?>
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
                             <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
@@ -119,25 +128,9 @@ $title = '查看已删除文档: ' . htmlspecialchars($document['title']);
                         <div class="col-md-8">
                             <div class="card mb-4">
                                 <div class="card-header">
-                                    <h6 class="mb-0">文档内容</h6>
+                                    <h5 class="mb-0">文档内容</h5>
                                 </div>
                                 <div class="card-body">
-                                    <div class="document-path mb-3">
-                                        <nav aria-label="breadcrumb">
-                                            <ol class="breadcrumb">
-                                                <li class="breadcrumb-item"><a href="index.php">回收站</a></li>
-                                                <?php foreach ($breadcrumbs as $crumb): ?>
-                                                    <li class="breadcrumb-item">
-                                                        <a href="../../documents/view.php?id=<?php echo $crumb['id']; ?>" target="_blank">
-                                                            <?php echo htmlspecialchars($crumb['title']); ?>
-                                                        </a>
-                                                    </li>
-                                                <?php endforeach; ?>
-                                                <li class="breadcrumb-item active"><?php echo htmlspecialchars($document['title']); ?></li>
-                                            </ol>
-                                        </nav>
-                                    </div>
-                                    
                                     <div class="document-content">
                                         <?php echo $parsedown->text($document['content']); ?>
                                     </div>
@@ -146,10 +139,10 @@ $title = '查看已删除文档: ' . htmlspecialchars($document['title']);
                         </div>
                         
                         <div class="col-md-4">
-                            <div class="card mb-4">
-                                <div class="card-header">
-                                    <h6 class="mb-0">文档信息</h6>
-                                </div>
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">文档信息</h5>
+                            </div>
                                 <div class="card-body">
                                     <dl class="row mb-0">
                                         <dt class="col-sm-4">标题:</dt>
@@ -204,25 +197,61 @@ $title = '查看已删除文档: ' . htmlspecialchars($document['title']);
                                         
                                         <dt class="col-sm-4">删除时间:</dt>
                                         <dd class="col-sm-8"><?php echo date('Y-m-d H:i', strtotime($document['deleted_at'])); ?></dd>
+                                        
+                                        <?php if ($document['tags']): ?>
+                                        <dt class="col-sm-4">标签</dt>
+                                        <dd class="col-sm-8">
+                                            <?php 
+                                            $tags = array_map('trim', explode(',', $document['tags']));
+                                            foreach ($tags as $tag): 
+                                                if (trim($tag)): 
+                                            ?>
+                                                <span class="badge bg-info me-1"><?php echo htmlspecialchars(trim($tag) ?? ''); ?></span>
+                                            <?php 
+                                                endif;
+                                            endforeach; 
+                                            ?>
+                                        </dd>
+                                        <?php endif; ?>
                                     </dl>
                                 </div>
                             </div>
                             
                             <div class="card mb-4">
                                 <div class="card-header">
-                                    <h6 class="mb-0">操作</h6>
+                                    <h5 class="mb-0">操作</h5>
                                 </div>
                                 <div class="card-body">
                                     <div class="d-grid gap-2">
                                         <button type="button" 
-                                                class="btn btn-success" 
-                                                onclick="showRestoreModal(<?php echo $document['id']; ?>, '<?php echo addslashes($document['title']); ?>', this)">
+                                                class="btn" 
+                                                style="background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s;" 
+                                                onclick="showRestoreModal(<?php echo $document['id']; ?>, '<?php echo addslashes($document['title']); ?>', this)"
+                                                onmouseover="this.style.backgroundColor='#b0bec5'; this.style.borderColor='#b0bec5';" 
+                                                onmouseout="this.style.backgroundColor='#90a4ae'; this.style.borderColor='#90a4ae';">
                                             <i class="bi bi-arrow-counterclockwise"></i> 恢复文档
                                         </button>
+                                        <a href="../documents/edit_log.php?id=<?php echo $document['id']; ?>" 
+                                           class="btn" 
+                                           style="background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s;"
+                                           onmouseover="this.style.backgroundColor='#90caf9'; this.style.borderColor='#90caf9';" 
+                                           onmouseout="this.style.backgroundColor='#64b5f6'; this.style.borderColor='#64b5f6';">
+                                            <i class="bi bi-list-ul"></i> 操作记录
+                                        </a>
+                                        <a href="../documents/view_his.php?id=<?php echo $document['id']; ?>" 
+                                           class="btn" 
+                                           style="background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s;"
+                                           onmouseover="this.style.backgroundColor='#ffcc80'; this.style.borderColor='#ffcc80';" 
+                                           onmouseout="this.style.backgroundColor='#ffb74d'; this.style.borderColor='#ffb74d';">
+                                            <i class="bi bi-clock-history"></i> 历史版本
+                                        </a>
                                         <button type="button" 
-                                                class="btn btn-danger" 
+                                                class="btn" 
+                                                style="background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s;" 
                                                 onclick="showPermanentDeleteModal(<?php echo $document['id']; ?>, '<?php echo addslashes($document['title']); ?>', this)"
-                                                <?php echo $is_admin ? '' : 'disabled'; ?>>
+                                                <?php echo $is_admin ? '' : 'disabled'; ?>
+                                                onmouseover="this.style.backgroundColor='#ffab91'; this.style.borderColor='#ffab91';" 
+                                                onmouseout="this.style.backgroundColor='#ff8a65'; this.style.borderColor='#ff8a65';">
                                             <i class="bi bi-trash-fill"></i> 永久删除
                                         </button>
                                     </div>
@@ -234,7 +263,7 @@ $title = '查看已删除文档: ' . htmlspecialchars($document['title']);
                     <?php if (!empty($versions)): ?>
                         <div class="card mb-4">
                             <div class="card-header">
-                                <h6 class="mb-0">版本历史</h6>
+                                <h5 class="mb-0">版本历史</h5>
                             </div>
                             <div class="card-body">
                                 <div class="table-responsive">
@@ -269,53 +298,7 @@ $title = '查看已删除文档: ' . htmlspecialchars($document['title']);
                         </div>
                     <?php endif; ?>
                     
-                    <?php if (!empty($edit_logs)): ?>
-                        <div class="card">
-                            <div class="card-header">
-                                <h6 class="mb-0">编辑日志</h6>
-                            </div>
-                            <div class="card-body">
-                                <div class="table-responsive">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th>操作</th>
-                                                <th>用户</th>
-                                                <th>时间</th>
-                                                <th>详情</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php foreach ($edit_logs as $log): ?>
-                                                <tr>
-                                                    <td>
-                                                        <span class="badge bg-<?php 
-                                                            switch($log['action']) {
-                                                                case 'create': echo 'success'; break;
-                                                                case 'update': echo 'warning'; break;
-                                                                case 'delete': echo 'danger'; break;
-                                                                case 'restore': echo 'info'; break;
-                                                                default: echo 'secondary';
-                                                            }
-                                                        ?>">
-                                                        <?php echo htmlspecialchars($log['action']); ?>
-                                                        </span>
-                                                    </td>
-                                                    <td><?php echo htmlspecialchars($log['username']); ?></td>
-                                                    <td><?php echo date('Y-m-d H:i', strtotime($log['created_at'])); ?></td>
-                                                    <td>
-                                                        <?php if ($log['old_title'] != $log['new_title']): ?>
-                                                            标题: <?php echo htmlspecialchars($log['old_title']); ?> → <?php echo htmlspecialchars($log['new_title']); ?>
-                                                        <?php endif; ?>
-                                                    </td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endif; ?>
+
                 </div>
             </div>
         </div>

@@ -127,27 +127,41 @@ include '../sidebar.php';
                                             </td>
                                             <td><?php echo htmlspecialchars($doc['username'] ?? '未知用户'); ?></td>
                                             <td><?php echo date('Y-m-d H:i', strtotime($doc['deleted_at'])); ?></td>
-                                            <td style="width: 180px;">
+                                            <td style="width: 240px;">
                                                 <div style="display: flex; gap: 2px; align-items: center; justify-content: center; margin: 0 auto;">
-                                                    <a href="view.php?id=<?php echo $doc['id']; ?>" 
-                                                       class="btn btn-outline-info btn-sm d-flex align-items-center justify-content-center" 
-                                                       style="width: 30px; height: 30px; padding: 0;" 
-                                                       title="查看详情">
-                                                        <i class="bi bi-eye" style="font-size: 14px; margin: 0 auto;"></i>
+                                                    <a href="../documents/view_his.php?id=<?php echo $doc['id']; ?>" 
+                                                       class="btn btn-sm d-flex align-items-center justify-content-center" 
+                                                       style="width: 30px; height: 30px; padding: 0; background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s;" 
+                                                       title="版本历史"
+                                                       onmouseover="this.style.backgroundColor='#ffcc80'; this.style.borderColor='#ffcc80';" 
+                                                       onmouseout="this.style.backgroundColor='#ffb74d'; this.style.borderColor='#ffb74d';">
+                                                        <i class="bi bi-clock-history" style="font-size: 14px; margin: 0 auto;"></i>
+                                                    </a>
+                                                    <a href="../documents/edit_log.php?id=<?php echo $doc['id']; ?>" 
+                                                       class="btn btn-sm d-flex align-items-center justify-content-center" 
+                                                       style="width: 30px; height: 30px; padding: 0; background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s;" 
+                                                       title="查看更新记录"
+                                                       onmouseover="this.style.backgroundColor='#90caf9'; this.style.borderColor='#90caf9';" 
+                                                       onmouseout="this.style.backgroundColor='#64b5f6'; this.style.borderColor='#64b5f6';">
+                                                        <i class="bi bi-list-ul" style="font-size: 14px; margin: 0 auto;"></i>
                                                     </a>
                                                     <button type="button" 
-                                                class="btn btn-outline-success btn-sm d-flex align-items-center justify-content-center" 
-                                                style="width: 30px; height: 30px; padding: 0;" 
+                                                class="btn btn-sm d-flex align-items-center justify-content-center" 
+                                                style="width: 30px; height: 30px; padding: 0; background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s;" 
                                                 title="恢复文档"
-                                                onclick="showRestoreModal(<?php echo $doc['id']; ?>, '<?php echo addslashes($doc['title']); ?>', this)">
+                                                onclick="showRestoreModal(<?php echo $doc['id']; ?>, '<?php echo addslashes($doc['title']); ?>', this)"
+                                                onmouseover="this.style.backgroundColor='#b0bec5'; this.style.borderColor='#b0bec5';" 
+                                                onmouseout="this.style.backgroundColor='#90a4ae'; this.style.borderColor='#90a4ae';">
                                             <i class="bi bi-arrow-counterclockwise" style="font-size: 14px; margin: 0 auto;"></i>
                                         </button>
                                                     <button type="button" 
-                                                            class="btn btn-outline-danger btn-sm d-flex align-items-center justify-content-center" 
-                                                            style="width: 30px; height: 30px; padding: 0;" 
+                                                            class="btn btn-sm d-flex align-items-center justify-content-center" 
+                                                            style="width: 30px; height: 30px; padding: 0; background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s;" 
                                                             title="永久删除"
                                                             onclick="showPermanentDeleteModal(<?php echo $doc['id']; ?>, '<?php echo addslashes($doc['title']); ?>', this)"
-                                                            <?php echo $is_admin ? '' : 'disabled'; ?>>
+                                                            <?php echo $is_admin ? '' : 'disabled'; ?>
+                                                            onmouseover="this.style.backgroundColor='#ffab91'; this.style.borderColor='#ffab91';" 
+                                                            onmouseout="this.style.backgroundColor='#ff8a65'; this.style.borderColor='#ff8a65';">
                                                         <i class="bi bi-trash-fill" style="font-size: 14px; margin: 0 auto;"></i>
                                                     </button>
                                                 </div>

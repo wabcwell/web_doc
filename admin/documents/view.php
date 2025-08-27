@@ -64,10 +64,10 @@ include '../sidebar.php';
                     </nav>
                 </div>
                 <div>
-                    <a href="edit.php?id=<?php echo $id; ?>" class="btn btn-primary me-2">
+                    <a href="edit.php?id=<?php echo $id; ?>" class="btn me-2" style="background-color: #7a8ba3; border-color: #7a8ba3; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#8d9db6'; this.style.borderColor='#8d9db6'" onmouseout="this.style.backgroundColor='#7a8ba3'; this.style.borderColor='#7a8ba3'">
                         <i class="bi bi-pencil"></i> 编辑
                     </a>
-                    <a href="../../document.php?id=<?php echo $id; ?>" target="_blank" class="btn btn-success">
+                    <a href="../../document.php?id=<?php echo $id; ?>" target="_blank" class="btn" style="background-color: #8fa088; border-color: #8fa088; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#a8b5a0'; this.style.borderColor='#a8b5a0'" onmouseout="this.style.backgroundColor='#8fa088'; this.style.borderColor='#8fa088'">
                         <i class="bi bi-eye"></i> 前台查看
                     </a>
                 </div>
@@ -174,16 +174,19 @@ include '../sidebar.php';
                         </div>
                         <div class="card-body">
                             <div class="d-grid gap-2">
-                                <a href="edit.php?id=<?php echo $id; ?>" class="btn btn-primary">
+                                <a href="edit.php?id=<?php echo $id; ?>" class="btn" style="background-color: #9b87c1; border-color: #9b87c1; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#b19cd9'; this.style.borderColor='#b19cd9'" onmouseout="this.style.backgroundColor='#9b87c1'; this.style.borderColor='#9b87c1'">
                                     <i class="bi bi-pencil"></i> 编辑文档
                                 </a>
-                                <a href="edit_log.php?id=<?php echo $id; ?>" class="btn btn-info">
-                                    <i class="bi bi-clock-history"></i> 查看操作记录
+                                <a href="edit_log.php?id=<?php echo $id; ?>" class="btn" style="background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#90caf9'; this.style.borderColor='#90caf9'" onmouseout="this.style.backgroundColor='#64b5f6'; this.style.borderColor='#64b5f6'">
+                                    <i class="bi bi-clock-history"></i> 操作记录
                                 </a>
-                                <button type="button" class="btn btn-danger" onclick="confirmDelete(<?php echo $id; ?>, '<?php echo addslashes(htmlspecialchars($document['title'] ?? '未知文档')); ?>')">
+                                <a href="view_his.php?id=<?php echo $id; ?>" class="btn" style="background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#ffcc80'; this.style.borderColor='#ffcc80'" onmouseout="this.style.backgroundColor='#ffb74d'; this.style.borderColor='#ffb74d'">
+                                    <i class="bi bi-clock-history"></i> 历史版本
+                                </a>
+                                <button type="button" class="btn" style="background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#ffab91'; this.style.borderColor='#ffab91'" onmouseout="this.style.backgroundColor='#ff8a65'; this.style.borderColor='#ff8a65'" onclick="confirmDelete(<?php echo $id; ?>, '<?php echo addslashes(htmlspecialchars($document['title'] ?? '未知文档')); ?>')">
                                     <i class="bi bi-trash"></i> 删除文档
                                 </button>
-                                <a href="index.php" class="btn btn-secondary">
+                                <a href="index.php" class="btn" style="background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#b0bec5'; this.style.borderColor='#b0bec5'" onmouseout="this.style.backgroundColor='#90a4ae'; this.style.borderColor='#90a4ae'">
                                     <i class="bi bi-arrow-left"></i> 返回列表
                                 </a>
                             </div>
