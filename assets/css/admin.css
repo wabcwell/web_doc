@@ -622,3 +622,75 @@ tr:hover {
 .btn-secondary:hover {
     background: #5a6268;
 }
+
+/* 面包屑导航样式优化 */
+.breadcrumb {
+    background: transparent;
+    padding: 0;
+    margin: 0;
+    font-size: 14px;
+}
+
+.breadcrumb-item {
+    color: #6c757d;
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "/";
+    color: #adb5bd;
+    padding: 0 8px;
+}
+
+.breadcrumb-item a {
+    color: #495057;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid transparent;
+}
+
+.breadcrumb-item a:hover {
+    color: #007cba;
+    border-bottom-color: #007cba;
+    text-decoration: none;
+}
+
+.breadcrumb-item.active {
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* 文档列表链接样式优化 */
+.table a.text-decoration-none {
+    color: #495057;
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.table a.text-decoration-none:hover {
+    color: #007cba;
+    text-decoration: none;
+}
+
+/* 深色主题适配 */
+@media (prefers-color-scheme: dark) {
+    .breadcrumb-item a {
+        color: #bdc3c7;
+    }
+    
+    .breadcrumb-item a:hover {
+        color: #3498db;
+        border-bottom-color: #3498db;
+    }
+    
+    .breadcrumb-item.active {
+        color: #95a5a6;
+    }
+    
+    .table a.text-decoration-none {
+        color: #e9ecef;
+    }
+    
+    .table a.text-decoration-none:hover {
+        color: #3498db;
+    }
+}
