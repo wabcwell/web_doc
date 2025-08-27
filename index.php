@@ -567,23 +567,23 @@ $stats = $stmt->fetch();
                      </button>
                      
                      <!-- 导出菜单 -->
-                     <div id="exportMenu" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #dee2e6; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 8px; min-width: 180px;">
-                         <div style="padding: 4px 0;">
-                             <a href="export.php?id=<?php echo $current_document['id']; ?>&format=pdf" target="_blank" class="dropdown-item" style="display: block; padding: 8px 12px; color: #dc3545; text-decoration: none; border-radius: 4px;">
-                                 <i class="bi bi-file-earmark-pdf"></i> PDF格式
+                     <div id="exportMenu" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #e9ecef; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 4px; min-width: 160px;">
+                         <div style="padding: 2px 0;">
+                             <a href="export.php?id=<?php echo $current_document['id']; ?>&format=pdf" target="_blank" class="dropdown-item" style="display: block; padding: 10px 12px; color: #495057; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
+                                 <i class="bi bi-file-earmark-pdf" style="margin-right: 8px; color: #6c757d;"></i> PDF格式
                              </a>
-                             <a href="export.php?id=<?php echo $current_document['id']; ?>&format=md" target="_blank" class="dropdown-item" style="display: block; padding: 8px 12px; color: #0d6efd; text-decoration: none; border-radius: 4px;">
-                                 <i class="bi bi-file-earmark-text"></i> Markdown格式
+                             <a href="export.php?id=<?php echo $current_document['id']; ?>&format=md" target="_blank" class="dropdown-item" style="display: block; padding: 10px 12px; color: #495057; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
+                                 <i class="bi bi-file-earmark-text" style="margin-right: 8px; color: #6c757d;"></i> Markdown格式
                              </a>
-                             <a href="export.php?id=<?php echo $current_document['id']; ?>&format=html" target="_blank" class="dropdown-item" style="display: block; padding: 8px 12px; color: #198754; text-decoration: none; border-radius: 4px;">
-                                 <i class="bi bi-file-earmark-code"></i> HTML格式
+                             <a href="export.php?id=<?php echo $current_document['id']; ?>&format=html" target="_blank" class="dropdown-item" style="display: block; padding: 10px 12px; color: #495057; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
+                                 <i class="bi bi-file-earmark-code" style="margin-right: 8px; color: #6c757d;"></i> HTML格式
                              </a>
-                             <hr style="margin: 8px 0; border: 0; border-top: 1px solid #dee2e6;">
-                             <button type="button" class="dropdown-item" onclick="exportAsImage('png'); hideExportMenu();" style="display: block; width: 100%; padding: 8px 12px; color: #0dcaf0; background: none; border: none; text-align: left; cursor: pointer; border-radius: 4px;">
-                                 <i class="bi bi-image"></i> PNG图片
+                             <hr style="margin: 4px 8px; border: 0; border-top: 1px solid #f8f9fa;">
+                             <button type="button" class="dropdown-item" onclick="exportAsImage('png'); hideExportMenu();" style="display: block; width: 100%; padding: 10px 12px; color: #495057; background: none; border: none; text-align: left; cursor: pointer; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
+                                 <i class="bi bi-image" style="margin-right: 8px; color: #6c757d;"></i> PNG图片
                              </button>
-                             <button type="button" class="dropdown-item" onclick="exportAsImage('jpg'); hideExportMenu();" style="display: block; width: 100%; padding: 8px 12px; color: #fd7e14; background: none; border: none; text-align: left; cursor: pointer; border-radius: 4px;">
-                                 <i class="bi bi-file-earmark-image"></i> JPG图片
+                             <button type="button" class="dropdown-item" onclick="exportAsImage('jpg'); hideExportMenu();" style="display: block; width: 100%; padding: 10px 12px; color: #495057; background: none; border: none; text-align: left; cursor: pointer; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
+                                 <i class="bi bi-file-earmark-image" style="margin-right: 8px; color: #6c757d;"></i> JPG图片
                              </button>
                          </div>
                      </div>
