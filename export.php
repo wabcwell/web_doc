@@ -1,5 +1,9 @@
 <?php
 require_once 'config.php';
+require_once 'includes/init.php';
+
+// 获取数据库连接
+$pdo = get_db();
 
 // 获取文档ID和导出格式
 $document_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -10,7 +14,7 @@ if (!$document_id) {
 }
 
 // 获取文档信息
-$stmt = $pdo->prepare("SELECT d.*, c.name as category_name FROM documents d LEFT JOIN categories c ON d.category_id = c.id WHERE d.id = ?");
+$stmt = $pdo->prepare("SELECT * FROM documents WHERE id = ?");
 $stmt->execute([$document_id]);
 $document = $stmt->fetch();
 
@@ -21,7 +25,6 @@ if (!$document) {
 // 使用本地Parsedown
 require_once 'Parsedown.php';
 $Parsedown = new Parsedown();
-$Parsedown->setSafeMode(true);
 
 // 处理不同格式的导出
 switch ($format) {
@@ -47,7 +50,7 @@ function export_html($document, $Parsedown) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>' . htmlspecialchars($document['title']) . '</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="assets/css/static/bootstrap.min.css">
     <style>
         body { padding: 20px; }
         .document-header { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #dee2e6; }
@@ -59,7 +62,6 @@ function export_html($document, $Parsedown) {
         <div class="document-header">
             <h1>' . htmlspecialchars($document['title']) . '</h1>
             <div class="document-meta">
-                <p>目录：' . htmlspecialchars($document['category_name'] ?: '未分类') . '</p>
                 <p>更新时间：' . date('Y-m-d H:i', strtotime($document['updated_at'])) . '</p>
             </div>
         </div>
@@ -155,12 +157,11 @@ function export_pdf($document, $Parsedown) {
 </head>
 <body>
     <div class="document-header">
-        <h1>' . htmlspecialchars($document['title']) . '</h1>
-        <div class="document-meta">
-            <p>目录：' . htmlspecialchars($document['category_name'] ?: '未分类') . '</p>
-            <p>更新时间：' . date('Y-m-d H:i', strtotime($document['updated_at'])) . '</p>
+            <h1>' . htmlspecialchars($document['title']) . '</h1>
+            <div class="document-meta">
+                <p>更新时间：' . date('Y-m-d H:i', strtotime($document['updated_at'])) . '</p>
+            </div>
         </div>
-    </div>
     <div class="document-content">
         ' . $html . '
     </div>
@@ -177,7 +178,6 @@ function export_pdf($document, $Parsedown) {
 
 function export_md($document) {
     $output = "# " . $document['title'] . "\n\n";
-    $output .= "**目录：** " . ($document['category_name'] ?: '未分类') . "\n";
     $output .= "**更新时间：** " . date('Y-m-d H:i', strtotime($document['updated_at'])) . "\n\n";
     $output .= "---\n\n";
     $output .= $document['content'];
