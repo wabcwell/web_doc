@@ -177,6 +177,9 @@ include '../sidebar.php';
                                 <a href="edit.php?id=<?php echo $id; ?>" class="btn btn-primary">
                                     <i class="bi bi-pencil"></i> 编辑文档
                                 </a>
+                                <a href="edit_log.php?id=<?php echo $id; ?>" class="btn btn-info">
+                                    <i class="bi bi-clock-history"></i> 查看操作记录
+                                </a>
                                 <button type="button" class="btn btn-danger" onclick="confirmDelete(<?php echo $id; ?>, '<?php echo addslashes(htmlspecialchars($document['title'] ?? '未知文档')); ?>')">
                                     <i class="bi bi-trash"></i> 删除文档
                                 </button>

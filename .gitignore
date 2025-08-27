@@ -28,6 +28,9 @@ debug_*.php
 # 忽略初始化文档文件
 init_docs.php
 
+# 忽略功能逻辑文档（仅用于开发参考）
+功能逻辑.md
+
 # 忽略安全配置文件（允许模板存在）
 database/.htaccess
 database/Web.config

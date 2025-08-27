@@ -58,11 +58,7 @@ try {
     log_edit(
         $id,
         $_SESSION['user_id'],
-        'delete',
-        $document['title'],
-        '',
-        '',
-        ''
+        'delete'
     );
     
     // 执行软删除（标记为已删除）

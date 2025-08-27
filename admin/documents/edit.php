@@ -43,52 +43,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 获取当前文档信息用于记录日志和保存版本
         $old_document = get_document($id);
         
-        // 检查内容是否有变更（仅比较title、content、tags字段）
-        $has_changes = false;
+        // 初始化变更状态标记
+        $changes = [
+            'op_title' => 0,
+            'op_content' => 0,
+            'op_tags' => 0,
+            'op_parent' => 0,
+            'op_corder' => 0,
+            'op_public' => 0,
+            'op_formal' => 0
+        ];
         
-        // 标准化处理：处理NULL、空字符串、空白字符和换行符
+        // 标准化处理函数
         $normalize = function($value) {
             if ($value === null || $value === false) {
                 return '';
             }
-            // 强制转换为字符串
-            $value = (string)$value;
-            // 移除前后空白字符
-            $value = trim($value);
-            // 标准化换行符
+            // 强制转换为字符串并标准化
+            $value = trim((string)$value);
             $value = str_replace(["\r\n", "\r"], "\n", $value);
-            // 移除行尾空格和多余空行
             $value = preg_replace('/[ \t]+$/m', '', $value);
             $value = preg_replace('/\n{3,}/', "\n\n", $value);
             return $value;
         };
         
-        // 获取并标准化旧数据
-        $old_title = $normalize($old_document['title']);
-        $old_content = $normalize($old_document['content']);
-        $old_tags = $normalize($old_document['tags']);
+        // 检测各字段变更
+        $changes['op_title'] = ($normalize($old_document['title']) !== $normalize($title)) ? 1 : 0;
+        $changes['op_content'] = ($normalize($old_document['content']) !== $normalize($content)) ? 1 : 0;
+        $changes['op_tags'] = ($normalize($old_document['tags']) !== $normalize($tags)) ? 1 : 0;
+        $changes['op_parent'] = ($old_document['parent_id'] != $parent_id) ? 1 : 0;
+        $changes['op_corder'] = ($old_document['sort_order'] != $sort_order) ? 1 : 0;
         
-        // 获取并标准化新数据
-        $new_title = $normalize($title);
-        $new_content = $normalize($content);
-        $new_tags = $normalize($tags);
-        
-        // 精确比较每个字段
-        $title_changed = ($old_title !== $new_title);
-        $content_changed = ($old_content !== $new_content);
-        $tags_changed = ($old_tags !== $new_tags);
-        
-        // 调试输出（开发时可用）
-        if ($title_changed || $content_changed || $tags_changed) {
-            error_log("DEBUG: 变更检测详情:");
-            error_log("DEBUG: 标题变更: " . ($title_changed ? '是' : '否') . " - 旧: '" . addslashes($old_title) . "' 新: '" . addslashes($new_title) . "'");
-            error_log("DEBUG: 内容变更: " . ($content_changed ? '是' : '否') . " - 旧长度: " . strlen($old_content) . " 新长度: " . strlen($new_content));
-            error_log("DEBUG: 标签变更: " . ($tags_changed ? '是' : '否') . " - 旧: '" . addslashes($old_tags) . "' 新: '" . addslashes($new_tags) . "'");
+        // 检测公开状态变更
+        if ($old_document['is_public'] != $is_public) {
+            $changes['op_public'] = ($is_public == 1) ? 1 : 2;
         }
         
-        if ($title_changed || $content_changed || $tags_changed) {
-            $has_changes = true;
+        // 检测正式状态变更
+        if ($old_document['is_formal'] != $is_formal) {
+            $changes['op_formal'] = ($is_formal == 1) ? 1 : 2;
         }
+        
+        // 判断是否有任何变更
+        $has_changes = array_sum($changes) > 0;
         
         // 更新文档
         $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, parent_id = ?, sort_order = ?, tags = ?, is_public = ?, is_formal = ?, updated_at = datetime('now') WHERE id = ?");
@@ -99,10 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id,
             $_SESSION['user_id'],
             'update',
-            $old_document['title'],
-            $title,
-            $old_document['content'],
-            $content
+            $changes
         );
         
         // 仅在内容有变更时保存新版本

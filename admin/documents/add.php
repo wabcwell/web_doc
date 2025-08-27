@@ -32,15 +32,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         $document_id = $db->lastInsertId();
         
-        // 记录创建日志
+        // 记录创建日志（创建操作不需要记录变更状态）
         log_edit(
             $document_id,
             $_SESSION['user_id'],
-            'create',
-            '',
-            $title,
-            '',
-            $content
+            'create'
         );
         
         // 保存初始版本

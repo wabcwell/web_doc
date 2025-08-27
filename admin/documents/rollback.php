@@ -63,9 +63,12 @@ try {
         $document_id
     ]);
     
-    // 记录操作日志
-    $stmt = $db->prepare("INSERT INTO edit_log (document_id, user_id, action, created_at) VALUES (?, ?, 'rollback', datetime('now'))");
-    $stmt->execute([$document_id, $_SESSION['user_id']]);
+    // 记录回滚操作日志
+    log_edit(
+        $document_id,
+        $_SESSION['user_id'],
+        'rollback'
+    );
     
     // 提交事务
     $db->commit();

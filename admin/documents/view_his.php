@@ -202,12 +202,18 @@ include '../sidebar.php';
 
                     <!-- 操作记录 -->
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">操作记录</h5>
+                            <a href="edit_log.php?id=<?php echo $id; ?>" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-list"></i> 查看全部
+                            </a>
                         </div>
                         <div class="card-body p-0">
                             <div class="list-group list-group-flush">
-                                <?php foreach ($edit_logs as $log): ?>
+                                <?php 
+                                $recent_logs = array_slice($edit_logs, 0, 5);
+                                foreach ($recent_logs as $log): 
+                                ?>
                                     <div class="list-group-item log-item status-<?php echo htmlspecialchars($log['action']); ?>">
                                         <div class="d-flex w-100 justify-content-between">
                                             <small class="text-muted"><?php echo date('m-d H:i', strtotime($log['created_at'])); ?></small>
@@ -216,13 +222,13 @@ include '../sidebar.php';
                                             <strong><?php echo htmlspecialchars($log['username']); ?></strong>
                                             <?php 
                                             switch($log['action']) {
-                                                case 'created':
+                                                case 'create':
                                                     echo '创建了文档';
                                                     break;
-                                                case 'updated':
+                                                case 'update':
                                                     echo '更新了文档';
                                                     break;
-                                                case 'deleted':
+                                                case 'delete':
                                                     echo '删除了文档';
                                                     break;
                                                 case 'rollback':
@@ -233,8 +239,34 @@ include '../sidebar.php';
                                             }
                                             ?>
                                         </p>
+                                        <?php if ($log['action'] === 'update'): ?>
+                                            <?php
+                                            $changes = [];
+                                            if ($log['op_title'] == 1) $changes[] = '标题';
+                                            if ($log['op_content'] == 1) $changes[] = '内容';
+                                            if ($log['op_tags'] == 1) $changes[] = '标签';
+                                            if ($log['op_parent'] == 1) $changes[] = '父文档';
+                                            if ($log['op_corder'] == 1) $changes[] = '排序';
+                                            if ($log['op_public'] == 1) $changes[] = '设为公开';
+                                            elseif ($log['op_public'] == 2) $changes[] = '设为私有';
+                                            if ($log['op_formal'] == 1) $changes[] = '设为正式';
+                                            elseif ($log['op_formal'] == 2) $changes[] = '设为草稿';
+                                            
+                                            if (!empty($changes)): ?>
+                                                <small class="text-muted">
+                                                    变更：<?php echo implode('、', $changes); ?>
+                                                </small>
+                                            <?php endif; ?>
+                                        <?php endif; ?>
                                     </div>
                                 <?php endforeach; ?>
+                                <?php if (count($edit_logs) > 5): ?>
+                                    <div class="list-group-item text-center">
+                                        <a href="edit_log.php?id=<?php echo $id; ?>" class="text-decoration-none">
+                                            查看全部 <?php echo count($edit_logs); ?> 条记录
+                                        </a>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>

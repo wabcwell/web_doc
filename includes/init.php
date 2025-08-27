@@ -51,20 +51,66 @@ function init_database() {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )");
         
-        // 创建编辑日志表 - 更新为与实际数据库完全一致的结构
-        $db->exec("CREATE TABLE IF NOT EXISTS edit_log (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            document_id INTEGER NOT NULL,
-            user_id INTEGER NOT NULL,
-            action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete', 'rollback')),
-            old_title TEXT,
-            new_title TEXT,
-            old_content TEXT,
-            new_content TEXT,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )");
+        // 检查edit_log表是否需要升级（从旧版本迁移）
+        $stmt = $db->query("PRAGMA table_info(edit_log)");
+        $columns = $stmt->fetchAll(PDO::FETCH_COLUMN, 1);
+        $has_old_columns = in_array('old_title', $columns);
+        
+        if ($has_old_columns) {
+            // 迁移旧数据并创建新表
+            $db->exec("BEGIN TRANSACTION");
+            
+            // 重命名旧表
+            $db->exec("ALTER TABLE edit_log RENAME TO edit_log_old");
+            
+            // 创建新表结构
+            $db->exec("CREATE TABLE edit_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete', 'rollback')),
+                op_title INTEGER DEFAULT 0 CHECK (op_title IN (0, 1)), -- 0无变更，1有变更
+                op_content INTEGER DEFAULT 0 CHECK (op_content IN (0, 1)), -- 0无变更，1有变更
+                op_tags INTEGER DEFAULT 0 CHECK (op_tags IN (0, 1)), -- 0无变更，1有变更
+                op_parent INTEGER DEFAULT 0 CHECK (op_parent IN (0, 1)), -- 0无变更，1有变更
+                op_corder INTEGER DEFAULT 0 CHECK (op_corder IN (0, 1)), -- 0无变更，1有变更
+                op_public INTEGER DEFAULT 0 CHECK (op_public IN (0, 1, 2)), -- 0无变更，1私有变公开，2公开变私有
+                op_formal INTEGER DEFAULT 0 CHECK (op_formal IN (0, 1, 2)), -- 0无变更，1草稿变正式，2正式变草稿
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )");
+            
+            // 迁移数据（将旧字段转换为新字段）
+            $db->exec("INSERT INTO edit_log (id, document_id, user_id, action, op_title, op_content, created_at)
+                      SELECT id, document_id, user_id, action, 
+                             CASE WHEN old_title != new_title THEN 1 ELSE 0 END,
+                             CASE WHEN old_content != new_content THEN 1 ELSE 0 END,
+                             created_at
+                      FROM edit_log_old");
+            
+            // 删除旧表
+            $db->exec("DROP TABLE edit_log_old");
+            $db->exec("COMMIT");
+        } else {
+            // 创建新表结构（首次创建）
+            $db->exec("CREATE TABLE IF NOT EXISTS edit_log (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                document_id INTEGER NOT NULL,
+                user_id INTEGER NOT NULL,
+                action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete', 'rollback')),
+                op_title INTEGER DEFAULT 0 CHECK (op_title IN (0, 1)), -- 0无变更，1有变更
+                op_content INTEGER DEFAULT 0 CHECK (op_content IN (0, 1)), -- 0无变更，1有变更
+                op_tags INTEGER DEFAULT 0 CHECK (op_tags IN (0, 1)), -- 0无变更，1有变更
+                op_parent INTEGER DEFAULT 0 CHECK (op_parent IN (0, 1)), -- 0无变更，1有变更
+                op_corder INTEGER DEFAULT 0 CHECK (op_corder IN (0, 1)), -- 0无变更，1有变更
+                op_public INTEGER DEFAULT 0 CHECK (op_public IN (0, 1, 2)), -- 0无变更，1私有变公开，2公开变私有
+                op_formal INTEGER DEFAULT 0 CHECK (op_formal IN (0, 1, 2)), -- 0无变更，1草稿变正式，2正式变草稿
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+            )");
+        }
         
         // 创建编辑日志索引
         $db->exec("CREATE INDEX IF NOT EXISTS idx_edit_log_document_id ON edit_log(document_id)");
@@ -159,12 +205,42 @@ function search_documents($keyword) {
 
 /**
  * 记录编辑日志
+ * @param array $changes 变更信息数组，仅在action='update'时有效
  */
-function log_edit($document_id, $user_id, $action, $old_title = null, $new_title = null, $old_content = null, $new_content = null) {
+function log_edit($document_id, $user_id, $action, $changes = []) {
     $db = get_db();
-    $stmt = $db->prepare("INSERT INTO edit_log (document_id, user_id, action, old_title, new_title, old_content, new_content) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?)");
-    return $stmt->execute([$document_id, $user_id, $action, $old_title, $new_title, $old_content, $new_content]);
+    
+    // 默认值设置
+    $defaults = [
+        'op_title' => 0,
+        'op_content' => 0,
+        'op_tags' => 0,
+        'op_parent' => 0,
+        'op_corder' => 0,
+        'op_public' => 0,
+        'op_formal' => 0
+    ];
+    
+    // 合并变更信息
+    $params = array_merge($defaults, $changes);
+    
+    // 仅在action为update时使用变更标记，其他action使用默认值
+    if ($action !== 'update') {
+        $params = $defaults;
+    }
+    
+    $stmt = $db->prepare("INSERT INTO edit_log (document_id, user_id, action, op_title, op_content, op_tags, op_parent, op_corder, op_public, op_formal) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    return $stmt->execute([
+        $document_id, $user_id, $action,
+        $params['op_title'],
+        $params['op_content'],
+        $params['op_tags'],
+        $params['op_parent'],
+        $params['op_corder'],
+        $params['op_public'],
+        $params['op_formal']
+    ]);
 }
 
 /**
