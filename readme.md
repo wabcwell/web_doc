@@ -16,9 +16,10 @@
 - **后端**: PHP 8.2+
 - **数据库**: SQLite 3
 - **前端**: HTML5, CSS3, JavaScript
-- **框架**: Bootstrap 5.3.0
-- **编辑器**: Toast UI Editor
+- **框架**: Bootstrap 5.3.0 (完全本地化)
+- **编辑器**: Toast UI Editor (完全本地化)
 - **Markdown解析**: Parsedown
+- **图标**: Bootstrap Icons (完全本地化)
 
 ## 快速开始
 
@@ -55,7 +56,22 @@ web_doc/
 │   ├── dashboard.php   # 管理面板
 │   ├── users.php       # 用户管理
 │   └── settings.php    # 系统设置
-├── assets/             # 静态资源
+├── assets/             # 本地化静态资源
+│   ├── css/
+│   │   ├── static/     # 本地化CSS文件
+│   │   │   ├── bootstrap.min.css    # Bootstrap 5.3.0
+│   │   │   ├── bootstrap-icons.min.css  # Bootstrap Icons
+│   │   │   └── prism.min.css        # 代码高亮
+│   ├── fonts/          # 本地化字体文件
+│   │   ├── bootstrap-icons.woff2    # Bootstrap Icons字体
+│   │   └── bootstrap-icons.woff     # Bootstrap Icons字体
+│   ├── js/
+│   │   └── static/     # 本地化JS文件
+│   │       ├── bootstrap.bundle.min.js  # Bootstrap JS
+│   │       ├── prism.min.js             # 代码高亮
+│   │       └── prism-*.min.js           # 各语言代码高亮
+│   ├── images/         # 图片资源
+│   └── icons/          # 图标文件
 ├── database/           # SQLite数据库
 ├── includes/           # 核心功能文件
 ├── uploads/            # 上传文件
@@ -63,6 +79,26 @@ web_doc/
 ├── config.php         # 配置文件
 └── README.md          # 项目文档
 ```
+
+## 资源本地化
+
+本项目所有外部依赖资源已完全本地化，无需网络连接即可正常运行：
+
+### 🎨 样式资源
+- **Bootstrap 5.3.0**: 本地CSS文件 `assets/css/static/bootstrap.min.css`
+- **Bootstrap Icons**: 本地字体文件 `assets/fonts/bootstrap-icons.woff2` 和 `assets/fonts/bootstrap-icons.woff`
+- **Prism代码高亮**: 本地CSS文件 `assets/css/static/prism.min.css`
+
+### 📜 脚本资源
+- **Bootstrap JS**: 本地JS文件 `assets/js/static/bootstrap.bundle.min.js`
+- **Prism代码高亮**: 本地JS文件 `assets/js/static/prism.min.js`
+- **Toast UI Editor**: 本地JS文件
+
+### 🗂️ 本地化优势
+- ✅ **零外部依赖**: 完全离线运行
+- ✅ **加载更快**: 本地资源无网络延迟
+- ✅ **稳定性高**: 不受CDN服务影响
+- ✅ **隐私安全**: 无外部资源请求
 
 ## 使用说明
 
