@@ -117,6 +117,8 @@ function get_action_icon($action) {
             return 'bi-pencil';
         case 'delete':
             return 'bi-trash';
+        case 'restore':
+            return 'bi-arrow-counterclockwise';
         case 'rollback':
             return 'bi-arrow-clockwise';
         default:
@@ -135,6 +137,8 @@ function get_action_color($action) {
             return 'warning';
         case 'delete':
             return 'danger';
+        case 'restore':
+            return 'primary';
         case 'rollback':
             return 'info';
         default:
@@ -153,6 +157,8 @@ function get_action_text($action) {
             return '更新了文档';
         case 'delete':
             return '删除了文档';
+        case 'restore':
+            return '恢复了文档';
         case 'rollback':
             return '回滚了版本';
         default:
@@ -270,7 +276,7 @@ function get_action_text($action) {
 
             <!-- 统计信息 -->
             <div class="row mb-4">
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
                             <h5 class="card-title"><?php echo $total_records; ?></h5>
@@ -278,7 +284,7 @@ function get_action_text($action) {
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
                             <h5 class="card-title"><?php echo count(array_filter($edit_logs, fn($log) => $log['action'] === 'create')); ?></h5>
@@ -286,7 +292,7 @@ function get_action_text($action) {
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
                             <h5 class="card-title"><?php echo count(array_filter($edit_logs, fn($log) => $log['action'] === 'update')); ?></h5>
@@ -294,7 +300,23 @@ function get_action_text($action) {
                         </div>
                     </div>
                 </div>
-                <div class="col-md-3">
+                <div class="col-md-2">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo count(array_filter($edit_logs, fn($log) => $log['action'] === 'delete')); ?></h5>
+                            <p class="card-text text-muted">删除</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo count(array_filter($edit_logs, fn($log) => $log['action'] === 'restore')); ?></h5>
+                            <p class="card-text text-muted">恢复</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-2">
                     <div class="card text-center">
                         <div class="card-body">
                             <h5 class="card-title"><?php echo count(array_filter($edit_logs, fn($log) => $log['action'] === 'rollback')); ?></h5>
