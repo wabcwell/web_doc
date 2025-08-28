@@ -206,6 +206,38 @@ $stats = $stmt->fetch();
             background: #a8a8a8;
         }
 
+        /* 导出菜单响应式样式 */
+        @media (max-width: 1000px) {
+            #exportMenu {
+                min-width: 110px;
+                max-width: 120px;
+            }
+            
+            #exportMenu .dropdown-item {
+                font-size: 13px;
+                padding: 8px 10px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            
+            .content-header .btn-group {
+                width: 100%;
+                justify-content: flex-start;
+            }
+            
+            #exportMenu {
+                min-width: 100px;
+                max-width: 110px;
+                font-size: 12px;
+            }
+        }
+
         .document-tree {
             padding: 10px 0;
         }
@@ -584,23 +616,23 @@ $stats = $stmt->fetch();
                      </button>
                      
                      <!-- 导出菜单 -->
-                     <div id="exportMenu" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #e9ecef; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 4px; min-width: 160px;">
+                     <div id="exportMenu" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #e9ecef; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 4px; min-width: 120px; width: auto;">
                          <div style="padding: 2px 0;">
                              <a href="export.php?id=<?php echo $current_document['id']; ?>&format=pdf" target="_blank" class="dropdown-item" style="display: block; padding: 10px 12px; color: #495057; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
-                                 <i class="bi bi-file-earmark-pdf" style="margin-right: 8px; color: #6c757d;"></i> PDF格式
+                                 <i class="bi bi-file-earmark-pdf" style="margin-right: 8px; color: #6c757d;"></i> PDF
                              </a>
                              <a href="export.php?id=<?php echo $current_document['id']; ?>&format=md" target="_blank" class="dropdown-item" style="display: block; padding: 10px 12px; color: #495057; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
-                                 <i class="bi bi-file-earmark-text" style="margin-right: 8px; color: #6c757d;"></i> Markdown格式
+                                 <i class="bi bi-file-earmark-text" style="margin-right: 8px; color: #6c757d;"></i> Markdown
                              </a>
                              <a href="export.php?id=<?php echo $current_document['id']; ?>&format=html" target="_blank" class="dropdown-item" style="display: block; padding: 10px 12px; color: #495057; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
-                                 <i class="bi bi-file-earmark-code" style="margin-right: 8px; color: #6c757d;"></i> HTML格式
+                                 <i class="bi bi-file-earmark-code" style="margin-right: 8px; color: #6c757d;"></i> HTML
                              </a>
                              <hr style="margin: 4px 8px; border: 0; border-top: 1px solid #f8f9fa;">
                              <button type="button" class="dropdown-item" onclick="exportAsImage('png'); hideExportMenu();" style="display: block; width: 100%; padding: 10px 12px; color: #495057; background: none; border: none; text-align: left; cursor: pointer; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
-                                 <i class="bi bi-image" style="margin-right: 8px; color: #6c757d;"></i> PNG图片
+                                 <i class="bi bi-image" style="margin-right: 8px; color: #6c757d;"></i> PNG
                              </button>
                              <button type="button" class="dropdown-item" onclick="exportAsImage('jpg'); hideExportMenu();" style="display: block; width: 100%; padding: 10px 12px; color: #495057; background: none; border: none; text-align: left; cursor: pointer; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
-                                 <i class="bi bi-file-earmark-image" style="margin-right: 8px; color: #6c757d;"></i> JPG图片
+                                 <i class="bi bi-file-earmark-image" style="margin-right: 8px; color: #6c757d;"></i> JPG
                              </button>
                          </div>
                      </div>
@@ -884,28 +916,78 @@ $stats = $stmt->fetch();
         });
 
         // 导出菜单控制
+        let currentMenuButton = null;
+        let menuPositionInterval = null;
+        
         function showExportMenu() {
             const menu = document.getElementById('exportMenu');
-            const button = event.target;
+            currentMenuButton = event.target;
             
-            // 获取按钮位置
-            const rect = button.getBoundingClientRect();
+            // 立即更新位置
+            updateMenuPosition();
             
-            // 设置菜单位置
-            menu.style.top = (rect.bottom + 5) + 'px';
-            menu.style.left = rect.left + 'px';
+            // 显示菜单
             menu.style.display = 'block';
+            
+            // 添加窗口事件监听
+            window.addEventListener('resize', updateMenuPosition);
+            window.addEventListener('scroll', updateMenuPosition);
+            
+            // 使用定时器持续更新位置（处理侧边栏收起/展开等情况）
+            menuPositionInterval = setInterval(updateMenuPosition, 100);
             
             // 添加点击外部关闭事件
             setTimeout(() => {
                 document.addEventListener('click', closeExportMenuOnClickOutside);
             }, 0);
         }
+        
+        function updateMenuPosition() {
+            if (!currentMenuButton) return;
+            
+            const menu = document.getElementById('exportMenu');
+            const button = currentMenuButton;
+            
+            // 获取按钮位置
+            const rect = button.getBoundingClientRect();
+            const menuWidth = 120;
+            
+            // 视觉居中：将菜单对齐到按钮图标中心（偏右调整）
+            // 按钮中图标大约占左边1/3位置，所以向右偏移按钮宽度的1/6
+            const visualCenter = rect.left + (rect.width * 0.6);
+            let leftPosition = visualCenter - (menuWidth / 2);
+            
+            // 获取main-content边界进行边界保护
+            const mainContent = document.querySelector('.main-content');
+            const mainContentRect = mainContent.getBoundingClientRect();
+            
+            // 确保不会超出边界
+            leftPosition = Math.max(mainContentRect.left + 10, leftPosition);
+            const maxRight = mainContentRect.right - menuWidth - 10;
+            leftPosition = Math.min(leftPosition, maxRight);
+            
+            // 更新菜单位置
+            menu.style.top = (rect.bottom + 5) + 'px';
+            menu.style.left = leftPosition + 'px';
+        }
 
         function hideExportMenu() {
             const menu = document.getElementById('exportMenu');
             menu.style.display = 'none';
+            
+            // 清理事件监听
             document.removeEventListener('click', closeExportMenuOnClickOutside);
+            window.removeEventListener('resize', updateMenuPosition);
+            window.removeEventListener('scroll', updateMenuPosition);
+            
+            // 清理定时器
+            if (menuPositionInterval) {
+                clearInterval(menuPositionInterval);
+                menuPositionInterval = null;
+            }
+            
+            // 清理按钮引用
+            currentMenuButton = null;
         }
 
         function closeExportMenuOnClickOutside(event) {
