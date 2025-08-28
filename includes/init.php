@@ -38,6 +38,7 @@ function init_database() {
             del_status INTEGER DEFAULT 0,
             deleted_at TEXT,
             is_formal INTEGER DEFAULT 0, -- 0=草稿, 1=正式文档
+            update_code TEXT,
             FOREIGN KEY (parent_id) REFERENCES documents(id) ON DELETE SET NULL,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
         )");
@@ -107,6 +108,7 @@ function init_database() {
                 op_public INTEGER DEFAULT 0 CHECK (op_public IN (0, 1, 2)), -- 0无变更，1私有变公开，2公开变私有
                 op_formal INTEGER DEFAULT 0 CHECK (op_formal IN (0, 1, 2)), -- 0无变更，1草稿变正式，2正式变草稿
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                update_code TEXT,
                 FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
                 FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
             )");
@@ -127,6 +129,7 @@ function init_database() {
             version_number INTEGER NOT NULL,
             created_by INTEGER NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            update_code TEXT,
             FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
             FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
         )");
@@ -207,8 +210,9 @@ function search_documents($keyword) {
 /**
  * 记录编辑日志
  * @param array $changes 变更信息数组，仅在action='update'时有效
+ * @param string $update_code 更新代码，用于关联相关记录
  */
-function log_edit($document_id, $user_id, $action, $changes = []) {
+function log_edit($document_id, $user_id, $action, $changes = [], $update_code = null) {
     $db = get_db();
     
     // 默认值设置
@@ -230,8 +234,8 @@ function log_edit($document_id, $user_id, $action, $changes = []) {
         $params = $defaults;
     }
     
-    $stmt = $db->prepare("INSERT INTO edit_log (document_id, user_id, action, op_title, op_content, op_tags, op_parent, op_corder, op_public, op_formal) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt = $db->prepare("INSERT INTO edit_log (document_id, user_id, action, op_title, op_content, op_tags, op_parent, op_corder, op_public, op_formal, update_code) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
     return $stmt->execute([
         $document_id, $user_id, $action,
         $params['op_title'],
@@ -240,7 +244,8 @@ function log_edit($document_id, $user_id, $action, $changes = []) {
         $params['op_parent'],
         $params['op_corder'],
         $params['op_public'],
-        $params['op_formal']
+        $params['op_formal'],
+        $update_code
     ]);
 }
 
@@ -260,8 +265,9 @@ function get_edit_logs($document_id) {
 
 /**
  * 保存文档版本
+ * @param string $update_code 更新代码，用于关联相关记录
  */
-function save_document_version($document_id, $title, $content, $user_id, $tags = null) {
+function save_document_version($document_id, $title, $content, $user_id, $tags = null, $update_code = null) {
     $db = get_db();
     
     // 获取下一个版本号
@@ -278,9 +284,9 @@ function save_document_version($document_id, $title, $content, $user_id, $tags =
     }
     
     // 插入新版本
-    $stmt = $db->prepare("INSERT INTO documents_version (document_id, title, content, tags, created_by, version_number) 
-                        VALUES (?, ?, ?, ?, ?, ?)");
-    $stmt->execute([$document_id, $title, $content, $tags, $user_id, $next_version]);
+    $stmt = $db->prepare("INSERT INTO documents_version (document_id, title, content, tags, created_by, version_number, update_code) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$document_id, $title, $content, $tags, $user_id, $next_version, $update_code]);
     
     // 清理旧版本，只保留最近20个
     $stmt = $db->prepare("DELETE FROM documents_version 

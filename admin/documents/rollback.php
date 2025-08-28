@@ -45,23 +45,28 @@ try {
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $next_version = ($result['max_version'] ?? 0) + 1;
     
+    // 生成唯一的update_code用于回滚操作
+    $update_code = uniqid() . '_' . time();
+    
     // 将回滚版本的数据保存为新版本（确保数据一致）
-    $stmt = $db->prepare("INSERT INTO documents_version (document_id, title, content, tags, version_number, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))");
+    $stmt = $db->prepare("INSERT INTO documents_version (document_id, title, content, tags, version_number, created_by, created_at, update_code) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), ?)");
     $stmt->execute([
         $document_id,
         $version['title'],
         $version['content'],
         $version['tags'] ?? '',
         $next_version,
-        $_SESSION['user_id']
+        $_SESSION['user_id'],
+        $update_code
     ]);
     
     // 更新文档为回滚版本的内容（与documents_version表数据完全一致）
-    $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, tags = ?, updated_at = datetime('now') WHERE id = ?");
+    $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, tags = ?, updated_at = datetime('now'), update_code = ? WHERE id = ?");
     $stmt->execute([
         $version['title'],
         $version['content'],
         $version['tags'] ?? '',
+        $update_code,
         $document_id
     ]);
     
@@ -69,7 +74,9 @@ try {
     log_edit(
         $document_id,
         $_SESSION['user_id'],
-        'rollback'
+        'rollback',
+        [],
+        $update_code
     );
     
     // 提交事务

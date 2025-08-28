@@ -27,8 +27,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $is_formal = isset($_POST['is_formal']) ? intval($_POST['is_formal']) : 0;
     
     if (!empty($title)) {
-        $stmt = $db->prepare("INSERT INTO documents (title, content, parent_id, sort_order, tags, is_public, is_formal, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))");
-        $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal]);
+        // 生成唯一的update_code
+        $update_code = uniqid() . '_' . time();
+        
+        $stmt = $db->prepare("INSERT INTO documents (title, content, parent_id, sort_order, tags, is_public, is_formal, created_at, updated_at, update_code) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)");
+        $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal, $update_code]);
         
         $document_id = $db->lastInsertId();
         
@@ -36,11 +39,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         log_edit(
             $document_id,
             $_SESSION['user_id'],
-            'create'
+            'create',
+            [],
+            $update_code
         );
         
         // 保存初始版本
-        save_document_version($document_id, $title, $content, $_SESSION['user_id'], $tags);
+        save_document_version($document_id, $title, $content, $_SESSION['user_id'], $tags, $update_code);
         
         header('Location: index.php?success=add');
         exit;

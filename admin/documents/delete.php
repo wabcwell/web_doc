@@ -54,16 +54,21 @@ try {
         }
     }
     
+    // 生成唯一的update_code用于删除操作
+    $update_code = uniqid() . '_' . time();
+    
     // 记录删除日志
     log_edit(
         $id,
         $_SESSION['user_id'],
-        'delete'
+        'delete',
+        [],
+        $update_code
     );
     
     // 执行软删除（标记为已删除）
-    $stmt = $db->prepare("UPDATE documents SET del_status = 1, deleted_at = datetime('now') WHERE id = ?");
-    $stmt->execute([$id]);
+    $stmt = $db->prepare("UPDATE documents SET del_status = 1, deleted_at = datetime('now'), update_code = ? WHERE id = ?");
+    $stmt->execute([$update_code, $id]);
     
     // 提交事务
     $db->commit();

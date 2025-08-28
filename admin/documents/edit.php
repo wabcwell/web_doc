@@ -87,22 +87,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 判断是否有任何变更
         $has_changes = array_sum($changes) > 0;
         
+        // 生成唯一的update_code
+        $update_code = uniqid() . '_' . time();
+        
         // 更新文档
-        $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, parent_id = ?, sort_order = ?, tags = ?, is_public = ?, is_formal = ?, updated_at = datetime('now') WHERE id = ?");
-        $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal, $id]);
+        $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, parent_id = ?, sort_order = ?, tags = ?, is_public = ?, is_formal = ?, updated_at = datetime('now'), update_code = ? WHERE id = ?");
+        $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal, $update_code, $id]);
         
         // 记录编辑日志
         log_edit(
             $id,
             $_SESSION['user_id'],
             'update',
-            $changes
+            $changes,
+            $update_code
         );
         
         // 仅在内容有变更时保存新版本
         if ($has_changes) {
             error_log("DEBUG: 检测到内容变更，保存新版本");
-            save_document_version($id, $title, $content, $_SESSION['user_id'], $tags);
+            save_document_version($id, $title, $content, $_SESSION['user_id'], $tags, $update_code);
         } else {
             error_log("DEBUG: 未检测到内容变更，跳过版本保存");
             

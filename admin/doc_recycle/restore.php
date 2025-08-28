@@ -41,13 +41,16 @@ try {
     // 开始事务
     $db->beginTransaction();
     
+    // 生成唯一的update_code用于恢复操作
+    $update_code = uniqid() . '_' . time();
+    
     // 恢复文档
-    $stmt = $db->prepare("UPDATE documents SET del_status = 0, deleted_at = NULL WHERE id = ?");
-    $stmt->execute([$document_id]);
+    $stmt = $db->prepare("UPDATE documents SET del_status = 0, deleted_at = NULL, update_code = ? WHERE id = ?");
+    $stmt->execute([$update_code, $document_id]);
     
     // 记录恢复操作到编辑日志
-    $stmt = $db->prepare("INSERT INTO edit_log (document_id, user_id, action, created_at) VALUES (?, ?, 'restore', datetime('now'))");
-    $stmt->execute([$document_id, $_SESSION['user_id']]);
+    $stmt = $db->prepare("INSERT INTO edit_log (document_id, user_id, action, created_at, update_code) VALUES (?, ?, 'restore', datetime('now'), ?)");
+    $stmt->execute([$document_id, $_SESSION['user_id'], $update_code]);
     
     // 提交事务
     $db->commit();
