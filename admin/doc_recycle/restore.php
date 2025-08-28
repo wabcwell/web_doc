@@ -46,8 +46,8 @@ try {
     $stmt->execute([$document_id]);
     
     // 记录恢复操作到编辑日志
-    $stmt = $db->prepare("INSERT INTO edit_log (document_id, user_id, action, old_title, new_title, created_at) VALUES (?, ?, 'rollback', ?, ?, datetime('now'))");
-    $stmt->execute([$document_id, $_SESSION['user_id'], $document['title'], $document['title']]);
+    $stmt = $db->prepare("INSERT INTO edit_log (document_id, user_id, action, created_at) VALUES (?, ?, 'restore', datetime('now'))");
+    $stmt->execute([$document_id, $_SESSION['user_id']]);
     
     // 提交事务
     $db->commit();
