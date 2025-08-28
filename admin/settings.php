@@ -18,6 +18,7 @@ include $config_path;
 
 // 获取当前配置值
 $current_site_name = $site_name;
+$current_site_subtitle = $site_subtitle ?? '简洁高效的文档管理系统';
 $current_site_url = $site_url;
 $current_logo_type = $logo_type;
 $current_logo_path = $logo_path;
@@ -28,12 +29,16 @@ $message_type = '';
 // 处理表单提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_site_name = trim($_POST['site_name'] ?? '');
+    $new_site_subtitle = trim($_POST['site_subtitle'] ?? '');
     $new_site_url = trim($_POST['site_url'] ?? '');
     $new_logo_type = trim($_POST['logo_type'] ?? '');
         
         // 验证输入
         if (empty($new_site_name)) {
             $message = '网站名称不能为空';
+            $message_type = 'error';
+        } elseif (empty($new_site_subtitle)) {
+            $message = '网站副标题不能为空';
             $message_type = 'error';
         } elseif (!filter_var($new_site_url, FILTER_VALIDATE_URL)) {
             $message = '请输入有效的网站URL';
@@ -102,6 +107,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 '$1' . addslashes($new_site_name) . '$2',
                 $config_content
             );
+
+            $config_content = preg_replace(
+                '/(\$site_subtitle\s*=\s*["\']).*?(["\'])/',
+                '$1' . addslashes($new_site_subtitle) . '$2',
+                $config_content
+            );
             
             $config_content = preg_replace(
                 '/(\$site_url\s*=\s*["\']).*?(["\'])/',
@@ -128,6 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // 重新读取配置
                 include $config_path;
                 $current_site_name = $site_name;
+                $current_site_subtitle = $site_subtitle;
                 $current_site_url = $site_url;
                 $current_logo_type = $logo_type;
                 $current_logo_path = $logo_path;
@@ -186,6 +198,19 @@ include 'sidebar.php';
                                    value="<?php echo htmlspecialchars($current_site_name); ?>" 
                                    required>
                             <div class="form-text">网站的显示名称，将显示在页面标题和页眉</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="site_subtitle" class="form-label">
+                                <i class="bi bi-text-paragraph"></i> 网站副标题
+                            </label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="site_subtitle" 
+                                   name="site_subtitle" 
+                                   value="<?php echo htmlspecialchars($current_site_subtitle ?? '简洁高效的文档管理系统'); ?>" 
+                                   required>
+                            <div class="form-text">网站的副标题，将显示在网站名称下方，简短描述网站功能</div>
                         </div>
                         
                         <div class="mb-3">

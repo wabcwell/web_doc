@@ -31,6 +31,9 @@ $logo_type = 'text';
 // 网站名称（显示在浏览器标题和页面头部）
 $site_name = '文档中心';
 
+// 网站副标题（显示在页面标题下方或Logo旁边）
+$site_subtitle = '简洁高效的文档管理系统'; // 网站副标题
+
 // 网站URL（必须以http://或https://开头，末尾不要加/）
 $site_url = 'http://localhost:8000';
 

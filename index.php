@@ -506,7 +506,7 @@ $stats = $stmt->fetch();
                 <?php endif; ?>
                 <span class="stats-badge"><?php echo $stats['total_docs']; ?></span>
             </h5>
-            <p class="text-muted small mb-0">浏览所有公开文档</p>
+            <p class="text-muted small mb-0"><?php echo htmlspecialchars($site_subtitle ?? '简洁高效的文档管理系统'); ?></p>
         </div>
 
         <div class="search-box">
