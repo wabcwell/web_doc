@@ -102,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 仅在内容有变更时保存新版本
         if ($has_changes) {
             error_log("DEBUG: 检测到内容变更，保存新版本");
-            save_document_version($id, $title, $content, $_SESSION['user_id']);
+            save_document_version($id, $title, $content, $_SESSION['user_id'], $tags);
         } else {
             error_log("DEBUG: 未检测到内容变更，跳过版本保存");
             

@@ -40,7 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         
         // 保存初始版本
-        save_document_version($document_id, $title, $content, $_SESSION['user_id']);
+        save_document_version($document_id, $title, $content, $_SESSION['user_id'], $tags);
         
         header('Location: index.php?success=add');
         exit;

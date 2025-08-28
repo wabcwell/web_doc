@@ -68,7 +68,7 @@ function init_database() {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 document_id INTEGER NOT NULL,
                 user_id INTEGER NOT NULL,
-                action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete', 'rollback')),
+                action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete', 'rollback', 'restore')),
                 op_title INTEGER DEFAULT 0 CHECK (op_title IN (0, 1)), -- 0无变更，1有变更
                 op_content INTEGER DEFAULT 0 CHECK (op_content IN (0, 1)), -- 0无变更，1有变更
                 op_tags INTEGER DEFAULT 0 CHECK (op_tags IN (0, 1)), -- 0无变更，1有变更
@@ -123,6 +123,7 @@ function init_database() {
             document_id INTEGER NOT NULL,
             title TEXT NOT NULL,
             content TEXT,
+            tags TEXT,
             version_number INTEGER NOT NULL,
             created_by INTEGER NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -260,20 +261,26 @@ function get_edit_logs($document_id) {
 /**
  * 保存文档版本
  */
-function save_document_version($document_id, $title, $content, $user_id) {
+function save_document_version($document_id, $title, $content, $user_id, $tags = null) {
     $db = get_db();
     
     // 获取下一个版本号
-    $stmt = $db->prepare("SELECT COALESCE(MAX(version_number), 0) + 1 as next_version 
-                        FROM documents_version 
-                        WHERE document_id = ?");
+    $stmt = $db->prepare("SELECT MAX(version_number) as max_version FROM documents_version WHERE document_id = ?");
     $stmt->execute([$document_id]);
-    $next_version = $stmt->fetch(PDO::FETCH_ASSOC)['next_version'];
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    $next_version = ($result['max_version'] ?? 0) + 1;
+    
+    // 如果未提供tags，从documents表中获取
+    if ($tags === null) {
+        $doc = $db->prepare("SELECT tags FROM documents WHERE id = ?");
+        $doc->execute([$document_id]);
+        $tags = $doc->fetchColumn() ?: '';
+    }
     
     // 插入新版本
-    $stmt = $db->prepare("INSERT INTO documents_version (document_id, title, content, created_by, version_number) 
-                        VALUES (?, ?, ?, ?, ?)");
-    $stmt->execute([$document_id, $title, $content, $user_id, $next_version]);
+    $stmt = $db->prepare("INSERT INTO documents_version (document_id, title, content, tags, created_by, version_number) 
+                        VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$document_id, $title, $content, $tags, $user_id, $next_version]);
     
     // 清理旧版本，只保留最近20个
     $stmt = $db->prepare("DELETE FROM documents_version 

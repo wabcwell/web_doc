@@ -45,21 +45,23 @@ try {
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     $next_version = ($result['max_version'] ?? 0) + 1;
     
-    // 将当前内容保存为新版本
-    $stmt = $db->prepare("INSERT INTO documents_version (document_id, title, content, version_number, created_by, created_at) VALUES (?, ?, ?, ?, ?, datetime('now'))");
+    // 将回滚版本的数据保存为新版本（确保数据一致）
+    $stmt = $db->prepare("INSERT INTO documents_version (document_id, title, content, tags, version_number, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, datetime('now'))");
     $stmt->execute([
         $document_id,
-        $document['title'],
-        $document['content'],
+        $version['title'],
+        $version['content'],
+        $version['tags'] ?? '',
         $next_version,
         $_SESSION['user_id']
     ]);
     
-    // 更新文档为回滚版本的内容
-    $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, updated_at = datetime('now') WHERE id = ?");
+    // 更新文档为回滚版本的内容（与documents_version表数据完全一致）
+    $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, tags = ?, updated_at = datetime('now') WHERE id = ?");
     $stmt->execute([
         $version['title'],
         $version['content'],
+        $version['tags'] ?? '',
         $document_id
     ]);
     

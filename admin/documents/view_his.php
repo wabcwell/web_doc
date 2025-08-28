@@ -17,20 +17,16 @@ if (!$id) {
 }
 
 $db = get_db();
-$tree = new DocumentTree($db);
 
-// 获取文档详情
-$stmt = $db->prepare("SELECT d.*, u.username FROM documents d LEFT JOIN users u ON d.user_id = u.id WHERE d.id = ?");
+// 检查文档在documents_version表中是否存在
+$stmt = $db->prepare("SELECT COUNT(*) FROM documents_version WHERE document_id = ?");
 $stmt->execute([$id]);
-$document = $stmt->fetch(PDO::FETCH_ASSOC);
+$doc_exists = $stmt->fetchColumn();
 
-if (!$document) {
-    header('Location: index.php?error=文档不存在');
+if (!$doc_exists) {
+    header('Location: index.php?error=文档不存在或无历史版本');
     exit;
 }
-
-// 获取面包屑导航
-$breadcrumbs = $tree->getBreadcrumbs($id);
 
 // 获取分页参数
 $show_all = isset($_GET['show_all']) && $_GET['show_all'] == '1';
@@ -65,11 +61,18 @@ if ($version_id && is_numeric($version_id)) {
     $stmt->execute([$id, $version_id]);
     $current_content = $stmt->fetch(PDO::FETCH_ASSOC);
 } else {
-    // 显示最新版本内容
-    $current_content = $document;
+    // 显示最新版本内容（从documents_version表获取）
+    $stmt = $db->prepare("SELECT dv.*, u.username FROM documents_version dv LEFT JOIN users u ON dv.created_by = u.id WHERE dv.document_id = ? ORDER BY dv.version_number DESC LIMIT 1");
+    $stmt->execute([$id]);
+    $current_content = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
-$title = '查看历史 - ' . htmlspecialchars($document['title'] ?? '未知文档');
+// 如果documents_version表中没有数据，给出提示
+if (!$current_content) {
+    die('该文档暂无历史版本数据');
+}
+
+$title = '查看历史 - ' . htmlspecialchars($current_content['title'] ?? '未知文档');
 include '../sidebar.php';
 ?>
 
@@ -116,13 +119,10 @@ include '../sidebar.php';
             <!-- 页面标题 -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1><?php echo htmlspecialchars($document['title'] ?? '未知文档'); ?></h1>
+                    <h1><?php echo htmlspecialchars($current_content['title'] ?? '未知文档'); ?></h1>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="index.php">文档管理</a></li>
-                            <?php foreach ($breadcrumbs as $crumb): ?>
-                                <li class="breadcrumb-item"><a href="view.php?id=<?php echo $crumb['id']; ?>"><?php echo htmlspecialchars($crumb['title']); ?></a></li>
-                            <?php endforeach; ?>
                             <li class="breadcrumb-item active">历史版本</li>
                         </ol>
                     </nav>
@@ -145,7 +145,7 @@ include '../sidebar.php';
                                 <span class="badge bg-secondary">
                                     版本 <?php echo $current_content['version_number'] ?? '最新'; ?>
                                 </span>
-                                <?php if ($current_content['id'] != $document['id']): ?>
+                                <?php if ($version_id && is_numeric($version_id)): ?>
                                     <span class="badge bg-info ms-2">
                                         <?php echo date('Y-m-d H:i', strtotime($current_content['created_at'])); ?>
                                     </span>

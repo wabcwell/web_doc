@@ -362,7 +362,7 @@ include '../sidebar.php';
             .then(data => {
                 if (data.success) {
                     // 跳转到回收站首页并显示成功消息
-                    window.location.href = 'index.php?success=restore&title=' + encodeURIComponent(currentDocumentTitle);
+                    window.location.href = 'index.php?success=restore';
                 } else {
                     showMessage('error', data.message || '恢复失败，请重试');
                 }
@@ -405,7 +405,7 @@ include '../sidebar.php';
             .then(data => {
                 if (data.success) {
                     // 跳转到回收站首页并显示成功消息
-                    window.location.href = 'index.php?success=delete&title=' + encodeURIComponent(currentDocumentTitle);
+                    window.location.href = 'index.php?success=delete';
                 } else {
                     showMessage('error', data.message || '删除失败，请重试');
                 }
