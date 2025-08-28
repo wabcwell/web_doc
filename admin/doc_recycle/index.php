@@ -204,7 +204,6 @@ function render_action_buttons(array $doc, bool $is_admin): string {
                                             <td>
                                                 <a href="view.php?id=<?php echo $doc['id']; ?>" class="text-decoration-none">
                                                     <div class="fw-semibold"><?php echo htmlspecialchars($doc['title']); ?></div>
-                                                    <small class="text-muted">#<?php echo $doc['id']; ?></small>
                                                 </a>
                                             </td>
                                             <td>
