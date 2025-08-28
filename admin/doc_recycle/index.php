@@ -121,6 +121,31 @@ function render_action_buttons(array $doc, bool $is_admin): string {
 
             <!-- 消息提示区域 -->
             <div id="messageContainer">
+                <?php 
+                // 处理URL参数中的成功消息
+                $success_msg = '';
+                if (isset($_GET['success']) && !isset($_SESSION['handled_url_success'])) {
+                    switch($_GET['success']) {
+                        case 'restore':
+                            $success_msg = '文档已成功恢复到原文档库';
+                            $_SESSION['handled_url_success'] = true; // 标记已处理
+                            break;
+                        case 'delete':
+                            $success_msg = '文档已永久删除';
+                            $_SESSION['handled_url_success'] = true; // 标记已处理
+                            break;
+                    }
+                }
+                ?>
+
+                <?php if (!empty($success_msg)): ?>
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <strong>成功！</strong> <?php echo $success_msg; ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
+
                 <?php if (isset($_SESSION['success'])): ?>
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         <i class="bi bi-check-circle-fill"></i>
@@ -138,6 +163,13 @@ function render_action_buttons(array $doc, bool $is_admin): string {
                     </div>
                     <?php unset($_SESSION['error']); ?>
                 <?php endif; ?>
+                
+                <?php 
+                // 清理URL成功处理标记
+                if (isset($_SESSION['handled_url_success'])) {
+                    unset($_SESSION['handled_url_success']);
+                }
+                ?>
             </div>
 
             <div class="card">
@@ -350,13 +382,8 @@ function render_action_buttons(array $doc, bool $is_admin): string {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // 显示成功消息
-                    showMessage('success', '文档 "' + currentDocumentTitle + '" 已成功恢复！');
-                    
-                    // 刷新页面
-                    setTimeout(() => {
-                        window.location.href = '?success=restore&title=' + encodeURIComponent(currentDocumentTitle);
-                    }, 1000);
+                    // 直接跳转，不再显示重复提示
+                    window.location.href = '?success=restore&title=' + encodeURIComponent(currentDocumentTitle);
                 } else {
                     showMessage('error', data.message || '恢复失败，请重试');
                 }
@@ -398,13 +425,8 @@ function render_action_buttons(array $doc, bool $is_admin): string {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // 显示成功消息
-                    showMessage('success', '文档 "' + currentDocumentTitle + '" 已被永久删除！');
-                    
-                    // 刷新页面
-                    setTimeout(() => {
-                        window.location.href = '?success=delete&title=' + encodeURIComponent(currentDocumentTitle);
-                    }, 1000);
+                    // 直接跳转，不再显示重复提示
+                    window.location.href = '?success=delete&title=' + encodeURIComponent(currentDocumentTitle);
                 } else {
                     showMessage('error', data.message || '删除失败，请重试');
                 }
