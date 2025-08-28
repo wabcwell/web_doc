@@ -234,15 +234,6 @@ include '../sidebar.php';
                                                      <i class="bi bi-arrow-clockwise"></i> 回滚到此版本
                                                  </button>
                                              </div>
-                                         <?php elseif (!$version_id && $index === 0): ?>
-                                             <div class="mt-2">
-                                                 <button type="button" 
-                                                         class="btn btn-sm btn-outline-primary rollback-btn"
-                                                         data-version-id="<?php echo $version['id']; ?>"
-                                                         data-version-number="<?php echo $total_versions - ($show_all ? $index : $index); ?>">
-                                                     <i class="bi bi-arrow-clockwise"></i> 回滚到此版本
-                                                 </button>
-                                             </div>
                                          <?php endif; ?>
                                     </a>
                                 <?php endforeach; ?>
