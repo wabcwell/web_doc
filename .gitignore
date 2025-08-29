@@ -27,6 +27,8 @@ debug_*.php
 lake_*.html
 
 # 忽略备份文件
+*.bk
+*.bak
 admin/documents/index.php.bk
 admin/doc_recycle/index.php.bak
 

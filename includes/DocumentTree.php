@@ -139,6 +139,102 @@ class DocumentTree {
         $stmt->execute([$limit]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    /**
+     * 获取最近14天内创建的文档数量
+     */
+    public function getRecentCreatedCount($days = 14) {
+        $stmt = $this->db->prepare("SELECT COUNT(*) 
+                                  FROM documents 
+                                  WHERE del_status = 0 
+                                  AND is_public = 1 
+                                  AND is_formal = 1
+                                  AND created_at >= datetime('now', '-' || ? || ' days')");
+        $stmt->execute([$days]);
+        return $stmt->fetchColumn();
+    }
+
+    /**
+     * 获取最近14天内删除的文档数量
+     */
+    public function getRecentDeletedCount($days = 14) {
+        $stmt = $this->db->prepare("SELECT COUNT(*) 
+                                  FROM documents 
+                                  WHERE del_status = 1
+                                  AND deleted_at >= datetime('now', '-' || ? || ' days')");
+        $stmt->execute([$days]);
+        return $stmt->fetchColumn();
+    }
+
+    /**
+     * 获取最近14天内更新操作的次数
+     */
+    public function getRecentUpdateCount($days = 14) {
+        $stmt = $this->db->prepare("SELECT COUNT(*) 
+                                  FROM edit_log_new 
+                                  WHERE action = 'update'
+                                  AND created_at >= datetime('now', '-' || ? || ' days')");
+        $stmt->execute([$days]);
+        return $stmt->fetchColumn();
+    }
+
+    /**
+     * 获取最近创建的文档
+     */
+    public function getRecentlyCreatedDocuments($limit = 10) {
+        $stmt = $this->db->prepare("SELECT d.*, u.username 
+                                  FROM documents d 
+                                  LEFT JOIN users u ON d.user_id = u.id 
+                                  WHERE d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
+                                  ORDER BY d.created_at DESC 
+                                  LIMIT ?");
+        $stmt->execute([$limit]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * 获取最近删除的文档
+     */
+    public function getRecentlyDeletedDocuments($limit = 10) {
+        $stmt = $this->db->prepare("SELECT d.*, u.username 
+                                  FROM documents d 
+                                  LEFT JOIN users u ON d.user_id = u.id 
+                                  WHERE d.del_status = 1
+                                  ORDER BY d.deleted_at DESC 
+                                  LIMIT ?");
+        $stmt->execute([$limit]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * 获取历史版本最多的文档
+     */
+    public function getDocumentsWithMostVersions($limit = 10) {
+        $stmt = $this->db->prepare("SELECT d.*, u.username, 
+                                  (SELECT COUNT(*) FROM documents_version WHERE document_id = d.id) as version_count
+                                  FROM documents d 
+                                  LEFT JOIN users u ON d.user_id = u.id 
+                                  WHERE d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
+                                  ORDER BY version_count DESC 
+                                  LIMIT ?");
+        $stmt->execute([$limit]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * 获取操作次数最多的文档
+     */
+    public function getDocumentsWithMostOperations($limit = 10) {
+        $stmt = $this->db->prepare("SELECT d.*, u.username, 
+                                  (SELECT COUNT(*) FROM edit_log WHERE document_id = d.id) as operation_count
+                                  FROM documents d 
+                                  LEFT JOIN users u ON d.user_id = u.id 
+                                  WHERE d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
+                                  ORDER BY operation_count DESC 
+                                  LIMIT ?");
+        $stmt->execute([$limit]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
     
     /**
      * 渲染树形选项
