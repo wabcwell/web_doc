@@ -914,7 +914,7 @@ $stats = $stmt->fetch();
             
             // 优化PDF清晰度，使用WebP格式获得更好压缩
         html2canvas(element, {
-            scale: 1.5, // 提高分辨率以获得更清晰的图像
+            scale: 2.0, // 平衡清晰度与文件大小，获得高清图像
             useCORS: true,
             allowTaint: true,
             backgroundColor: '#ffffff',
