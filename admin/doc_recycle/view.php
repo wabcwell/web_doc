@@ -235,10 +235,7 @@ include '../sidebar.php';
                                     <i class="bi bi-trash-fill"></i> 永久删除
                                 </button>
                                 
-                                <!-- 返回按钮 - 蓝灰色 (#90a4ae) -->
-                                <a href="index.php" class="btn" style="background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#b0bec5'; this.style.borderColor='#b0bec5'" onmouseout="this.style.backgroundColor='#90a4ae'; this.style.borderColor='#90a4ae'">
-                                    <i class="bi bi-arrow-left"></i> 返回回收站
-                                </a>
+
                             </div>
                         </div>
                     </div>
