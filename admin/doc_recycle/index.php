@@ -52,21 +52,21 @@ function render_action_buttons(array $doc, bool $is_admin): string {
     $html = '<div class="btn-group" role="group" style="gap: 2px;">';
     
     // 历史版本按钮 - 橙色 (#ffb74d)
-    $html .= '<a href="../documents/view_his.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s, border-color 0.2s;" title="历史版本" data-bs-toggle="tooltip" data-bs-placement="top"';
+    $html .= '<a href="../documents/view_his.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="历史版本"';
     $html .= ' onmouseover="this.style.backgroundColor=\'#ffcc80\'; this.style.borderColor=\'#ffcc80\';" ';
     $html .= ' onmouseout="this.style.backgroundColor=\'#ffb74d\'; this.style.borderColor=\'#ffb74d\';">';
     $html .= '<i class="bi bi-clock-history" style="font-size: 14px; margin: 0 auto;"></i>';
     $html .= '</a>';
     
     // 更新历史按钮 - 浅蓝色 (#64b5f6)
-    $html .= '<a href="../documents/edit_log.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s, border-color 0.2s;" title="更新历史" data-bs-toggle="tooltip" data-bs-placement="top"';
+    $html .= '<a href="../documents/edit_log.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="更新历史"';
     $html .= ' onmouseover="this.style.backgroundColor=\'#90caf9\'; this.style.borderColor=\'#90caf9\';" ';
     $html .= ' onmouseout="this.style.backgroundColor=\'#64b5f6\'; this.style.borderColor=\'#64b5f6\';">';
     $html .= '<i class="bi bi-list-ul" style="font-size: 14px; margin: 0 auto;"></i>';
     $html .= '</a>';
     
     // 恢复按钮 - 绿色 (#4caf50)
-    $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #4caf50; border-color: #4caf50; color: white; transition: background-color 0.2s, border-color 0.2s;" title="恢复文档" data-bs-toggle="tooltip" data-bs-placement="top" ';
+    $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #4caf50; border-color: #4caf50; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="恢复文档" ';
     $html .= 'onclick="showRestoreConfirm(' . $doc_id . ', \'' . $doc_title . '\')" ';
     $html .= ' onmouseover="this.style.backgroundColor=\'#66bb6a\'; this.style.borderColor=\'#66bb6a\';" ';
     $html .= ' onmouseout="this.style.backgroundColor=\'#4caf50\'; this.style.borderColor=\'#4caf50\';">';
@@ -76,7 +76,7 @@ function render_action_buttons(array $doc, bool $is_admin): string {
     // 永久删除按钮 - 珊瑚色 (#ff8a65)
     $disabled = $is_admin ? '' : 'disabled';
     $disabled_style = $is_admin ? '' : 'opacity: 0.65; cursor: not-allowed;';
-    $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s, border-color 0.2s; ' . $disabled_style . '" title="永久删除" data-bs-toggle="tooltip" data-bs-placement="top" ';
+    $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s, border-color 0.2s; ' . $disabled_style . '" data-tooltip="永久删除" ';
     $html .= $disabled . ' onclick="showDeleteConfirm(' . $doc_id . ', \'' . $doc_title . '\')" ';
     $html .= ' onmouseover="if(!this.disabled){this.style.backgroundColor=\'#ffab91\'; this.style.borderColor=\'#ffab91\';}" ';
     $html .= ' onmouseout="if(!this.disabled){this.style.backgroundColor=\'#ff8a65\'; this.style.borderColor=\'#ff8a65\';}">';
@@ -109,6 +109,41 @@ function render_action_buttons(array $doc, bool $is_admin): string {
         }
         .btn-group .btn i {
             font-size: 14px;
+        }
+        
+        /* 纯CSS悬停提示样式 */
+        [data-tooltip] {
+            position: relative;
+        }
+        
+        [data-tooltip]:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-bottom: 5px;
+            pointer-events: none;
+        }
+        
+        [data-tooltip]:hover::before {
+            content: "";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 4px solid transparent;
+            border-top-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            margin-bottom: 1px;
+            pointer-events: none;
         }
     </style>
 </head>
@@ -328,14 +363,6 @@ function render_action_buttons(array $doc, bool $is_admin): string {
         // 全局变量
         let currentDocumentId = null;
         let currentDocumentTitle = null;
-
-        // 初始化工具提示
-        document.addEventListener('DOMContentLoaded', function() {
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-        });
 
         // 显示恢复确认弹窗
         function showRestoreConfirm(docId, docTitle) {

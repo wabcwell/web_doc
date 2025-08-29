@@ -26,6 +26,10 @@ test_*.php
 debug_*.php
 lake_*.html
 
+# 忽略备份文件
+admin/documents/index.php.bk
+admin/doc_recycle/index.php.bak
+
 # 忽略初始化文档文件
 init_docs.php
 
