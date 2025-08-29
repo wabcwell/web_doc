@@ -84,7 +84,7 @@ include '../sidebar.php';
                                         <th>更新时间</th>
                                         <th>可见性</th>
                                         <th>状态</th>
-                                        <th style="width: 140px; text-align: center;">操作</th>
+                                        <th style="width: 200px; text-align: center;">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -147,30 +147,30 @@ include '../sidebar.php';
                                                 <?php echo $formal_status; ?>
                                             </span>
                                         </td>
-                                        <td style="width: 120px;">
-                                            <div style="display: flex; gap: 2px; align-items: center; justify-content: center; margin: 0 auto;">
-                                                <a href="edit.php?id=<?php echo $doc['id']; ?>" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s, border-color 0.2s;" title="编辑"
+                                        <td style="width: 200px; text-align: center;">
+                                            <div class="btn-group" role="group" style="gap: 2px;">
+                                                <a href="edit.php?id=<?php echo $doc['id']; ?>" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s, border-color 0.2s;" title="编辑" data-bs-toggle="tooltip" data-bs-placement="top"
                                                    onmouseover="this.style.backgroundColor='#b0bec5'; this.style.borderColor='#b0bec5';" 
                                                    onmouseout="this.style.backgroundColor='#90a4ae'; this.style.borderColor='#90a4ae';">
                                                     <i class="bi bi-pencil" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
-                                                <a href="view_his.php?id=<?php echo $doc['id']; ?>" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s, border-color 0.2s;" title="版本历史"
+                                                <a href="view_his.php?id=<?php echo $doc['id']; ?>" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s, border-color 0.2s;" title="版本历史" data-bs-toggle="tooltip" data-bs-placement="top"
                                                    onmouseover="this.style.backgroundColor='#ffcc80'; this.style.borderColor='#ffcc80';" 
                                                    onmouseout="this.style.backgroundColor='#ffb74d'; this.style.borderColor='#ffb74d';">
                                                     <i class="bi bi-clock-history" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
-                                                <a href="edit_log.php?id=<?php echo $doc['id']; ?>" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s, border-color 0.2s;" title="查看更新记录"
+                                                <a href="edit_log.php?id=<?php echo $doc['id']; ?>" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s, border-color 0.2s;" title="更新历史" data-bs-toggle="tooltip" data-bs-placement="top"
                                                    onmouseover="this.style.backgroundColor='#90caf9'; this.style.borderColor='#90caf9';" 
                                                    onmouseout="this.style.backgroundColor='#64b5f6'; this.style.borderColor='#64b5f6';">
                                                     <i class="bi bi-list-check" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
                                                 <a href="add.php?parent_id=<?php echo $doc['id']; ?>&sort_order=<?php echo $next_child_sort; ?>" 
-                                                   class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s, border-color 0.2s;" title="添加下级文档"
-                                                   onmouseover="this.style.backgroundColor='#b0bec5'; this.style.borderColor='#b0bec5';" 
-                                                   onmouseout="this.style.backgroundColor='#90a4ae'; this.style.borderColor='#90a4ae';">
+                                                   class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #4caf50; border-color: #4caf50; color: white; transition: background-color 0.2s, border-color 0.2s;" title="添加下级文档" data-bs-toggle="tooltip" data-bs-placement="top"
+                                                   onmouseover="this.style.backgroundColor='#66bb6a'; this.style.borderColor='#66bb6a';" 
+                                                   onmouseout="this.style.backgroundColor='#4caf50'; this.style.borderColor='#4caf50';">
                                                     <i class="bi bi-plus-circle" style="font-size: 14px; margin: 0 auto;"></i>
                                                 </a>
-                                                <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s, border-color 0.2s;" title="删除" 
+                                                <button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s, border-color 0.2s;" title="删除" data-bs-toggle="tooltip" data-bs-placement="top"
                                                         onclick="confirmDelete(<?php echo $doc['id']; ?>, '<?php echo htmlspecialchars(addslashes($doc['title'])); ?>')"
                                                         onmouseover="this.style.backgroundColor='#ffab91'; this.style.borderColor='#ffab91';" 
                                                         onmouseout="this.style.backgroundColor='#ff8a65'; this.style.borderColor='#ff8a65';">
@@ -226,6 +226,12 @@ include '../sidebar.php';
 
         // 页面加载完成后的处理
         document.addEventListener('DOMContentLoaded', function() {
+            // 初始化所有工具提示
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
             // 处理URL参数显示提示消息
             const urlParams = new URLSearchParams(window.location.search);
             const success = urlParams.get('success');
