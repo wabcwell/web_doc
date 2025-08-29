@@ -51,7 +51,17 @@ $parsedown = new Parsedown();
 $documents = [];
 
 if ($content) {
-    $content = $parsedown->text($content);
+    // 智能判断内容格式：如果以HTML标签开头，则不进行Markdown转换
+    $trimmed_content = trim($content);
+    if (empty($trimmed_content)) {
+        $content = '';
+    } elseif (preg_match('/^\s*<[^>]+>/', $trimmed_content)) {
+        // 内容以HTML标签开头，直接显示
+        $content = $content;
+    } else {
+        // 内容可能是Markdown格式，进行转换
+        $content = $parsedown->text($content);
+    }
 }
 
 // 统计信息
@@ -336,11 +346,6 @@ $stats = $stmt->fetch();
             box-sizing: border-box;
         }
 
-        .content-header {
-            width: clamp(500px, calc(100% - 60px), 1080px);
-            margin: 0 auto;
-        }
-
         .document-meta {
             margin-bottom: 0.5em;
             padding: 5px 0;
@@ -350,8 +355,32 @@ $stats = $stmt->fetch();
         }
 
         .markdown-content {
-            line-height: 1.6;
-            color: #212529;
+            max-width: 100%;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            hyphens: auto;
+        }
+
+        .markdown-content img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .markdown-content table {
+            max-width: 100%;
+            overflow-x: auto;
+            display: block;
+        }
+
+        .markdown-content pre {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 16px;
+            overflow-x: auto;
+            max-width: 100%;
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
 
         .markdown-content p {
@@ -643,8 +672,8 @@ $stats = $stmt->fetch();
         <div class="content-body">
             <?php if ($content): ?>
                 <div class="markdown-content">
-                    <?php echo $content; ?>
-                </div>
+                <?php echo $content; ?>
+            </div>
             <?php else: ?>
                 <div class="empty-state">
                     <i class="bi bi-file-earmark-text" style="font-size: 64px; color: #dee2e6;"></i>

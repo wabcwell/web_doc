@@ -1,0 +1,61 @@
+/* UEditorPlus基础样式 */
+.edui-editor {
+    border: 1px solid #d4d4d4;
+    background-color: white;
+    position: relative;
+}
+
+.edui-editor-toolbarbox {
+    position: relative;
+    zoom: 1;
+    background: url('../images/toolbar-bg.png') repeat-x scroll 0 0 transparent;
+    border-bottom: 1px solid #d4d4d4;
+}
+
+.edui-editor-toolbarboxouter {
+    background-color: #f5f5f5;
+    border-bottom: 1px solid #d4d4d4;
+}
+
+.edui-editor-toolbarboxinner {
+    padding: 2px;
+}
+
+.edui-toolbar {
+    cursor: default;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    padding: 1px;
+}
+
+.edui-editor-iframeholder {
+    position: relative;
+}
+
+.edui-editor-bottomContainer {
+    display: none;
+}
+
+.edui-editor-wordcount {
+    position: absolute;
+    right: 5px;
+    bottom: 5px;
+    color: #666;
+    font-size: 12px;
+}
+
+.edui-editor-scale {
+    display: none;
+}
+
+.edui-editor-breadcrumb {
+    margin: 2px 0 0 2px;
+    padding: 0;
+    border: 0;
+}
+
+.edui-editor-breadcrumb span {
+    cursor: pointer;
+    text-decoration: underline;
+    color: blue;
+}
