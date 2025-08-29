@@ -602,8 +602,8 @@ $stats = $stmt->fetch();
              <div class="d-flex justify-content-between align-items-center">
                  <div class="document-meta mb-0 flex-grow-1">
                      <i class="bi bi-clock"></i>
-                     最后更新：<?php echo date('Y年m月d日 H:i', strtotime($current_document['updated_at'])); ?>
-                     <?php if ($current_document['tags']): ?>
+                     最后更新：<?php echo $current_document ? date('Y年m月d日 H:i', strtotime($current_document['updated_at'])) : '暂无数据'; ?>
+                     <?php if ($current_document && $current_document['tags']): ?>
                          <span class="ms-3">
                              <i class="bi bi-tags"></i>
                              <?php echo htmlspecialchars($current_document['tags']); ?>
@@ -618,15 +618,15 @@ $stats = $stmt->fetch();
                      <!-- 导出菜单 -->
                      <div id="exportMenu" style="display: none; position: absolute; z-index: 1000; background: white; border: 1px solid #e9ecef; border-radius: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 4px; min-width: 120px; width: auto;">
                          <div style="padding: 2px 0;">
-                             <a href="export.php?id=<?php echo $current_document['id']; ?>&format=pdf" target="_blank" class="dropdown-item" style="display: block; padding: 10px 12px; color: #495057; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
+                             <button type="button" class="dropdown-item" onclick="exportToPDF()" style="display: block; width: 100%; padding: 10px 12px; color: #495057; background: none; border: none; text-align: left; cursor: pointer; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
                                  <i class="bi bi-file-earmark-pdf" style="margin-right: 8px; color: #6c757d;"></i> PDF
-                             </a>
-                             <a href="export.php?id=<?php echo $current_document['id']; ?>&format=md" target="_blank" class="dropdown-item" style="display: block; padding: 10px 12px; color: #495057; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
-                                 <i class="bi bi-file-earmark-text" style="margin-right: 8px; color: #6c757d;"></i> Markdown
-                             </a>
-                             <a href="export.php?id=<?php echo $current_document['id']; ?>&format=html" target="_blank" class="dropdown-item" style="display: block; padding: 10px 12px; color: #495057; text-decoration: none; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
+                             </button>
+                             <button type="button" class="dropdown-item" onclick="exportToMarkdown()" style="display: block; width: 100%; padding: 10px 12px; color: #495057; background: none; border: none; text-align: left; cursor: pointer; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
+                                <i class="bi bi-file-earmark-text" style="margin-right: 8px; color: #6c757d;"></i> Markdown
+                            </button>
+                             <button type="button" class="dropdown-item" onclick="exportToHTML()" style="display: block; width: 100%; padding: 10px 12px; color: #495057; background: none; border: none; text-align: left; cursor: pointer; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
                                  <i class="bi bi-file-earmark-code" style="margin-right: 8px; color: #6c757d;"></i> HTML
-                             </a>
+                             </button>
                              <hr style="margin: 4px 8px; border: 0; border-top: 1px solid #f8f9fa;">
                              <button type="button" class="dropdown-item" onclick="exportAsImage('png'); hideExportMenu();" style="display: block; width: 100%; padding: 10px 12px; color: #495057; background: none; border: none; text-align: left; cursor: pointer; border-radius: 4px; font-size: 14px; transition: background-color 0.15s ease;">
                                  <i class="bi bi-image" style="margin-right: 8px; color: #6c757d;"></i> PNG
@@ -667,6 +667,7 @@ $stats = $stmt->fetch();
     <script src="assets/js/static/prism-python.min.js"></script>
     <script src="assets/js/static/prism-php.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         // 侧边栏收起/展开功能
             const sidebarToggle = document.getElementById('sidebarToggle');
@@ -832,7 +833,7 @@ $stats = $stmt->fetch();
 
         // 图片导出功能
         function exportAsImage(format) {
-            const contentElement = document.querySelector('.content-body');
+            const contentElement = document.querySelector('.content-body') || document.querySelector('.main-content');
             const title = document.querySelector('.content-header h1')?.textContent || 'document';
             
             if (!contentElement) {
@@ -906,6 +907,126 @@ $stats = $stmt->fetch();
                 console.error('导出失败:', error);
                 alert('图片导出失败，请重试');
             });
+        }
+
+        function exportToPDF() {
+            const element = document.querySelector('.content-body') || document.querySelector('.main-content');
+            
+            // 优化PDF清晰度，使用WebP格式获得更好压缩
+        html2canvas(element, {
+            scale: 1.5, // 提高分辨率以获得更清晰的图像
+            useCORS: true,
+            allowTaint: true,
+            backgroundColor: '#ffffff',
+            imageTimeout: 0,
+            logging: false,
+            width: element.scrollWidth, // 限制宽度
+            height: element.scrollHeight // 限制高度
+        }).then(canvas => {
+            // 检查浏览器是否支持WebP格式
+            const supportsWebP = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+            const imgData = supportsWebP ? 
+                canvas.toDataURL('image/webp', 0.9) :  // WebP格式，90%质量
+                canvas.toDataURL('image/jpeg', 1.0);   // 回退到JPEG格式 // 100%质量
+                
+                const pdf = new jspdf.jsPDF({
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4',
+                    compress: true // 启用压缩
+                });
+                
+                // 计算PDF页面尺寸（保持宽高比）
+                const pageWidth = 210 - 20; // A4宽度减去边距
+                const pageHeight = 297 - 20; // A4高度减去边距
+                
+                const imgWidth = pageWidth;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                
+                let positionY = 10; // 起始Y位置
+                let currentY = 0;
+                
+                // 如果内容高度适合单页
+                if (imgHeight <= pageHeight - 20) {
+                    pdf.addImage(imgData, 'JPEG', 10, 10, imgWidth, imgHeight);
+                } else {
+                    // 多页处理：分段渲染，避免重复内容
+                    let currentPage = 0;
+                    const totalPages = Math.ceil(imgHeight / (pageHeight - 20));
+                    
+                    for (let page = 0; page < totalPages; page++) {
+                        if (page > 0) pdf.addPage();
+                        
+                        // 计算当前页要显示的区域
+                        const sourceY = page * (canvas.height / totalPages);
+                        const sourceHeight = canvas.height / totalPages;
+                        
+                        // 创建新的canvas用于分页
+                        const pageCanvas = document.createElement('canvas');
+                        const ctx = pageCanvas.getContext('2d');
+                        pageCanvas.width = canvas.width;
+                        pageCanvas.height = sourceHeight;
+                        
+                        // 复制当前页的内容
+                        ctx.drawImage(
+                            canvas,
+                            0, sourceY, canvas.width, sourceHeight,
+                            0, 0, canvas.width, sourceHeight
+                        );
+                        
+                        const pageImgData = pageCanvas.toDataURL('image/jpeg', 0.85);
+                        const pageImgHeight = (sourceHeight * imgWidth) / canvas.width;
+                        
+                        pdf.addImage(pageImgData, 'JPEG', 10, 10, imgWidth, pageImgHeight);
+                    }
+                }
+                
+                // 下载优化后的PDF
+                pdf.save(document.title + '.pdf');
+                hideExportMenu();
+            }).catch(error => {
+                console.error('PDF导出失败:', error);
+                alert('PDF导出失败，请重试');
+            });
+        }
+
+        function exportToHTML() {
+            const element = document.querySelector('.content-body') || document.querySelector('.main-content');
+            const htmlContent = element.outerHTML;
+            
+            // 创建完整的HTML文档
+            const fullHTML = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${document.title}</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", "PingFang SC", "Hiragino Sans GB", sans-serif; line-height: 1.6; color: #333; margin: 20px; }
+        pre { background: #f8f9fa; padding: 15px; border-radius: 6px; overflow-x: auto; border-left: 4px solid #007bff; }
+        code { background: #f1f3f4; padding: 2px 6px; border-radius: 3px; font-family: 'Consolas', 'Monaco', monospace; }
+        blockquote { border-left: 4px solid #6c757d; padding-left: 15px; margin-left: 0; color: #6c757d; }
+        table { border-collapse: collapse; width: 100%; margin: 15px 0; }
+        th, td { border: 1px solid #dee2e6; padding: 8px 12px; text-align: left; }
+        th { background-color: #f8f9fa; font-weight: bold; }
+    </style>
+</head>
+<body>
+${htmlContent}
+</body>
+</html>`;
+            
+            // 创建下载链接
+            const blob = new Blob([fullHTML], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = document.title + '.html';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            hideExportMenu();
         }
 
         // 代码高亮
@@ -1007,6 +1128,134 @@ $stats = $stmt->fetch();
                 hideExportMenu();
             }
         });
+
+        function exportToMarkdown() {
+            hideExportMenu();
+            
+            // 获取文档标题 - 从多个可能的位置获取标题
+            let title = 'document';
+            
+            // 尝试从文档标题获取
+            const docTitle = document.querySelector('.document-title') || 
+                           document.querySelector('h1') || 
+                           document.querySelector('.content-body h1') ||
+                           document.querySelector('.main-content h1');
+            
+            if (docTitle) {
+                title = docTitle.textContent.trim();
+            } else {
+                // 从页面标题获取
+                title = document.title.replace(/^文档中心\s*-\s*/, '').trim() || 'document';
+            }
+            
+            // 清理文件名中的非法字符
+            title = title.replace(/[<>:"/\\|?*]/g, '').substring(0, 50);
+            
+            // 获取内容区域的HTML
+            const contentElement = document.querySelector('.content-body') || document.querySelector('.main-content');
+            
+            // 将HTML转换为Markdown（基础转换）
+            let markdown = htmlToMarkdown(contentElement.innerHTML);
+            
+            // 添加文档元信息
+            const metaInfo = `# ${title}\n\n`;
+            const exportContent = metaInfo + markdown;
+            
+            // 创建并下载文件
+            const blob = new Blob([exportContent], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${title}.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // HTML转Markdown的基础转换函数
+        function htmlToMarkdown(html) {
+            let markdown = html;
+            
+            // 移除多余的空白和注释
+            markdown = markdown.replace(/<!--.*?-->/gs, '');
+            
+            // 标题转换
+            markdown = markdown.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1');
+            markdown = markdown.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1');
+            markdown = markdown.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1');
+            markdown = markdown.replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1');
+            markdown = markdown.replace(/<h5[^>]*>(.*?)<\/h5>/gi, '##### $1');
+            markdown = markdown.replace(/<h6[^>]*>(.*?)<\/h6>/gi, '###### $1');
+            
+            // 粗体和斜体
+            markdown = markdown.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**');
+            markdown = markdown.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**');
+            markdown = markdown.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*');
+            markdown = markdown.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*');
+            
+            // 代码块
+            markdown = markdown.replace(/<pre[^>]*><code[^>]*>(.*?)<\/code><\/pre>/gis, '\n```\n$1\n```\n');
+            markdown = markdown.replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`');
+            
+            // 链接
+            markdown = markdown.replace(/<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, '[$2]($1)');
+            
+            // 图片
+            markdown = markdown.replace(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*>/gi, '![$2]($1)');
+            markdown = markdown.replace(/<img[^>]*src="([^"]*)"[^>]*>/gi, '![]($1)');
+            
+            // 列表
+            markdown = markdown.replace(/<ul[^>]*>(.*?)<\/ul>/gis, function(match, content) {
+                return content.replace(/<li[^>]*>(.*?)<\/li>/gis, '- $1');
+            });
+            markdown = markdown.replace(/<ol[^>]*>(.*?)<\/ol>/gis, function(match, content) {
+                let counter = 1;
+                return content.replace(/<li[^>]*>(.*?)<\/li>/gis, function(liMatch, liContent) {
+                    return `${counter++}. ${liContent}`;
+                });
+            });
+            
+            // 引用
+            markdown = markdown.replace(/<blockquote[^>]*>(.*?)<\/blockquote>/gis, function(match, content) {
+                return content.trim().split('\n').map(line => `> ${line}`).join('\n');
+            });
+            
+            // 表格（基础转换）
+            markdown = markdown.replace(/<table[^>]*>(.*?)<\/table>/gis, function(match, content) {
+                const rows = content.match(/<tr[^>]*>(.*?)<\/tr>/gis) || [];
+                let tableMarkdown = '';
+                
+                rows.forEach((row, index) => {
+                    const cells = row.match(/<(td|th)[^>]*>(.*?)<\/(td|th)>/gis) || [];
+                    const cellContents = cells.map(cell => {
+                        return cell.replace(/<(td|th)[^>]*>(.*?)<\/(td|th)>/is, '$2').trim();
+                    });
+                    
+                    tableMarkdown += '| ' + cellContents.join(' | ') + ' |\n';
+                    
+                    // 添加分隔行
+                    if (index === 0) {
+                        tableMarkdown += '|' + cellContents.map(() => ' --- ').join('|') + '|\n';
+                    }
+                });
+                
+                return tableMarkdown;
+            });
+            
+            // 段落和换行
+            markdown = markdown.replace(/<p[^>]*>(.*?)<\/p>/gis, '$1\n\n');
+            markdown = markdown.replace(/<br[^>]*>/gi, '\n');
+            
+            // 移除所有其他HTML标签
+            markdown = markdown.replace(/<[^>]*>/g, '');
+            
+            // 清理多余的空行
+            markdown = markdown.replace(/\n{3,}/g, '\n\n');
+            markdown = markdown.trim();
+            
+            return markdown;
+        }
     </script>
 </body>
 </html>
