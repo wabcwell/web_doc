@@ -10,11 +10,16 @@ Auth::requireLogin();
 // 获取父文档选项
 $db = get_db();
 $tree = new DocumentTree($db);
-$documents = $tree->getAllDocuments();
+$documents = $tree->getAllDocumentsByHierarchy();
 
 // 获取URL参数用于自动填充
 $parent_id_param = $_GET['parent_id'] ?? 0;
 $sort_order_param = $_GET['sort_order'] ?? 0;
+
+// 预生成document_id（用户进入页面时生成）
+$max_stmt = $db->query("SELECT MAX(document_id) as max_id FROM documents");
+$max_result = $max_stmt->fetch(PDO::FETCH_ASSOC);
+$pre_generated_document_id = ($max_result['max_id'] ?? 0) + 1;
 
 // 处理表单提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -30,8 +35,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 生成唯一的update_code
         $update_code = uniqid() . '_' . time();
         
-        $stmt = $db->prepare("INSERT INTO documents (title, content, parent_id, sort_order, tags, is_public, is_formal, created_at, updated_at, update_code) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)");
-        $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal, $update_code]);
+        // 使用预生成的document_id，并验证其有效性
+        $new_document_id = intval($_POST['document_id'] ?? $pre_generated_document_id);
+        
+        // 验证预生成的document_id是否已被使用
+        $check_stmt = $db->prepare("SELECT COUNT(*) FROM documents WHERE document_id = ?");
+        $check_stmt->execute([$new_document_id]);
+        if ($check_stmt->fetchColumn() > 0) {
+            // 如果已被使用，重新生成
+            $max_stmt = $db->query("SELECT MAX(document_id) as max_id FROM documents");
+            $max_result = $max_stmt->fetch(PDO::FETCH_ASSOC);
+            $new_document_id = ($max_result['max_id'] ?? 0) + 1;
+        }
+        
+        $stmt = $db->prepare("INSERT INTO documents (document_id, title, content, parent_id, sort_order, tags, is_public, is_formal, created_at, updated_at, update_code) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)");
+        $stmt->execute([$new_document_id, $title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal, $update_code]);
         
         $document_id = $db->lastInsertId();
         
@@ -135,6 +153,7 @@ include '../sidebar.php';
             <h1>添加新文档</h1>
             
             <form method="post" id="documentForm">
+                <input type="hidden" name="document_id" value="<?php echo $pre_generated_document_id; ?>">
                 <div class="d-flex flex-column flex-lg-row" id="responsive-container" style="gap: 15px;">
                     <!-- 左侧：文档标题和内容模块 -->
                     <div class="flex-grow-1">
@@ -180,9 +199,9 @@ include '../sidebar.php';
                                         <?php 
                                         if (!empty($documents)) {
                                             foreach ($documents as $doc): 
-                                                $selected = ($parent_id_param !== null && $doc['id'] == $parent_id_param) ? 'selected' : '';
+                                                $selected = ($parent_id_param !== null && $doc['document_id'] == $parent_id_param) ? 'selected' : '';
                                         ?>
-                                            <option value="<?php echo $doc['id']; ?>" <?php echo $selected; ?>>
+                                            <option value="<?php echo $doc['document_id']; ?>" <?php echo $selected; ?>>
                                                 <?php echo str_repeat('&nbsp;&nbsp;', $doc['level']) . htmlspecialchars($doc['title']); ?>
                                             </option>
                                         <?php 

@@ -12,19 +12,36 @@ class DocumentTree {
     /**
      * 获取文档树形结构
      */
-    public function getTree($parent_id = 0) {
-        $sql = "SELECT d.*, u.username, d.is_formal 
-                FROM documents d 
-                LEFT JOIN users u ON d.user_id = u.id 
-                WHERE d.parent_id = " . intval($parent_id) . " AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
-                ORDER BY d.sort_order ASC, d.id ASC";
+    public function getTree($parent_document_id = 0) {
+        if ($parent_document_id == 0) {
+            $sql = "SELECT d.*, u.username, d.is_formal 
+                    FROM documents d 
+                    LEFT JOIN users u ON d.user_id = u.id 
+                    WHERE d.parent_id = 0 AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
+                    ORDER BY d.sort_order ASC, d.document_id ASC";
+        } else {
+            // 通过document_id找到对应的内部ID
+            $stmt = $this->db->prepare("SELECT id FROM documents WHERE document_id = ? AND del_status = 0");
+            $stmt->execute([$parent_document_id]);
+            $internal_parent_id = $stmt->fetchColumn();
+            
+            if (!$internal_parent_id) {
+                return [];
+            }
+            
+            $sql = "SELECT d.*, u.username, d.is_formal 
+                    FROM documents d 
+                    LEFT JOIN users u ON d.user_id = u.id 
+                    WHERE d.parent_id = " . intval($internal_parent_id) . " AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
+                    ORDER BY d.sort_order ASC, d.document_id ASC";
+        }
         
         $stmt = $this->db->prepare($sql);
         $stmt->execute();
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         foreach ($documents as &$doc) {
-            $doc['children'] = $this->getTree($doc['id']);
+            $doc['children'] = $this->getTree($doc['document_id']);
         }
         
         return $documents;
@@ -33,13 +50,31 @@ class DocumentTree {
     /**
      * 获取文档的所有子文档
      */
-    public function getChildren($parent_id) {
-        $stmt = $this->db->prepare("SELECT d.*, u.username 
-                                  FROM documents d 
-                                  LEFT JOIN users u ON d.user_id = u.id 
-                                  WHERE d.parent_id = ? AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
-                                  ORDER BY d.sort_order ASC, d.id ASC");
-        $stmt->execute([$parent_id]);
+    public function getChildren($parent_document_id) {
+        if ($parent_document_id == 0) {
+            $stmt = $this->db->prepare("SELECT d.*, u.username 
+                                      FROM documents d 
+                                      LEFT JOIN users u ON d.user_id = u.id 
+                                      WHERE d.parent_id = 0 AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
+                                      ORDER BY d.sort_order ASC, d.document_id ASC");
+            $stmt->execute();
+        } else {
+            // 通过document_id找到对应的内部ID
+            $stmt = $this->db->prepare("SELECT id FROM documents WHERE document_id = ? AND del_status = 0");
+            $stmt->execute([$parent_document_id]);
+            $internal_parent_id = $stmt->fetchColumn();
+            
+            if (!$internal_parent_id) {
+                return [];
+            }
+            
+            $stmt = $this->db->prepare("SELECT d.*, u.username 
+                                      FROM documents d 
+                                      LEFT JOIN users u ON d.user_id = u.id 
+                                      WHERE d.parent_id = ? AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
+                                      ORDER BY d.sort_order ASC, d.document_id ASC");
+            $stmt->execute([$internal_parent_id]);
+        }
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
@@ -47,38 +82,40 @@ class DocumentTree {
      * 获取文档的同级文档
      */
     public function getSiblings($document_id) {
-        // 获取当前文档的父ID
-        $stmt = $this->db->prepare("SELECT parent_id FROM documents WHERE id = ? AND del_status = 0");
+        // 首先获取当前文档的父内部ID
+        $stmt = $this->db->prepare("SELECT parent_id FROM documents WHERE document_id = ?");
         $stmt->execute([$document_id]);
-        $parent_id = $stmt->fetchColumn();
+        $parent_internal_id = $stmt->fetchColumn();
         
-        $sql = "SELECT d.*, u.username 
-                FROM documents d 
-                LEFT JOIN users u ON d.user_id = u.id 
-                WHERE d.parent_id = " . intval($parent_id) . " AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
-                AND d.id != ? 
-                ORDER BY d.sort_order ASC, d.id ASC";
-        
-        $stmt = $this->db->prepare($sql);
-        $stmt->execute([$document_id]);
+        // 然后获取同父级的所有文档
+        $stmt = $this->db->prepare("SELECT d.*, u.username 
+                                  FROM documents d 
+                                  LEFT JOIN users u ON d.user_id = u.id 
+                                  WHERE d.parent_id = ? AND d.document_id != ? AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
+                                  ORDER BY d.sort_order ASC, d.document_id ASC");
+        $stmt->execute([$parent_internal_id, $document_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
     /**
-     * 获取文档的层级深度
+     * 根据document_id获取文档的层级深度
      */
-    public function getDepth($document_id) {
+    public function getDepthByDocumentId($document_id) {
         $depth = 0;
-        $current_id = $document_id;
+        $current_document_id = $document_id;
         
-        while ($current_id > 0) {
-            $stmt = $this->db->prepare("SELECT parent_id FROM documents WHERE id = ? AND del_status = 0");
-            $stmt->execute([$current_id]);
-            $parent_id = $stmt->fetchColumn();
+        while ($current_document_id > 0) {
+            // 获取当前文档的父文档内部ID
+            $stmt = $this->db->prepare("SELECT parent_id FROM documents WHERE document_id = ? AND del_status = 0");
+            $stmt->execute([$current_document_id]);
+            $parent_internal_id = $stmt->fetchColumn();
             
-            if ($parent_id > 0) {
+            if ($parent_internal_id && $parent_internal_id > 0) {
                 $depth++;
-                $current_id = $parent_id;
+                // 通过内部ID获取对应的业务ID
+                $stmt = $this->db->prepare("SELECT document_id FROM documents WHERE id = ? AND del_status = 0");
+                $stmt->execute([$parent_internal_id]);
+                $current_document_id = $stmt->fetchColumn();
             } else {
                 break;
             }
@@ -92,16 +129,27 @@ class DocumentTree {
      */
     public function getBreadcrumbs($document_id) {
         $breadcrumbs = [];
-        $current_id = $document_id;
+        $current_document_id = $document_id;
         
-        while ($current_id > 0) {
-            $stmt = $this->db->prepare("SELECT id, title, parent_id FROM documents WHERE id = ? AND del_status = 0");
-            $stmt->execute([$current_id]);
+        while ($current_document_id > 0) {
+            $stmt = $this->db->prepare("SELECT document_id, title, parent_id FROM documents WHERE document_id = ? AND del_status = 0");
+            $stmt->execute([$current_document_id]);
             $document = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($document) {
-                array_unshift($breadcrumbs, $document);
-                $current_id = $document['parent_id'];
+                array_unshift($breadcrumbs, [
+                    'document_id' => $document['document_id'],
+                    'title' => $document['title']
+                ]);
+                
+                if ($document['parent_id'] > 0) {
+                    // 通过内部ID获取对应的业务ID
+                    $stmt = $this->db->prepare("SELECT document_id FROM documents WHERE id = ? AND del_status = 0");
+                    $stmt->execute([$document['parent_id']]);
+                    $current_document_id = $stmt->fetchColumn();
+                } else {
+                    break;
+                }
             } else {
                 break;
             }
@@ -211,7 +259,7 @@ class DocumentTree {
      */
     public function getDocumentsWithMostVersions($limit = 10) {
         $stmt = $this->db->prepare("SELECT d.*, u.username, 
-                                  (SELECT COUNT(*) FROM documents_version WHERE document_id = d.id) as version_count
+                                  (SELECT COUNT(*) FROM documents_version WHERE document_id = d.document_id) as version_count
                                   FROM documents d 
                                   LEFT JOIN users u ON d.user_id = u.id 
                                   WHERE d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
@@ -226,7 +274,7 @@ class DocumentTree {
      */
     public function getDocumentsWithMostOperations($limit = 10) {
         $stmt = $this->db->prepare("SELECT d.*, u.username, 
-                                  (SELECT COUNT(*) FROM edit_log WHERE document_id = d.id) as operation_count
+                                  (SELECT COUNT(*) FROM edit_log WHERE document_id = d.document_id) as operation_count
                                   FROM documents d 
                                   LEFT JOIN users u ON d.user_id = u.id 
                                   WHERE d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
@@ -241,10 +289,10 @@ class DocumentTree {
      */
     public function renderTreeOptions($tree, $selected_id = null, $exclude_id = null, $indent = '') {
         foreach ($tree as $doc) {
-            if ($doc['id'] == $exclude_id) continue;
+            if ($doc['document_id'] == $exclude_id) continue;
             
-            $selected = ($selected_id == $doc['id']) ? ' selected' : '';
-            echo "<option value=\"{$doc['id']}\"{$selected}>{$indent}" . htmlspecialchars($doc['title']) . "</option>";
+            $selected = ($selected_id == $doc['document_id']) ? ' selected' : '';
+            echo "<option value=\"{$doc['document_id']}\"{$selected}>{$indent}" . htmlspecialchars($doc['title']) . "</option>";
             
             if (!empty($doc['children'])) {
                 $this->renderTreeOptions($doc['children'], $selected_id, $exclude_id, $indent . '&nbsp;&nbsp;&nbsp;&nbsp;');
@@ -268,7 +316,7 @@ class DocumentTree {
                     <?php else: ?>
                         <i class="bi bi-file-text text-info"></i>
                     <?php endif; ?>
-                    <a href="edit.php?id=<?php echo $doc['id']; ?>" class="text-decoration-none">
+                    <a href="edit.php?id=<?php echo $doc['document_id']; ?>" class="text-decoration-none">
                         <?php echo htmlspecialchars($doc['title']); ?>
                     </a>
                 </td>
@@ -306,13 +354,13 @@ class DocumentTree {
                 </td>
                 <td>
                     <div class="btn-group btn-group-sm">
-                        <a href="edit.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-primary">
+                        <a href="edit.php?id=<?php echo $doc['document_id']; ?>" class="btn btn-outline-primary">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <a href="/index.php?id=<?php echo $doc['id']; ?>" target="_blank" class="btn btn-outline-success">
+                        <a href="/index.php?id=<?php echo $doc['document_id']; ?>" target="_blank" class="btn btn-outline-success">
                             <i class="bi bi-eye"></i>
                         </a>
-                        <a href="delete.php?id=<?php echo $doc['id']; ?>" 
+                        <a href="delete.php?id=<?php echo $doc['document_id']; ?>" 
                            class="btn btn-outline-danger" 
                            onclick="return confirm('确定要删除这个文档吗？')">
                             <i class="bi bi-trash"></i>
@@ -335,36 +383,49 @@ class DocumentTree {
                                 FROM documents d 
                                 LEFT JOIN users u ON d.user_id = u.id 
                                 WHERE d.del_status = 0
-                                ORDER BY d.parent_id ASC, d.sort_order ASC, d.id ASC");
+                                ORDER BY d.parent_id ASC, d.sort_order ASC, d.document_id ASC");
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // 构建树形结构
+        // 构建树形结构，使用document_id作为层级基础
         return $this->buildHierarchy($documents);
     }
     
     /**
-     * 获取文档的最大排序值
+     * 获取指定文档下最大的排序值
      */
-    public function getMaxSortOrder($parent_id = 0) {
-        $stmt = $this->db->prepare("SELECT COALESCE(MAX(sort_order), 0) FROM documents WHERE parent_id = ? AND del_status = 0");
-        $stmt->execute([$parent_id]);
-        return $stmt->fetchColumn();
+    public function getMaxSortOrder($document_id) {
+        if ($document_id == 0) {
+            $stmt = $this->db->prepare("SELECT MAX(sort_order) FROM documents WHERE parent_id = 0");
+            $stmt->execute();
+        } else {
+            $stmt = $this->db->prepare("SELECT MAX(sort_order) FROM documents WHERE parent_id = (SELECT id FROM documents WHERE document_id = ?)");
+            $stmt->execute([$document_id]);
+        }
+        return $stmt->fetchColumn() ?: 0;
     }
     
     /**
-     * 获取文档的下级文档最大排序值
+     * 获取指定文档下最大的子文档排序值
      */
-    public function getMaxChildSortOrder($parent_id) {
-        $stmt = $this->db->prepare("SELECT MAX(sort_order) FROM documents WHERE parent_id = ?");
-        $stmt->execute([$parent_id]);
-        return $stmt->fetchColumn() ?? -1;
+    public function getMaxChildSortOrder($document_id) {
+        if ($document_id == 0) {
+            $stmt = $this->db->prepare("SELECT MAX(sort_order) FROM documents WHERE parent_id = 0");
+            $stmt->execute();
+        } else {
+            $stmt = $this->db->prepare("SELECT MAX(sort_order) FROM documents WHERE parent_id = (SELECT id FROM documents WHERE document_id = ?)");
+            $stmt->execute([$document_id]);
+        }
+        return $stmt->fetchColumn() ?: 0;
     }
     
     /**
-     * 获取文档的父ID
+     * 获取文档的父ID（返回业务ID）
      */
     public function getParentId($document_id) {
-        $stmt = $this->db->prepare("SELECT parent_id FROM documents WHERE id = ?");
+        $stmt = $this->db->prepare("SELECT d2.document_id 
+                                  FROM documents d1 
+                                  JOIN documents d2 ON d1.parent_id = d2.id 
+                                  WHERE d1.document_id = ?");
         $stmt->execute([$document_id]);
         return $stmt->fetchColumn();
     }
@@ -372,15 +433,25 @@ class DocumentTree {
     /**
      * 构建层级结构
      */
-    private function buildHierarchy($documents, $parent_id = 0, $level = 0) {
+    private function buildHierarchy($documents, $parent_document_id = 0, $level = 0) {
         $result = [];
+        
+        // 建立document_id到内部ID的映射
+        $documentIdMap = [];
         foreach ($documents as $doc) {
-            if ($doc['parent_id'] == $parent_id) {
+            $documentIdMap[$doc['document_id']] = $doc['id'];
+        }
+        
+        foreach ($documents as $doc) {
+            // 找到当前parent_document_id对应的内部ID
+            $current_parent_internal_id = $parent_document_id == 0 ? 0 : ($documentIdMap[$parent_document_id] ?? 0);
+            
+            if ($doc['parent_id'] == $current_parent_internal_id) {
                 $doc['level'] = $level;
                 $result[] = $doc;
                 
-                // 递归获取子文档
-                $children = $this->buildHierarchy($documents, $doc['id'], $level + 1);
+                // 递归获取子文档，传递document_id
+                $children = $this->buildHierarchy($documents, $doc['document_id'], $level + 1);
                 $result = array_merge($result, $children);
             }
         }
@@ -394,14 +465,9 @@ class DocumentTree {
         $stmt = $this->db->prepare("SELECT d.*, u.username 
                                   FROM documents d 
                                   LEFT JOIN users u ON d.user_id = u.id 
-                                  ORDER BY d.sort_order ASC, d.id ASC");
+                                  ORDER BY d.sort_order ASC, d.document_id ASC");
         $stmt->execute();
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // 为每个文档添加level字段
-        foreach ($documents as &$doc) {
-            $doc['level'] = $this->getDepth($doc['id']);
-        }
         
         return $documents;
     }

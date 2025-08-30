@@ -31,7 +31,7 @@ try {
     }
     
     // 获取当前文档信息
-    $stmt = $db->prepare("SELECT * FROM documents WHERE id = ?");
+    $stmt = $db->prepare("SELECT * FROM documents WHERE document_id = ?");
     $stmt->execute([$document_id]);
     $document = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -61,7 +61,7 @@ try {
     ]);
     
     // 更新文档为回滚版本的内容（与documents_version表数据完全一致）
-    $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, tags = ?, updated_at = datetime('now'), update_code = ? WHERE id = ?");
+    $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, tags = ?, updated_at = datetime('now'), update_code = ? WHERE document_id = ?");
     $stmt->execute([
         $version['title'],
         $version['content'],

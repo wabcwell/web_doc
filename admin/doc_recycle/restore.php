@@ -29,7 +29,7 @@ $db = get_db();
 
 try {
     // 验证文档是否存在且已被删除
-    $stmt = $db->prepare("SELECT id, title FROM documents WHERE id = ? AND del_status = 1");
+    $stmt = $db->prepare("SELECT document_id, title FROM documents WHERE document_id = ? AND del_status = 1");
     $stmt->execute([$document_id]);
     $document = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -45,7 +45,7 @@ try {
     $update_code = uniqid() . '_' . time();
     
     // 恢复文档
-    $stmt = $db->prepare("UPDATE documents SET del_status = 0, deleted_at = NULL, update_code = ? WHERE id = ?");
+    $stmt = $db->prepare("UPDATE documents SET del_status = 0, deleted_at = NULL, update_code = ? WHERE document_id = ?");
     $stmt->execute([$update_code, $document_id]);
     
     // 记录恢复操作到编辑日志

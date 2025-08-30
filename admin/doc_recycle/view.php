@@ -17,7 +17,7 @@ if (!$id) {
 $db = get_db();
 
 // 获取回收站中的文档详情（仅del_status=1的文档）
-$stmt = $db->prepare("SELECT d.*, u.username FROM documents d LEFT JOIN users u ON d.user_id = u.id WHERE d.id = ? AND d.del_status = 1");
+$stmt = $db->prepare("SELECT d.*, u.username FROM documents d LEFT JOIN users u ON d.user_id = u.id WHERE d.document_id = ? AND d.del_status = 1");
 $stmt->execute([$id]);
 $document = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -30,12 +30,14 @@ if (!$document) {
 $breadcrumbs = [];
 $current_id = $document['parent_id'];
 while ($current_id) {
-    $stmt = $db->prepare("SELECT id, title FROM documents WHERE id = ? AND del_status = 1");
+    $stmt = $db->prepare("SELECT document_id, title FROM documents WHERE document_id = ? AND del_status = 1");
     $stmt->execute([$current_id]);
     $parent = $stmt->fetch(PDO::FETCH_ASSOC);
     if ($parent) {
         array_unshift($breadcrumbs, $parent);
-        $current_id = $db->query("SELECT parent_id FROM documents WHERE id = $current_id AND del_status = 1")->fetchColumn();
+        $stmt_parent = $db->prepare("SELECT parent_id FROM documents WHERE document_id = ? AND del_status = 1");
+        $stmt_parent->execute([$current_id]);
+        $current_id = $stmt_parent->fetchColumn();
     } else {
         break;
     }
@@ -96,7 +98,7 @@ include '../sidebar.php';
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="index.php">回收站</a></li>
                             <?php foreach ($breadcrumbs as $crumb): ?>
-                                <li class="breadcrumb-item"><a href="view.php?id=<?php echo $crumb['id']; ?>"><?php echo htmlspecialchars($crumb['title']); ?></a></li>
+                                <li class="breadcrumb-item"><a href="view.php?id=<?php echo $crumb['document_id']; ?>"><?php echo htmlspecialchars($crumb['title']); ?></a></li>
                             <?php endforeach; ?>
                             <li class="breadcrumb-item active"><?php echo htmlspecialchars($document['title'] ?? '未知文档'); ?></li>
                         </ol>
@@ -192,7 +194,7 @@ include '../sidebar.php';
                         <div class="card-body">
                             <dl class="row mb-0">
                                 <dt class="col-sm-4">ID</dt>
-                                <dd class="col-sm-8"><?php echo $document['id']; ?></dd>
+                                <dd class="col-sm-8"><?php echo $document['document_id']; ?></dd>
                                 
                                 <dt class="col-sm-4">作者</dt>
                                 <dd class="col-sm-8"><?php echo htmlspecialchars($document['username'] ?? '未知用户'); ?></dd>
@@ -240,22 +242,22 @@ include '../sidebar.php';
                         <div class="card-body">
                             <div class="d-grid gap-2">
                                 <!-- 恢复按钮 - 绿色 (#4caf50) -->
-                                <button type="button" class="btn" style="background-color: #4caf50; border-color: #4caf50; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#66bb6a'; this.style.borderColor='#66bb6a'" onmouseout="this.style.backgroundColor='#4caf50'; this.style.borderColor='#4caf50'" onclick="showRestoreConfirm(<?php echo $document['id']; ?>, '<?php echo htmlspecialchars(addslashes($document['title'] ?? '未知文档')); ?>')">
+                                <button type="button" class="btn" style="background-color: #4caf50; border-color: #4caf50; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#66bb6a'; this.style.borderColor='#66bb6a'" onmouseout="this.style.backgroundColor='#4caf50'; this.style.borderColor='#4caf50'" onclick="showRestoreConfirm(<?php echo $document['document_id']; ?>, '<?php echo htmlspecialchars(addslashes($document['title'] ?? '未知文档')); ?>')">
                                     <i class="bi bi-arrow-counterclockwise"></i> 恢复文档
                                 </button>
                                 
                                 <!-- 历史版本按钮 - 橙色 (#ffb74d) -->
-                                <a href="../documents/view_his.php?id=<?php echo $document['id']; ?>" class="btn" style="background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#ffcc80'; this.style.borderColor='#ffcc80'" onmouseout="this.style.backgroundColor='#ffb74d'; this.style.borderColor='#ffb74d'">
+                                <a href="../documents/view_his.php?id=<?php echo $document['document_id']; ?>" class="btn" style="background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#ffcc80'; this.style.borderColor='#ffcc80'" onmouseout="this.style.backgroundColor='#ffb74d'; this.style.borderColor='#ffb74d'">
                                     <i class="bi bi-clock-history"></i> 历史版本
                                 </a>
                                 
                                 <!-- 更新历史按钮 - 浅蓝色 (#64b5f6) -->
-                                <a href="../documents/edit_log.php?id=<?php echo $document['id']; ?>" class="btn" style="background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#90caf9'; this.style.borderColor='#90caf9'" onmouseout="this.style.backgroundColor='#64b5f6'; this.style.borderColor='#64b5f6'">
+                                <a href="../documents/edit_log.php?id=<?php echo $document['document_id']; ?>" class="btn" style="background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#90caf9'; this.style.borderColor='#90caf9'" onmouseout="this.style.backgroundColor='#64b5f6'; this.style.borderColor='#64b5f6'">
                                     <i class="bi bi-list-ul"></i> 更新历史
                                 </a>
                                 
                                 <!-- 永久删除按钮 - 珊瑚色 (#ff8a65) -->
-                                <button type="button" class="btn" style="background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#ffab91'; this.style.borderColor='#ffab91'" onmouseout="this.style.backgroundColor='#ff8a65'; this.style.borderColor='#ff8a65'" onclick="showDeleteConfirm(<?php echo $document['id']; ?>, '<?php echo htmlspecialchars(addslashes($document['title'] ?? '未知文档')); ?>')">
+                                <button type="button" class="btn" style="background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#ffab91'; this.style.borderColor='#ffab91'" onmouseout="this.style.backgroundColor='#ff8a65'; this.style.borderColor='#ff8a65'" onclick="showDeleteConfirm(<?php echo $document['document_id']; ?>, '<?php echo htmlspecialchars(addslashes($document['title'] ?? '未知文档')); ?>')">
                                     <i class="bi bi-trash-fill"></i> 永久删除
                                 </button>
                                 

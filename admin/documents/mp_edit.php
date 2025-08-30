@@ -17,7 +17,7 @@ if (!$id) {
 // 获取文档和父文档选项
 $db = get_db();
 $tree = new DocumentTree($db);
-$documents = $tree->getAllDocuments();
+$documents = $tree->getAllDocumentsByHierarchy();
 
 // 获取当前文档
 $stmt = $db->prepare("SELECT * FROM documents WHERE id = ?");
@@ -185,8 +185,8 @@ include '../sidebar.php';
                                     if (!empty($documents)) {
                                         foreach ($documents as $doc): 
                                     ?>
-                                        <option value="<?php echo $doc['id']; ?>" 
-                                                <?php echo $doc['id'] == $document['parent_id'] ? 'selected' : ''; ?>>
+                                        <option value="<?php echo $doc['document_id']; ?>" 
+                                                <?php echo $doc['document_id'] == $document['parent_id'] ? 'selected' : ''; ?>>
                                             <?php echo str_repeat('&nbsp;&nbsp;', $doc['level']) . htmlspecialchars($doc['title']); ?>
                                         </option>
                                     <?php 

@@ -17,10 +17,10 @@ if (!$id) {
 // 获取文档和父文档选项
 $db = get_db();
 $tree = new DocumentTree($db);
-$documents = $tree->getAllDocuments();
+$documents = $tree->getAllDocumentsByHierarchy();
 
 // 获取当前文档
-$stmt = $db->prepare("SELECT * FROM documents WHERE id = ?");
+$stmt = $db->prepare("SELECT * FROM documents WHERE document_id = ?");
 $stmt->execute([$id]);
 $document = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     if (!empty($title)) {
         // 获取当前文档信息用于记录日志和保存版本
-        $old_document = get_document($id);
+        $old_document = $document;
         
         // 初始化变更状态标记
         $changes = [
@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $update_code = uniqid() . '_' . time();
         
         // 更新文档
-        $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, parent_id = ?, sort_order = ?, tags = ?, is_public = ?, is_formal = ?, updated_at = datetime('now'), update_code = ? WHERE id = ?");
+        $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, parent_id = ?, sort_order = ?, tags = ?, is_public = ?, is_formal = ?, updated_at = datetime('now'), update_code = ? WHERE document_id = ?");
         $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal, $update_code, $id]);
         
         // 记录编辑日志
@@ -237,12 +237,12 @@ include '../sidebar.php';
                                         <?php 
                                         if (!empty($documents)) {
                                             foreach ($documents as $doc): 
-                                                if ($doc['id'] == $id) continue; // 排除当前文档
+                                               if ($doc['document_id'] == $id) continue; // 排除当前文档
                                         ?>
-                                            <option value="<?php echo $doc['id']; ?>" 
-                                                    <?php echo $doc['id'] == $document['parent_id'] ? 'selected' : ''; ?>>
-                                                <?php echo str_repeat('&nbsp;&nbsp;', $doc['level']) . htmlspecialchars($doc['title']); ?>
-                                            </option>
+                                            <option value="<?php echo $doc['document_id']; ?>" 
+                                                <?php echo $doc['document_id'] == $document['parent_id'] ? 'selected' : ''; ?>>
+                                            <?php echo str_repeat('&nbsp;&nbsp;', $doc['level']) . htmlspecialchars($doc['title']); ?>
+                                        </option>
                                         <?php 
                                             endforeach; 
                                         }

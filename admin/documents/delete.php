@@ -17,7 +17,7 @@ if (!$id) {
 $db = get_db();
 
 // 检查文档是否存在，并获取父级ID
-$stmt = $db->prepare("SELECT id, title, parent_id FROM documents WHERE id = ? AND del_status = 0");
+$stmt = $db->prepare("SELECT document_id, id, title, parent_id FROM documents WHERE document_id = ? AND del_status = 0");
 $stmt->execute([$id]);
 $document = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -27,12 +27,12 @@ if (!$document) {
 }
 
 // 获取被删除文档的直接子文档
-$stmt = $db->prepare("SELECT id FROM documents WHERE parent_id = ? AND del_status = 0 ORDER BY sort_order ASC");
-$stmt->execute([$id]);
+$stmt = $db->prepare("SELECT document_id, id FROM documents WHERE parent_id = ? AND del_status = 0 ORDER BY sort_order ASC");
+$stmt->execute([$document['id']]);
 $children = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // 获取被删除文档的排序值
-$stmt = $db->prepare("SELECT sort_order FROM documents WHERE id = ?");
+$stmt = $db->prepare("SELECT sort_order FROM documents WHERE document_id = ?");
 $stmt->execute([$id]);
 $deleted_sort_order = $stmt->fetchColumn();
 
@@ -48,9 +48,9 @@ try {
         $inherited_sort_order = $deleted_sort_order;
         
         // 更新子文档的父级和排序权重（继承被删除文档的排序值）
-        $stmt = $db->prepare("UPDATE documents SET parent_id = ?, sort_order = ? WHERE id = ?");
+        $stmt = $db->prepare("UPDATE documents SET parent_id = ?, sort_order = ? WHERE document_id = ?");
         foreach ($children as $child) {
-            $stmt->execute([$new_parent_id, $inherited_sort_order, $child['id']]);
+            $stmt->execute([$new_parent_id, $inherited_sort_order, $child['document_id']]);
         }
     }
     
@@ -59,7 +59,7 @@ try {
     
     // 记录删除日志
     log_edit(
-        $id,
+        $document['document_id'],
         $_SESSION['user_id'],
         'delete',
         [],
@@ -67,8 +67,8 @@ try {
     );
     
     // 执行软删除（标记为已删除）
-    $stmt = $db->prepare("UPDATE documents SET del_status = 1, deleted_at = datetime('now'), update_code = ? WHERE id = ?");
-    $stmt->execute([$update_code, $id]);
+    $stmt = $db->prepare("UPDATE documents SET del_status = 1, deleted_at = datetime('now'), update_code = ? WHERE document_id = ?");
+    $stmt->execute([$update_code, $document['document_id']]);
     
     // 提交事务
     $db->commit();

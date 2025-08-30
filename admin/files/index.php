@@ -100,7 +100,7 @@ function get_files(PDO $db, int $limit, int $offset, string $type = '', string $
     $sql = "SELECT f.*, u.username, d.title as document_title
             FROM file_upload f
             LEFT JOIN users u ON f.uploaded_by = u.id
-            LEFT JOIN documents d ON f.document_id = d.id
+            LEFT JOIN documents d ON f.document_id = d.document_id
             {$where_sql}
             ORDER BY {$sort_column} {$sort_order}
             LIMIT ? OFFSET ?";

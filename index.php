@@ -18,7 +18,7 @@ $content = '';
 $title = '文档中心';
 
 if ($document_id > 0) {
-    $stmt = $db->prepare("SELECT * FROM documents WHERE id = ? AND is_public = 1 AND is_formal = 1 AND del_status = 0");
+    $stmt = $db->prepare("SELECT * FROM documents WHERE document_id = ? AND is_public = 1 AND is_formal = 1 AND del_status = 0");
     $stmt->execute([$document_id]);
     $current_document = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -37,7 +37,7 @@ if (!$current_document) {
     if ($current_document) {
         $content = $current_document['content'];
         $title = $current_document['title'];
-        $document_id = $current_document['id'];
+        $document_id = $current_document['document_id'];
     }
 }
 
@@ -579,12 +579,12 @@ $stats = $stmt->fetch();
                 <?php
                 function render_document_tree($documents, $level = 0) {
                     foreach ($documents as $doc) {
-                        $active = isset($_GET['document']) && $_GET['document'] == $doc['id'] ? 'active' : '';
+                        $active = isset($_GET['document']) && $_GET['document'] == $doc['document_id'] ? 'active' : '';
                         $indent_class = $level > 0 ? 'level-' . $level : '';
                         $has_children = !empty($doc['children']);
                         
-                        echo '<div class="document-node" data-document-id="' . $doc['id'] . '">';
-                        echo '<a href="?document=' . $doc['id'] . '" ';
+                        echo '<div class="document-node" data-document-id="' . $doc['document_id'] . '">';
+                        echo '<a href="?document=' . $doc['document_id'] . '" ';
                         echo 'class="document-item ' . $active . ' ' . $indent_class . '" ';
                         echo 'data-title="' . htmlspecialchars($doc['title']) . '">';
                         

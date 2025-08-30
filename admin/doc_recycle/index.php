@@ -27,7 +27,7 @@ include '../sidebar.php';
 // 辅助函数：获取回收站文档列表
 function get_recycle_documents(PDO $db, int $limit, int $offset): array {
     $sql = "SELECT d.*, u.username, 
-                   (SELECT title FROM documents WHERE id = d.parent_id) as parent_title
+                   (SELECT title FROM documents WHERE document_id = d.parent_id) as parent_title
             FROM documents d 
             LEFT JOIN users u ON d.user_id = u.id 
             WHERE d.del_status = 1 
@@ -46,7 +46,7 @@ function get_recycle_count(PDO $db): int {
 
 // 辅助函数：显示操作按钮
 function render_action_buttons(array $doc, bool $is_admin): string {
-    $doc_id = $doc['id'];
+    $doc_id = $doc['document_id'];
     $doc_title = htmlspecialchars($doc['title'], ENT_QUOTES, 'UTF-8');
     
     $html = '<div class="btn-group" role="group" style="gap: 2px;">';
@@ -235,9 +235,9 @@ function render_action_buttons(array $doc, bool $is_admin): string {
                                 <tbody>
                                     <?php foreach ($documents as $doc): ?>
                                         <tr>
-                                            <td><strong><?php echo $doc['id']; ?></strong></td>
+                                            <td><strong><?php echo $doc['document_id']; ?></strong></td>
                                             <td>
-                                                <a href="view.php?id=<?php echo $doc['id']; ?>" class="text-decoration-none">
+                                                <a href="view.php?id=<?php echo $doc['document_id']; ?>" class="text-decoration-none">
                                                     <div class="fw-semibold"><?php echo htmlspecialchars($doc['title']); ?></div>
                                                 </a>
                                             </td>

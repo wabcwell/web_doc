@@ -28,6 +28,7 @@ function init_database() {
         // 创建documents表 - 与docs.db完全一致
         $db->exec("CREATE TABLE IF NOT EXISTS documents (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            document_id INTEGER,
             title TEXT NOT NULL,
             content TEXT,
             parent_id INTEGER,
@@ -92,6 +93,7 @@ function init_database() {
         )");
         
         // 创建索引 - 与docs.db完全一致
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_documents_document_id ON documents(document_id)");
         $db->exec("CREATE INDEX IF NOT EXISTS idx_documents_version_document_id ON documents_version(document_id)");
         $db->exec("CREATE INDEX IF NOT EXISTS idx_documents_version_created_by ON documents_version(created_by)");
         $db->exec("CREATE INDEX IF NOT EXISTS idx_edit_log_document_id ON edit_log(document_id)");
@@ -174,14 +176,27 @@ function sanitize($data) {
 /**
  * 获取文档列表
  */
-function get_documents($parent_id = null) {
+function get_documents($parent_document_id = null) {
     $db = get_db();
     
-    if ($parent_id !== null) {
-        $stmt = $db->prepare("SELECT * FROM documents WHERE parent_id = ? AND del_status = 0 ORDER BY sort_order ASC, id ASC");
-        $stmt->execute([$parent_id]);
+    if ($parent_document_id !== null) {
+        if ($parent_document_id == 0) {
+            $stmt = $db->query("SELECT * FROM documents WHERE parent_id = 0 AND del_status = 0 ORDER BY sort_order ASC, document_id ASC");
+        } else {
+            // 通过document_id找到对应的内部ID
+            $stmt = $db->prepare("SELECT id FROM documents WHERE document_id = ? AND del_status = 0");
+            $stmt->execute([$parent_document_id]);
+            $internal_parent_id = $stmt->fetchColumn();
+            
+            if (!$internal_parent_id) {
+                return [];
+            }
+            
+            $stmt = $db->prepare("SELECT * FROM documents WHERE parent_id = ? AND del_status = 0 ORDER BY sort_order ASC, document_id ASC");
+            $stmt->execute([$internal_parent_id]);
+        }
     } else {
-        $stmt = $db->query("SELECT * FROM documents WHERE del_status = 0 ORDER BY sort_order ASC, id ASC");
+        $stmt = $db->query("SELECT * FROM documents WHERE del_status = 0 ORDER BY sort_order ASC, document_id ASC");
     }
     
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -190,10 +205,10 @@ function get_documents($parent_id = null) {
 /**
  * 获取单个文档
  */
-function get_document($id) {
+function get_document($document_id) {
     $db = get_db();
-    $stmt = $db->prepare("SELECT * FROM documents WHERE id = ? AND del_status = 0");
-    $stmt->execute([$id]);
+    $stmt = $db->prepare("SELECT * FROM documents WHERE document_id = ? AND del_status = 0");
+    $stmt->execute([$document_id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
@@ -291,7 +306,7 @@ function get_recently_deleted_documents($limit = 5) {
  */
 function get_documents_with_most_versions($limit = 5) {
     $db = get_db();
-    $stmt = $db->query("SELECT d.*, u.username, COUNT(dv.id) as version_count FROM documents d LEFT JOIN users u ON d.user_id = u.id LEFT JOIN documents_version dv ON d.id = dv.document_id WHERE d.del_status = 0 GROUP BY d.id, d.title, u.username ORDER BY version_count DESC LIMIT 5");
+    $stmt = $db->query("SELECT d.*, u.username, COUNT(dv.id) as version_count FROM documents d LEFT JOIN users u ON d.user_id = u.id LEFT JOIN documents_version dv ON d.document_id = dv.document_id WHERE d.del_status = 0 GROUP BY d.document_id, d.title, u.username ORDER BY version_count DESC LIMIT 5");
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
@@ -300,7 +315,7 @@ function get_documents_with_most_versions($limit = 5) {
  */
 function get_documents_with_most_operations($limit = 5) {
     $db = get_db();
-    $stmt = $db->query("SELECT d.*, u.username, COUNT(el.id) as operation_count FROM documents d LEFT JOIN users u ON d.user_id = u.id LEFT JOIN edit_log el ON d.id = el.document_id WHERE d.del_status = 0 GROUP BY d.id, d.title, u.username ORDER BY operation_count DESC LIMIT 5");
+    $stmt = $db->query("SELECT d.*, u.username, COUNT(el.id) as operation_count FROM documents d LEFT JOIN users u ON d.user_id = u.id LEFT JOIN edit_log el ON d.document_id = el.document_id WHERE d.del_status = 0 GROUP BY d.document_id, d.title, u.username ORDER BY operation_count DESC LIMIT 5");
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
@@ -394,7 +409,7 @@ function save_document_version($document_id, $title, $content, $user_id, $tags =
     
     // 如果未提供tags，从documents表中获取
     if ($tags === null) {
-        $doc = $db->prepare("SELECT tags FROM documents WHERE id = ?");
+        $doc = $db->prepare("SELECT tags FROM documents WHERE document_id = ?");
         $doc->execute([$document_id]);
         $tags = $doc->fetchColumn() ?: '';
     }

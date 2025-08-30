@@ -31,7 +31,7 @@ try {
     $db = get_db();
     
     // 验证文档是否存在且已被删除
-    $stmt = $db->prepare("SELECT * FROM documents WHERE id = ? AND del_status = 1");
+    $stmt = $db->prepare("SELECT * FROM documents WHERE document_id = ? AND del_status = 1");
     $stmt->execute([$document_id]);
     $document = $stmt->fetch(PDO::FETCH_ASSOC);
     
@@ -54,7 +54,7 @@ try {
         $stmt->execute([$document_id]);
         
         // 删除文档
-        $stmt = $db->prepare("DELETE FROM documents WHERE id = ?");
+        $stmt = $db->prepare("DELETE FROM documents WHERE document_id = ?");
         $stmt->execute([$document_id]);
         
         // 提交事务
@@ -64,7 +64,7 @@ try {
             'success' => true, 
             'message' => '文档已永久删除',
             'document' => [
-                'id' => $document['id'],
+                'id' => $document['document_id'],
                 'title' => $document['title']
             ]
         ]);

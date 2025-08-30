@@ -7,7 +7,7 @@ Auth::requireLogin();
 
 // 渲染文档操作按钮的函数
 function render_document_action_buttons(array $doc, int $next_child_sort): string {
-    $doc_id = $doc['id'];
+    $doc_id = $doc['document_id'];
     $doc_title = htmlspecialchars($doc['title'], ENT_QUOTES, 'UTF-8');
     
     $html = '<div class="btn-group" role="group" style="gap: 2px;">';
@@ -197,11 +197,11 @@ include '../sidebar.php';
                                         $next_sort_order = $doc['sort_order'] + 1;
                                         
                                         // 计算下级文档的下一个排序值
-                                        $max_child_sort = $documentTree->getMaxChildSortOrder($doc['id']);
+                                        $max_child_sort = $documentTree->getMaxChildSortOrder($doc['document_id']);
                                         $next_child_sort = $max_child_sort + 1;
                                     ?>
                                     <tr>
-                                        <td><?php echo $doc['id']; ?></td>
+                                        <td><?php echo $doc['document_id']; ?></td>
                                         <td>
                                             <div style="display: flex; align-items: center;">
                                                 <?php if (isset($doc['level']) && $doc['level'] > 0): ?>
@@ -212,7 +212,7 @@ include '../sidebar.php';
                                                 <?php if (isset($doc['level']) && $doc['level'] > 0): ?>
                                                     └─
                                                 <?php endif; ?>
-                                                <a href="view.php?id=<?php echo $doc['id']; ?>" class="text-decoration-none">
+                                                <a href="view.php?id=<?php echo $doc['document_id']; ?>" class="text-decoration-none">
                                                     <?php echo htmlspecialchars($doc['title']); ?>
                                                 </a>
                                             </div>

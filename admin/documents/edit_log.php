@@ -19,7 +19,7 @@ $db = get_db();
 $tree = new DocumentTree($db);
 
 // 获取文档详情
-$stmt = $db->prepare("SELECT d.*, u.username FROM documents d LEFT JOIN users u ON d.user_id = u.id WHERE d.id = ?");
+$stmt = $db->prepare("SELECT d.*, u.username FROM documents d LEFT JOIN users u ON d.user_id = u.id WHERE d.document_id = ?");
 $stmt->execute([$id]);
 $document = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -258,7 +258,7 @@ function get_action_text($action) {
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="index.php">文档管理</a></li>
                             <?php foreach ($breadcrumbs as $crumb): ?>
-                                <li class="breadcrumb-item"><a href="view.php?id=<?php echo $crumb['id']; ?>"><?php echo htmlspecialchars($crumb['title']); ?></a></li>
+                                <li class="breadcrumb-item"><a href="view.php?id=<?php echo $crumb['document_id']; ?>"><?php echo htmlspecialchars($crumb['title']); ?></a></li>
                             <?php endforeach; ?>
                             <li class="breadcrumb-item active">操作记录</li>
                         </ol>
