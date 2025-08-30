@@ -10,16 +10,28 @@ $action = $_GET['action'] ?? '';
 
 // 处理配置请求（无需权限检查）
 if ($action === 'config') {
+    // 设置正确的Content-Type
+    header('Content-Type: application/json; charset=utf-8');
+    
     // 读取配置文件
     $configPath = __DIR__ . '/documents/ueditor_config.json';
     if (file_exists($configPath)) {
         $config = json_decode(file_get_contents($configPath), true);
         if ($config) {
-            // 修正路径格式
+            // 修正路径格式 - 使用相对于根目录的路径
             $config['imagePathFormat'] = '/uploads/images/{yyyy}{mm}{dd}/{time}{rand:6}';
             $config['filePathFormat'] = '/uploads/files/{yyyy}{mm}{dd}/{time}{rand:6}';
             $config['videoPathFormat'] = '/uploads/videos/{yyyy}{mm}{dd}/{time}{rand:6}';
-            echo json_encode($config);
+            
+            // 确保所有必需的配置项都存在
+            $config['imageUrlPrefix'] = '';
+            $config['scrawlUrlPrefix'] = '';
+            $config['snapscreenUrlPrefix'] = '';
+            $config['catcherUrlPrefix'] = '';
+            $config['videoUrlPrefix'] = '';
+            $config['fileUrlPrefix'] = '';
+            
+            echo json_encode($config, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
             exit;
         }
     }
@@ -206,6 +218,69 @@ function handleUpload() {
     if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
         // 生成相对URL - 便于部署
         $url = '/uploads/' . $subDir . $dateDir . $filename;
+        
+        // 向file_upload表插入数据
+        try {
+            $db = new PDO('sqlite:' . __DIR__ . '/../database/docs.db');
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            // 根据文件扩展名确定文件类型
+            $fileType = 'other';
+            switch ($extension) {
+                case 'jpg':
+                case 'jpeg':
+                case 'png':
+                case 'gif':
+                case 'bmp':
+                case 'webp':
+                    $fileType = 'image';
+                    break;
+                case 'mp4':
+                case 'avi':
+                case 'wmv':
+                case 'mov':
+                case 'flv':
+                case 'webm':
+                case 'mkv':
+                    $fileType = 'video';
+                    break;
+                case 'mp3':
+                case 'wav':
+                case 'ogg':
+                case 'flac':
+                    $fileType = 'audio';
+                    break;
+                case 'pdf':
+                case 'doc':
+                case 'docx':
+                case 'xls':
+                case 'xlsx':
+                case 'txt':
+                case 'md':
+                    $fileType = 'document';
+                    break;
+                case 'zip':
+                case 'rar':
+                case '7z':
+                case 'tar':
+                case 'gz':
+                    $fileType = 'archive';
+                    break;
+            }
+            
+            $stmt = $db->prepare("INSERT INTO file_upload (file_type, file_format, file_size, file_path, uploaded_by) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([
+                $fileType,
+                $extension,
+                $file['size'],
+                $url,
+                $_SESSION['user_id'] ?? 1
+            ]);
+            
+        } catch (PDOException $e) {
+            // 记录错误但不影响上传功能
+            error_log("插入file_upload表失败: " . $e->getMessage());
+        }
         
         echo json_encode([
             'state' => 'SUCCESS',

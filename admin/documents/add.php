@@ -245,6 +245,10 @@ include '../sidebar.php';
     <script src="../assets/ueditorplus/lang/zh-cn/zh-cn.js"></script>
     
     <script>
+    // 设置UEditor服务器URL
+    window.UEDITOR_CONFIG = window.UEDITOR_CONFIG || {};
+    window.UEDITOR_CONFIG.serverUrl = '/admin/ueditor_upload.php';
+    
     // 简化的高度调整
     function autoHeight() {
         var editor = UE.getEditor('editor');
@@ -264,7 +268,8 @@ include '../sidebar.php';
         maximumWords: 10000,
         autoFloatEnabled: false,
         minFrameHeight: 500,
-        maxFrameHeight: 1200
+        maxFrameHeight: 1200,
+        serverUrl: '/admin/ueditor_upload.php'
     });
 
     // 表单提交处理
