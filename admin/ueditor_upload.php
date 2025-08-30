@@ -268,13 +268,17 @@ function handleUpload() {
                     break;
             }
             
-            $stmt = $db->prepare("INSERT INTO file_upload (file_type, file_format, file_size, file_path, uploaded_by) VALUES (?, ?, ?, ?, ?)");
+            // 获取document_id参数
+            $document_id = isset($_GET['document_id']) ? intval($_GET['document_id']) : 0;
+            
+            $stmt = $db->prepare("INSERT INTO file_upload (file_type, file_format, file_size, file_path, uploaded_by, document_id) VALUES (?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $fileType,
                 $extension,
                 $file['size'],
                 $url,
-                $_SESSION['user_id'] ?? 1
+                $_SESSION['user_id'] ?? 1,
+                $document_id
             ]);
             
         } catch (PDOException $e) {

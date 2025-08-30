@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $new_document_id = ($max_result['max_id'] ?? 0) + 1;
         }
         
-        $stmt = $db->prepare("INSERT INTO documents (document_id, title, content, parent_id, sort_order, tags, is_public, is_formal, created_at, updated_at, update_code) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)");
+        $stmt = $db->prepare("INSERT INTO documents (document_id, title, content, parent_id, sort_order, tags, is_public, is_formal, created_at, updated_at, update_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)");
         $stmt->execute([$new_document_id, $title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal, $update_code]);
         
         $document_id = $db->lastInsertId();
@@ -288,7 +288,7 @@ include '../sidebar.php';
         autoFloatEnabled: false,
         minFrameHeight: 500,
         maxFrameHeight: 1200,
-        serverUrl: '/admin/ueditor_upload.php'
+        serverUrl: '/admin/ueditor_upload.php?document_id=<?php echo $pre_generated_document_id; ?>'
     });
 
     // 表单提交处理
