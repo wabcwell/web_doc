@@ -148,11 +148,35 @@ include '../sidebar.php';
                             <h5 class="mb-0"><i class="bi bi-file-text"></i> 文档内容</h5>
                         </div>
                         <div class="card-body">
-                            <div class="markdown-content">
+                            <div class="document-content">
                                 <?php 
-                                require_once '../../Parsedown.php';
-                                $Parsedown = new Parsedown();
-                                echo $Parsedown->text($document['content']);
+                                $content = $document['content'];
+                                
+                                // 智能判断内容格式：如果是HTML则直接输出，否则使用Markdown解析
+                                $trimmed_content = trim($content);
+                                $is_html = false;
+                                
+                                // 检查内容是否以HTML标签开头
+                                if (preg_match('/^\s*<[a-zA-Z][^>]*>/', $trimmed_content)) {
+                                    $is_html = true;
+                                }
+                                
+                                // 检查是否包含完整的HTML结构
+                                if (stripos($trimmed_content, '<html') !== false || 
+                                    stripos($trimmed_content, '<body') !== false ||
+                                    stripos($trimmed_content, '<div') !== false) {
+                                    $is_html = true;
+                                }
+                                
+                                if ($is_html) {
+                                    // 直接输出HTML内容
+                                    echo $content;
+                                } else {
+                                    // 使用Markdown解析
+                                    require_once '../../Parsedown.php';
+                                    $Parsedown = new Parsedown();
+                                    echo $Parsedown->text($content);
+                                }
                                 ?>
                             </div>
                         </div>

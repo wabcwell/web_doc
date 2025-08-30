@@ -65,20 +65,6 @@ include '../sidebar.php';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../../assets/css/admin.css">
-    <!-- UEditorPlus样式 -->
-    <link rel="stylesheet" href="../../assets/ueditorplus/themes/default/css/ueditor.css">
-    <style>
-        #editor-container {
-            border: 1px solid #ced4da;
-            border-radius: 0.375rem;
-        }
-        .edui-default .edui-editor {
-            border-radius: 0.375rem;
-        }
-        .edui-default .edui-editor-toolbarbox {
-            border-radius: 0.375rem 0.375rem 0 0;
-        }
-    </style>
 </head>
 <body>
     <div class="main-content">
@@ -160,7 +146,7 @@ include '../sidebar.php';
                     </div>
                     <div class="card-body">
                         <div class="form-group">
-                            <script id="editor" type="text/plain" style="width:100%;height:500px;"></script>
+                            <div id="editor"></div>
                             <textarea name="content" id="content" style="display: none;"></textarea>
                         </div>
                     </div>
@@ -174,40 +160,45 @@ include '../sidebar.php';
         </div>
     </div>
 
-    <!-- UEditorPlus脚本 -->
+    <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
+    <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
     <script>
-    // 必须在加载ueditor.config.js之前设置UEDITOR_HOME_URL
-    window.UEDITOR_HOME_URL = '/assets/ueditorplus/';
-    </script>
-    <script src="../../assets/ueditorplus/ueditor.config.js"></script>
-    <script src="../../assets/ueditorplus/ueditor.all.js"></script>
-    <script src="../../assets/ueditorplus/lang/zh-cn/zh-cn.js"></script>
-    
-    <script>
-    // 初始化UEditorPlus - 使用基本配置
-    const ue = UE.getEditor('editor', {
-        initialFrameHeight: 500,
-        autoHeightEnabled: false,
-        elementPathEnabled: false,
-        wordCount: true,
-        maximumWords: 10000,
-        autoFloatEnabled: false,
-        toolbars: [
-            ['fullscreen', 'source', '|', 'undo', 'redo', '|',
-             'bold', 'italic', 'underline', '|',
-             'forecolor', 'backcolor', '|',
-             'insertorderedlist', 'insertunorderedlist', '|',
-             'justifyleft', 'justifycenter', 'justifyright', '|',
-             'link', 'unlink', '|',
-             'simpleupload', 'insertimage', '|',
-             'inserttable', '|',
-             'searchreplace', 'help']
-        ]
+    // 初始化编辑器
+    const editor = new toastui.Editor({
+        el: document.querySelector('#editor'),
+        height: '500px',
+        initialEditType: 'markdown',
+        previewStyle: 'vertical',
+        language: 'zh-CN',
+        placeholder: '请输入文档内容...',
+        hooks: {
+            addImageBlobHook: function(blob, callback) {
+                const formData = new FormData();
+                formData.append('image', blob);
+                
+                fetch('../upload.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        callback(result.url, 'alt text');
+                    } else {
+                        alert('图片上传失败：' + result.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('图片上传失败');
+                });
+            }
+        }
     });
 
     // 表单提交处理
     document.getElementById('documentForm').addEventListener('submit', function(e) {
-        document.getElementById('content').value = ue.getContent();
+        document.getElementById('content').value = editor.getMarkdown();
     });
 
     // 保存快捷键

@@ -105,18 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // 仅在内容有变更时保存新版本
         if ($has_changes) {
-            error_log("DEBUG: 检测到内容变更，保存新版本");
             save_document_version($id, $title, $content, $_SESSION['user_id'], $tags, $update_code);
-        } else {
-            error_log("DEBUG: 未检测到内容变更，跳过版本保存");
-            
-            // 额外验证：检查是否真的无变更
-            if (isset($_GET['debug'])) {
-                error_log("DEBUG验证: 详细比较结果:");
-                error_log("DEBUG验证: 标题是否相同: " . ($old_title === $new_title ? '是' : '否'));
-                error_log("DEBUG验证: 内容是否相同: " . ($old_content === $new_content ? '是' : '否'));
-                error_log("DEBUG验证: 标签是否相同: " . ($old_tags === $new_tags ? '是' : '否'));
-            }
         }
         
         header('Location: index.php?success=update');
@@ -137,6 +126,64 @@ include '../sidebar.php';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../../assets/css/admin.css">
+    <style>
+        /* 解决容器高度限制 */
+        .form-group:has(#editor) {
+            height: auto !important;
+        }
+        
+        /* 移除可能的高度限制 */
+        .card {
+            height: auto !important;
+        }
+        
+        /* 移除容器宽度限制，支持无限拉伸 */
+        .container-fluid {
+            max-width: none;
+            width: 100%;
+        }
+        
+        /* 确保编辑器容器能自动增高 */
+        #editor {
+            height: auto !important;
+            min-height: 500px;
+        }
+        
+        /* 精确修复元素路径间距问题 */
+        .edui-default .edui-editor-bottombar {
+            height: 24px !important;
+            line-height: 24px !important;
+            padding: 0 5px !important;
+            margin: 0 !important;
+            border-top: 1px solid #d4d4d4 !important;
+            box-sizing: border-box !important;
+        }
+        
+        .edui-default .edui-editor {
+            border-radius: 0.375rem !important;
+            overflow: hidden !important;
+        }
+        
+        .edui-default .edui-editor-bottomContainer {
+            height: 24px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+        
+        /* 响应式断点：1200px */
+        @media screen and (max-width: 1200px) {
+            #responsive-container {
+                flex-direction: column !important;
+            }
+            #responsive-container .flex-shrink-0 {
+                width: 100% !important;
+                flex: none !important;
+                min-width: 100% !important;
+                max-width: 100% !important;
+                margin-top: 15px;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="main-content">
@@ -144,136 +191,129 @@ include '../sidebar.php';
             <h1>编辑文档</h1>
             
             <form method="post" id="documentForm">
-                <!-- 合并后的文档标题和设置 -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">基本信息</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- 标题和公开文档 -->
-                        <div class="title-row">
-                            <div class="form-group title-field">
-                                <label for="title">文档标题 *</label>
-                                <input type="text" class="form-control" id="title" name="title" required 
-                                       value="<?php echo htmlspecialchars($document['title'] ?? ''); ?>">
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="is_public">可见性</label>
-                                <select class="form-control" id="is_public" name="is_public">
-                                    <option value="1" <?php echo $document['is_public'] == 1 ? 'selected' : ''; ?>>公开</option>
-                                    <option value="0" <?php echo $document['is_public'] == 0 ? 'selected' : ''; ?>>私有</option>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="is_formal">文档状态</label>
-                                <select class="form-control" id="is_formal" name="is_formal">
-                                    <option value="0" <?php echo $document['is_formal'] == 0 ? 'selected' : ''; ?>>草稿</option>
-                                    <option value="1" <?php echo $document['is_formal'] == 1 ? 'selected' : ''; ?>>正式</option>
-                                </select>
-                            </div>
+                <div class="d-flex flex-column flex-lg-row" id="responsive-container" style="gap: 15px;">
+                    <!-- 左侧：文档标题和内容模块 -->
+                    <div class="flex-grow-1">
+                        <!-- 文档标题 -->
+                        <div class="form-group mb-3">
+                            <label for="title">文档标题 *</label>
+                            <input type="text" class="form-control" id="title" name="title" required 
+                                   value="<?php echo htmlspecialchars($document['title'] ?? ''); ?>" 
+                                   placeholder="请输入文档标题">
                         </div>
                         
-                        <!-- 设置项 -->
-                        <div class="settings-row">
-                            <div class="form-group parent-field">
-                                <label for="parent_id">父文档</label>
-                                <select class="form-control" id="parent_id" name="parent_id">
-                                    <option value="0">无父文档（顶级文档）</option>
-                                    <?php 
-                                    if (!empty($documents)) {
-                                        foreach ($documents as $doc): 
-                                    ?>
-                                        <option value="<?php echo $doc['id']; ?>" 
-                                                <?php echo $doc['id'] == $document['parent_id'] ? 'selected' : ''; ?>>
-                                            <?php echo str_repeat('&nbsp;&nbsp;', $doc['level']) . htmlspecialchars($doc['title']); ?>
-                                        </option>
-                                    <?php 
-                                        endforeach; 
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-                            
-                            <div class="form-group tags-field">
-                                <label for="tags">标签</label>
-                                <input type="text" class="form-control" id="tags" name="tags" 
-                                       value="<?php echo htmlspecialchars($document['tags'] ?? ''); ?>" 
-                                       placeholder="多个标签用逗号分隔">
-                            </div>
-                            
-                            <div class="form-group sort-field">
-                                <label for="sort_order">排序权重</label>
-                                <input type="number" class="form-control" id="sort_order" name="sort_order" 
-                                       value="<?php echo htmlspecialchars($document['sort_order'] ?? 0); ?>" min="0" 
-                                       placeholder="数值越大越靠前">
+                        <!-- 文档内容 -->
+                        <script id="editor" type="text/plain" style="width:100%;min-height:500px;"><?php echo $document['content'] ?? ''; ?></script>
+                        <textarea name="content" id="content" style="display: none;"></textarea>
+                    </div>
+                    
+                    <!-- 右侧：设置和按钮模块 -->
+                    <div class="flex-shrink-0" style="width: 280px; flex: 0 0 280px;">
+                        <div class="card">
+                            <div class="card-body">
+                                <!-- 公开性选项 -->
+                                <div class="form-group mb-3">
+                                    <label for="is_public">可见性</label>
+                                    <select class="form-control" id="is_public" name="is_public">
+                                        <option value="1" <?php echo $document['is_public'] == 1 ? 'selected' : ''; ?>>公开</option>
+                                        <option value="0" <?php echo $document['is_public'] == 0 ? 'selected' : ''; ?>>私有</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- 文档状态 -->
+                                <div class="form-group mb-3">
+                                    <label for="is_formal">文档状态</label>
+                                    <select class="form-control" id="is_formal" name="is_formal">
+                                        <option value="0" <?php echo $document['is_formal'] == 0 ? 'selected' : ''; ?>>草稿</option>
+                                        <option value="1" <?php echo $document['is_formal'] == 1 ? 'selected' : ''; ?>>正式</option>
+                                    </select>
+                                </div>
+                                
+                                <!-- 父文档选择器 -->
+                                <div class="form-group mb-3">
+                                    <label for="parent_id">父文档</label>
+                                    <select class="form-control" id="parent_id" name="parent_id">
+                                        <option value="0">无父文档（顶级文档）</option>
+                                        <?php 
+                                        if (!empty($documents)) {
+                                            foreach ($documents as $doc): 
+                                                if ($doc['id'] == $id) continue; // 排除当前文档
+                                        ?>
+                                            <option value="<?php echo $doc['id']; ?>" 
+                                                    <?php echo $doc['id'] == $document['parent_id'] ? 'selected' : ''; ?>>
+                                                <?php echo str_repeat('&nbsp;&nbsp;', $doc['level']) . htmlspecialchars($doc['title']); ?>
+                                            </option>
+                                        <?php 
+                                            endforeach; 
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+                                
+                                <!-- 标签输入框 -->
+                                <div class="form-group mb-3">
+                                    <label for="tags">标签</label>
+                                    <input type="text" class="form-control" id="tags" name="tags" 
+                                           value="<?php echo htmlspecialchars($document['tags'] ?? ''); ?>"
+                                           placeholder="多个标签用逗号分隔">
+                                </div>
+                                
+                                <!-- 排序权重 -->
+                                <div class="form-group mb-4">
+                                    <label for="sort_order">排序权重</label>
+                                    <input type="number" class="form-control" id="sort_order" name="sort_order" 
+                                           value="<?php echo htmlspecialchars($document['sort_order'] ?? '0'); ?>" 
+                                           min="0" placeholder="数值越大越靠前">
+                                </div>
+                                
+                                <!-- 按钮组 -->
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">保存修改</button>
+                                    <a href="index.php" class="btn btn-secondary">取消</a>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- 文档内容 -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">文档内容</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="form-group">
-                            <div id="editor"></div>
-                            <textarea name="content" id="content" style="display: none;"><?php echo htmlspecialchars($document['content'] ?? ''); ?></textarea>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="form-actions">
-                    <a href="index.php" class="btn btn-secondary">取消</a>
-                    <button type="submit" class="btn btn-primary">更新文档</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <link rel="stylesheet" href="https://uicdn.toast.com/editor/latest/toastui-editor.min.css" />
-    <script src="https://uicdn.toast.com/editor/latest/toastui-editor-all.min.js"></script>
+    <!-- UEditorPlus脚本 -->
     <script>
-    // 初始化编辑器
-    const editor = new toastui.Editor({
-        el: document.querySelector('#editor'),
-        height: '500px',
-        initialEditType: 'markdown',
-        previewStyle: 'vertical',
-        language: 'zh-CN',
-        placeholder: '请输入文档内容...',
-        initialValue: document.getElementById('content').value,
-        hooks: {
-            addImageBlobHook: function(blob, callback) {
-                const formData = new FormData();
-                formData.append('image', blob);
-                
-                fetch('../upload.php', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(result => {
-                    if (result.success) {
-                        callback(result.url, 'alt text');
-                    } else {
-                        alert('图片上传失败：' + result.message);
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('图片上传失败');
-                });
-            }
-        }
+    // 必须在加载ueditor.config.js之前设置UEDITOR_HOME_URL
+    window.UEDITOR_HOME_URL = '/admin/assets/ueditorplus/';
+    </script>
+    <script src="../assets/ueditorplus/ueditor.config.js"></script>
+    <script src="../assets/ueditorplus/ueditor.all.js"></script>
+    <script src="../assets/ueditorplus/lang/zh-cn/zh-cn.js"></script>
+    
+    <script>
+    // 简化的高度调整
+    function autoHeight() {
+        var editor = UE.getEditor('editor');
+        editor.ready(function() {
+            // 启用UEditor内置自动增高
+            editor.setOpt('autoHeightEnabled', true);
+        });
+    }
+    // 初始化UEditorPlus - 启用自动增高
+    const ue = UE.getEditor('editor', {
+        autoHeightEnabled: true,
+        initialFrameHeight: 500,
+        minFrameHeight: 500,
+        maxFrameHeight: 2000,
+        elementPathEnabled: true,   // 显示底部元素路径
+        wordCount: true,            // 显示字数统计
+        maximumWords: 10000,
+        autoFloatEnabled: false,
+        minFrameHeight: 500,
+        maxFrameHeight: 1200
     });
 
     // 表单提交处理
     document.getElementById('documentForm').addEventListener('submit', function(e) {
-        document.getElementById('content').value = editor.getMarkdown();
+        document.getElementById('content').value = ue.getContent();
     });
 
     // 保存快捷键
@@ -283,6 +323,9 @@ include '../sidebar.php';
             document.getElementById('documentForm').submit();
         }
     });
+    
+    // 启用自动增高功能
+    autoHeight();
     </script>
 </body>
 </html>

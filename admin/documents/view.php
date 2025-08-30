@@ -67,7 +67,7 @@ include '../sidebar.php';
                     <a href="edit.php?id=<?php echo $id; ?>" class="btn me-2" style="background-color: #7a8ba3; border-color: #7a8ba3; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#8d9db6'; this.style.borderColor='#8d9db6'" onmouseout="this.style.backgroundColor='#7a8ba3'; this.style.borderColor='#7a8ba3'">
                         <i class="bi bi-pencil"></i> 编辑
                     </a>
-                    <a href="../../document.php?id=<?php echo $id; ?>" target="_blank" class="btn" style="background-color: #8fa088; border-color: #8fa088; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#a8b5a0'; this.style.borderColor='#a8b5a0'" onmouseout="this.style.backgroundColor='#8fa088'; this.style.borderColor='#8fa088'">
+                    <a href="/index.php?id=<?php echo $id; ?>" target="_blank" class="btn" style="background-color: #8fa088; border-color: #8fa088; color: white; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#a8b5a0'; this.style.borderColor='#a8b5a0'" onmouseout="this.style.backgroundColor='#8fa088'; this.style.borderColor='#8fa088'">
                         <i class="bi bi-eye"></i> 前台查看
                     </a>
                 </div>
@@ -81,11 +81,35 @@ include '../sidebar.php';
                             <h5 class="mb-0">文档内容</h5>
                         </div>
                         <div class="card-body">
-                            <div class="markdown-content">
+                            <div class="document-content">
                                 <?php 
-                                require_once '../../Parsedown.php';
-                                $Parsedown = new Parsedown();
-                                echo $Parsedown->text($document['content']);
+                                $content = $document['content'];
+                                
+                                // 智能判断内容格式：如果是HTML则直接输出，否则使用Markdown解析
+                                $trimmed_content = trim($content);
+                                $is_html = false;
+                                
+                                // 检查内容是否以HTML标签开头
+                                if (preg_match('/^\s*<[a-zA-Z][^>]*>/', $trimmed_content)) {
+                                    $is_html = true;
+                                }
+                                
+                                // 检查是否包含完整的HTML结构
+                                if (stripos($trimmed_content, '<html') !== false || 
+                                    stripos($trimmed_content, '<body') !== false ||
+                                    stripos($trimmed_content, '<div') !== false) {
+                                    $is_html = true;
+                                }
+                                
+                                if ($is_html) {
+                                    // 直接输出HTML内容
+                                    echo $content;
+                                } else {
+                                    // 使用Markdown解析
+                                    require_once '../../Parsedown.php';
+                                    $Parsedown = new Parsedown();
+                                    echo $Parsedown->text($content);
+                                }
                                 ?>
                             </div>
                         </div>

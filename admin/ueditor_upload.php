@@ -1,6 +1,6 @@
 <?php
-require_once '../config.php';
-require_once '../includes/auth.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/auth.php';
 
 // 设置响应头
 header('Content-Type: application/json; charset=utf-8');
@@ -145,15 +145,42 @@ function handleUpload() {
         'png' => 'image/png',
         'gif' => 'image/gif',
         'bmp' => 'image/bmp',
-        'webp' => 'image/webp'
+        'webp' => 'image/webp',
+        'zip' => 'application/zip',
+        'rar' => 'application/x-rar-compressed',
+        'pdf' => 'application/pdf',
+        'doc' => 'application/msword',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'xls' => 'application/vnd.ms-excel',
+        'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'txt' => 'text/plain',
+        'md' => 'text/markdown'
     ];
     
-    if (!isset($extToMime[$fileExt]) || !in_array($extToMime[$fileExt], $allowedTypes)) {
+    if (!in_array($fileExt, ['zip', 'rar', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'md']) && 
+        (!isset($extToMime[$fileExt]) || !in_array($extToMime[$fileExt], $allowedTypes))) {
         echo json_encode(['state' => '不支持的文件类型: ' . $fileExt]);
         return;
     }
     
-    $fileType = $extToMime[$fileExt];
+    // 对于文件上传，直接使用扩展名验证
+    $allowedExts = [];
+    switch ($action) {
+        case 'uploadfile':
+            $allowedExts = ['zip', 'rar', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'md'];
+            break;
+        case 'uploadimage':
+            $allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp'];
+            break;
+        case 'uploadvideo':
+            $allowedExts = ['mp4', 'avi', 'wmv', 'mov', 'flv', 'webm', 'mkv'];
+            break;
+    }
+    
+    if (!in_array($fileExt, $allowedExts)) {
+        echo json_encode(['state' => '不支持的文件类型: ' . $fileExt]);
+        return;
+    }
     
     // 验证文件大小
     if ($file['size'] > $maxSize) {
@@ -163,7 +190,7 @@ function handleUpload() {
     }
     
     // 创建上传目录
-    $uploadDir = '../uploads/';
+    $uploadDir = __DIR__ . '/../uploads/';
     $dateDir = date('Ymd') . '/';
     $fullDir = $uploadDir . $subDir . $dateDir;
     
@@ -177,10 +204,8 @@ function handleUpload() {
     $uploadPath = $fullDir . $filename;
     
     if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
-        // 生成URL - 修复URL格式
-        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-        $baseUrl = $protocol . $_SERVER['HTTP_HOST'];
-        $url = $baseUrl . '/uploads/' . $subDir . $dateDir . $filename;
+        // 生成相对URL - 便于部署
+        $url = '/uploads/' . $subDir . $dateDir . $filename;
         
         echo json_encode([
             'state' => 'SUCCESS',

@@ -73,9 +73,8 @@ $uploadPath = $uploadDir . $filename;
 
 // 移动上传的文件
 if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
-    // 生成完整URL
-    $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https://' : 'http://';
-    $url = $protocol . $_SERVER['HTTP_HOST'] . dirname($_SERVER['REQUEST_URI']) . '/' . $uploadPath;
+    // 生成相对URL - 便于部署
+    $url = '/uploads/' . $filename;
     
     // 统一使用UEditor格式响应（兼容UEditorPlus和wangEditor）
     echo json_encode([

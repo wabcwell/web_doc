@@ -16,7 +16,8 @@ class Auth {
     // 要求用户必须登录，否则跳转到登录页面
     public static function requireLogin() {
         if (!self::isLoggedIn()) {
-            header('Location: login.php');
+            // 使用绝对路径跳转到admin目录下的登录页面
+            header('Location: /admin/login.php');
             exit();
         }
     }
@@ -26,7 +27,7 @@ class Auth {
         self::requireLogin();
         if (!self::isAdmin()) {
             $_SESSION['error'] = '权限不足，需要管理员权限';
-            header('Location: dashboard.php');
+            header('Location: /admin/dashboard.php');
             exit();
         }
     }

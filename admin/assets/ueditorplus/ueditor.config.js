@@ -48,7 +48,7 @@
         debug: false,
 
         // 服务器统一请求接口路径
-        serverUrl: "/admin/ueditor_upload.php",
+        serverUrl: "/admin/test_upload_no_auth.php",
 
         // 从服务器获取配置
         loadConfigFromServer: true,
@@ -90,19 +90,19 @@
                 "insertorderedlist",   // 有序列表
                 "insertunorderedlist", // 无序列表
                 "selectall",    // 全选
-                "cleardoc",     // 清空文档
+                //"cleardoc",     // 清空文档
                 "|",
                 "rowspacingtop",// 段前距
                 "rowspacingbottom",    // 段后距
                 "lineheight",          // 行间距
                 "|",
-                "customstyle",         // 自定义标题
+                //"customstyle",         // 自定义标题
                 "paragraph",           // 段落格式
                 "fontfamily",          // 字体
                 "fontsize",            // 字号
                 "|",
-                "directionalityltr",   // 从左向右输入
-                "directionalityrtl",   // 从右向左输入
+                //"directionalityltr",   // 从左向右输入
+                //"directionalityrtl",   // 从右向左输入
                 "indent",              // 首行缩进
                 "|",
                 "justifyleft",         // 居左对齐
@@ -131,7 +131,7 @@
                 "attachment",          // 附件
                 "insertframe",         // 插入Iframe
                 "insertcode",          // 插入代码
-                "pagebreak",           // 分页
+               // "pagebreak",           // 分页
                 "template",            // 模板
                 "background",          // 背景
                 "formula",             // 公式
@@ -144,19 +144,19 @@
                 "|",
                 "inserttable",         // 插入表格
                 "deletetable",         // 删除表格
-                "insertparagraphbeforetable",     // 表格前插入行
-                "insertrow",           // 前插入行
-                "deleterow",           // 删除行
-                "insertcol",           // 前插入列
-                "deletecol",           // 删除列
+                //"insertparagraphbeforetable",     // 表格前插入行
+                //"insertrow",           // 前插入行
+               // "deleterow",           // 删除行
+               // "insertcol",           // 前插入列
+               // "deletecol",           // 删除列
                 "mergecells",          // 合并多个单元格
-                "mergeright",          // 右合并单元格
-                "mergedown",           // 下合并单元格
-                "splittocells",        // 完全拆分单元格
+                //"mergeright",          // 右合并单元格
+                //"mergedown",           // 下合并单元格
+                //"splittocells",        // 完全拆分单元格
                 "splittorows",         // 拆分成行
                 "splittocols",         // 拆分成列
                 "|",
-                "print",               // 打印
+                //"print",               // 打印
                 "preview",             // 预览
                 "searchreplace",       // 查询替换
                 "|",

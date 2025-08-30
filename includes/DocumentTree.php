@@ -309,7 +309,7 @@ class DocumentTree {
                         <a href="edit.php?id=<?php echo $doc['id']; ?>" class="btn btn-outline-primary">
                             <i class="bi bi-pencil"></i>
                         </a>
-                        <a href="../../document.php?id=<?php echo $doc['id']; ?>" target="_blank" class="btn btn-outline-success">
+                        <a href="/index.php?id=<?php echo $doc['id']; ?>" target="_blank" class="btn btn-outline-success">
                             <i class="bi bi-eye"></i>
                         </a>
                         <a href="delete.php?id=<?php echo $doc['id']; ?>" 

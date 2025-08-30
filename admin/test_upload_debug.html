@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>UEditor上传测试</title>
+    <script src="assets/ueditorplus/ueditor.config.js"></script>
+    <script src="assets/ueditorplus/ueditor.all.js"></script>
+</head>
+<body>
+    <h1>UEditor上传测试</h1>
+    
+    <h2>测试配置接口</h2>
+    <button onclick="testConfig()">测试配置接口</button>
+    <div id="configResult"></div>
+    
+    <h2>测试图片上传</h2>
+    <input type="file" id="uploadFile" accept="image/*">
+    <button onclick="testUpload()">测试上传</button>
+    <div id="uploadResult"></div>
+    
+    <script>
+        function testConfig() {
+            fetch('/admin/ueditor_upload.php?action=config')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('configResult').innerHTML = 
+                        '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                })
+                .catch(error => {
+                    document.getElementById('configResult').innerHTML = 
+                        '错误: ' + error.message;
+                });
+        }
+        
+        function testUpload() {
+            const fileInput = document.getElementById('uploadFile');
+            if (!fileInput.files[0]) {
+                alert('请选择文件');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('upfile', fileInput.files[0]);
+            
+            fetch('/admin/ueditor_upload.php?action=uploadimage', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('uploadResult').innerHTML = 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            })
+            .catch(error => {
+                document.getElementById('uploadResult').innerHTML = 
+                    '错误: ' + error.message;
+            });
+        }
+    </script>
+</body>
+</html>
