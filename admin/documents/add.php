@@ -78,6 +78,55 @@ include '../sidebar.php';
         .edui-default .edui-editor-toolbarbox {
             border-radius: 0.375rem 0.375rem 0 0;
         }
+        
+        /* 解决容器高度限制 */
+        .card-body {
+            height: auto !important;
+            min-height: 600px;
+        }
+        
+        /* 确保编辑器容器可以自动增高 */
+        .form-group:has(#editor) {
+            height: auto !important;
+        }
+        
+        /* 移除可能的高度限制 */
+        .card {
+            height: auto !important;
+        }
+        
+        /* 移除容器宽度限制，支持无限拉伸 */
+        .container-fluid {
+            max-width: none;
+            width: 100%;
+        }
+        
+        /* 确保编辑器容器能自动增高 */
+        #editor {
+            height: auto !important;
+            min-height: 500px;
+        }
+        
+        /* 精确修复元素路径间距问题 */
+        .edui-default .edui-editor-bottombar {
+            height: 24px !important;
+            line-height: 24px !important;
+            padding: 0 5px !important;
+            margin: 0 !important;
+            border-top: 1px solid #d4d4d4 !important;
+            box-sizing: border-box !important;
+        }
+        
+        .edui-default .edui-editor {
+            border-radius: 0.375rem !important;
+            overflow: hidden !important;
+        }
+        
+        .edui-default .edui-editor-bottomContainer {
+            height: 24px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -86,29 +135,23 @@ include '../sidebar.php';
             <h1>添加新文档</h1>
             
             <form method="post" id="documentForm">
-                <div class="d-flex flex-column flex-lg-row" style="gap: 15px;">
+                <div class="d-flex flex-column flex-lg-row" id="responsive-container" style="gap: 15px;">
                     <!-- 左侧：文档标题和内容模块 -->
                     <div class="flex-grow-1">
-                        <div class="card">
-                            <div class="card-body">
-                                <!-- 文档标题 -->
-                                <div class="form-group mb-3">
-                                    <label for="title">文档标题 *</label>
-                                    <input type="text" class="form-control" id="title" name="title" required 
-                                           placeholder="请输入文档标题">
-                                </div>
-                                
-                                <!-- 文档内容 -->
-                                <div class="form-group">
-                                    <script id="editor" type="text/plain" style="width:100%;height:500px;"></script>
-                                    <textarea name="content" id="content" style="display: none;"></textarea>
-                                </div>
-                            </div>
+                        <!-- 文档标题 -->
+                        <div class="form-group mb-3">
+                            <label for="title">文档标题 *</label>
+                            <input type="text" class="form-control" id="title" name="title" required 
+                                   placeholder="请输入文档标题">
                         </div>
+                        
+                        <!-- 文档内容 -->
+                        <script id="editor" type="text/plain" style="width:100%;min-height:500px;"></script>
+                        <textarea name="content" id="content" style="display: none;"></textarea>
                     </div>
                     
                     <!-- 右侧：设置和按钮模块 -->
-                    <div class="flex-shrink-0" style="width: 280px;">
+                    <div class="flex-shrink-0" style="width: 280px; flex: 0 0 280px;">
                         <div class="card">
                             <div class="card-body">
                                 <!-- 公开性选项 -->
@@ -177,12 +220,16 @@ include '../sidebar.php';
     </div>
 
     <style>
-    @media (max-width: 800px) {
-        .flex-lg-row {
+    /* 响应式断点：1200px */
+    @media screen and (max-width: 1200px) {
+        #responsive-container {
             flex-direction: column !important;
         }
-        .flex-shrink-0 {
+        #responsive-container .flex-shrink-0 {
             width: 100% !important;
+            flex: none !important;
+            min-width: 100% !important;
+            max-width: 100% !important;
             margin-top: 15px;
         }
     }
@@ -198,14 +245,26 @@ include '../sidebar.php';
     <script src="../assets/ueditorplus/lang/zh-cn/zh-cn.js"></script>
     
     <script>
-    // 初始化UEditorPlus - 使用ueditor.config.js中的配置
+    // 简化的高度调整
+    function autoHeight() {
+        var editor = UE.getEditor('editor');
+        editor.ready(function() {
+            // 启用UEditor内置自动增高
+            editor.setOpt('autoHeightEnabled', true);
+        });
+    }
+    // 初始化UEditorPlus - 启用自动增高
     const ue = UE.getEditor('editor', {
+        autoHeightEnabled: true,
         initialFrameHeight: 500,
-        autoHeightEnabled: false,
-        elementPathEnabled: false,
-        wordCount: true,
+        minFrameHeight: 500,
+        maxFrameHeight: 2000,
+        elementPathEnabled: true,   // 显示底部元素路径
+        wordCount: true,            // 显示字数统计
         maximumWords: 10000,
-        autoFloatEnabled: false
+        autoFloatEnabled: false,
+        minFrameHeight: 500,
+        maxFrameHeight: 1200
     });
 
     // 表单提交处理
@@ -220,6 +279,9 @@ include '../sidebar.php';
             document.getElementById('documentForm').submit();
         }
     });
+    
+    // 启用自动增高功能
+    autoHeight();
     </script>
 </body>
 </html>
