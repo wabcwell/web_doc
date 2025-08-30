@@ -97,6 +97,39 @@ function init_database() {
         $db->exec("CREATE INDEX IF NOT EXISTS idx_edit_log_document_id ON edit_log(document_id)");
         $db->exec("CREATE INDEX IF NOT EXISTS idx_edit_log_user_id ON edit_log(user_id)");
         $db->exec("CREATE INDEX IF NOT EXISTS idx_edit_log_created_at ON edit_log(created_at)");
+
+        // 创建file_upload表 - 文件上传管理
+        $db->exec("CREATE TABLE IF NOT EXISTS file_upload (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            file_type TEXT NOT NULL CHECK (file_type IN ('image', 'video', 'audio', 'document', 'archive', 'other')),
+            file_format TEXT NOT NULL,
+            file_size INTEGER NOT NULL,
+            file_path TEXT NOT NULL,
+            document_id INTEGER,
+            description TEXT,
+            notes TEXT,
+            uploaded_by INTEGER NOT NULL,
+            uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            del_status INTEGER DEFAULT 0,
+            deleted_at TEXT,
+            FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE SET NULL,
+            FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE
+        )");
+
+        // 创建file_upload表索引
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_document_id ON file_upload(document_id)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_uploaded_by ON file_upload(uploaded_by)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_file_type ON file_upload(file_type)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_uploaded_at ON file_upload(uploaded_at)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_del_status ON file_upload(del_status)");
+
+        // 创建触发器 - 自动更新updated_at字段
+        $db->exec("CREATE TRIGGER IF NOT EXISTS update_file_upload_timestamp 
+                   AFTER UPDATE ON file_upload
+                   BEGIN
+                       UPDATE file_upload SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+                   END");
         
         // 添加默认数据
         $db->exec("INSERT OR IGNORE INTO users (username, password, role) VALUES 
@@ -104,6 +137,14 @@ function init_database() {
         
         $db->exec("INSERT OR IGNORE INTO documents (parent_id, title, content, user_id) VALUES 
             (0, '欢迎使用', '# 欢迎使用\\n\\n这是您的第一篇文档。', 1)");
+
+        // 插入测试文件数据
+        $db->exec("INSERT OR IGNORE INTO file_upload (file_type, file_format, file_size, file_path, document_id, description, notes, uploaded_by) VALUES 
+            ('image', 'jpg', 102400, 'uploads/test1.jpg', 1, '测试图片1', '这是测试图片的描述', 1),
+            ('document', 'pdf', 204800, 'uploads/test2.pdf', 1, '测试文档', 'PDF测试文档', 1),
+            ('image', 'png', 51200, 'uploads/test3.png', NULL, '未关联的测试图片', '这是一个未关联到文档的测试图片', 1),
+            ('video', 'mp4', 1048576, 'uploads/test4.mp4', 1, '测试视频', '测试视频文件', 1),
+            ('archive', 'zip', 307200, 'uploads/test5.zip', NULL, '测试压缩包', '包含多个文件的测试压缩包', 1)");
     }
 }
 
