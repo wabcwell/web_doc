@@ -132,13 +132,39 @@ function init_database() {
                    BEGIN
                        UPDATE file_upload SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
                    END");
+
+        // 创建document_id_unused表 - 管理文档ID使用状态
+        $db->exec("CREATE TABLE IF NOT EXISTS document_id_unused (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            document_id INTEGER NOT NULL UNIQUE,
+            usage_status INTEGER DEFAULT 0 CHECK (usage_status IN (0, 1)),
+            created_by INTEGER NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            
+            -- 外键约束
+            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
+            FOREIGN KEY (document_id) REFERENCES documents(document_id) ON DELETE CASCADE
+        )");
+
+        // 创建document_id_unused表索引
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_document_id_unused_status ON document_id_unused(usage_status)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_document_id_unused_created_by ON document_id_unused(created_by)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_document_id_unused_created_at ON document_id_unused(created_at)");
+
+        // 创建触发器 - 自动更新updated_at字段
+        $db->exec("CREATE TRIGGER IF NOT EXISTS update_document_id_unused_timestamp 
+                   AFTER UPDATE ON document_id_unused
+                   BEGIN
+                       UPDATE document_id_unused SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+                   END");
         
         // 添加默认数据
         $db->exec("INSERT OR IGNORE INTO users (username, password, role) VALUES 
             ('admin', '" . password_hash('admin123', PASSWORD_DEFAULT) . "', 'admin')");
         
         $db->exec("INSERT OR IGNORE INTO documents (parent_id, title, content, user_id) VALUES 
-            (0, '欢迎使用', '# 欢迎使用\\n\\n这是您的第一篇文档。', 1)");
+            (0, '欢迎使用', '# 欢迎使用\n\n这是您的第一篇文档。', 1)");
 
         // 插入测试文件数据
         $db->exec("INSERT OR IGNORE INTO file_upload (file_type, file_format, file_size, file_path, document_id, description, notes, uploaded_by) VALUES 
@@ -468,4 +494,116 @@ function check_login() {
  */
 function check_admin() {
     return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
+}
+
+/**
+ * 检查文档ID是否已使用
+ */
+function is_document_id_used($document_id) {
+    $db = get_db();
+    $stmt = $db->prepare("SELECT usage_status FROM document_id_unused WHERE document_id = ?");
+    $stmt->execute([$document_id]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result && $result['usage_status'] == 1;
+}
+
+/**
+ * 标记文档ID为已使用
+ */
+function mark_document_id_used($document_id, $user_id) {
+    $db = get_db();
+    $stmt = $db->prepare("INSERT OR REPLACE INTO document_id_unused (document_id, usage_status, created_by) VALUES (?, 1, ?)");
+    return $stmt->execute([$document_id, $user_id]);
+}
+
+/**
+ * 标记文档ID为未使用
+ */
+function mark_document_id_unused($document_id) {
+    $db = get_db();
+    $stmt = $db->prepare("UPDATE document_id_unused SET usage_status = 0 WHERE document_id = ?");
+    return $stmt->execute([$document_id]);
+}
+
+/**
+ * 获取未使用的文档ID列表
+ */
+function get_unused_document_ids() {
+    $db = get_db();
+    $stmt = $db->query("SELECT document_id FROM document_id_unused WHERE usage_status = 0 ORDER BY document_id ASC");
+    return $stmt->fetchAll(PDO::FETCH_COLUMN);
+}
+
+/**
+ * 获取已使用的文档ID列表
+ */
+function get_used_document_ids() {
+    $db = get_db();
+    $stmt = $db->query("SELECT document_id FROM document_id_unused WHERE usage_status = 1 ORDER BY document_id ASC");
+    return $stmt->fetchAll(PDO::FETCH_COLUMN);
+}
+
+/**
+ * 预生成文档ID
+ */
+function pre_generate_document_ids($count, $user_id) {
+    $db = get_db();
+    $max_id = $db->query("SELECT COALESCE(MAX(document_id), 0) FROM documents")->fetchColumn();
+    
+    $stmt = $db->prepare("INSERT OR IGNORE INTO document_id_unused (document_id, usage_status, created_by) VALUES (?, 0, ?)");
+    $generated = 0;
+    
+    for ($i = 1; $i <= $count; $i++) {
+        $new_id = $max_id + $i;
+        if ($stmt->execute([$new_id, $user_id])) {
+            $generated++;
+        }
+    }
+    
+    return $generated;
+}
+
+/**
+ * 获取下一个可用的文档ID
+ */
+function get_next_available_document_id() {
+    $db = get_db();
+    
+    // 首先查找未使用的预生成ID
+    $stmt = $db->query("SELECT MIN(document_id) FROM document_id_unused WHERE usage_status = 0");
+    $unused_id = $stmt->fetchColumn();
+    
+    if ($unused_id) {
+        return $unused_id;
+    }
+    
+    // 如果没有未使用的预生成ID，获取最大文档ID+1
+    $max_id = $db->query("SELECT COALESCE(MAX(document_id), 0) FROM documents")->fetchColumn();
+    return $max_id + 1;
+}
+
+/**
+ * 清理已使用的文档ID记录
+ */
+function cleanup_used_document_ids() {
+    $db = get_db();
+    $stmt = $db->prepare("DELETE FROM document_id_unused WHERE usage_status = 1 AND document_id NOT IN (SELECT document_id FROM documents)");
+    return $stmt->execute();
+}
+
+/**
+ * 获取文档ID使用统计
+ */
+function get_document_id_stats() {
+    $db = get_db();
+    
+    $total = $db->query("SELECT COUNT(*) FROM document_id_unused")->fetchColumn();
+    $unused = $db->query("SELECT COUNT(*) FROM document_id_unused WHERE usage_status = 0")->fetchColumn();
+    $used = $db->query("SELECT COUNT(*) FROM document_id_unused WHERE usage_status = 1")->fetchColumn();
+    
+    return [
+        'total_ids' => $total,
+        'unused_ids' => $unused,
+        'used_ids' => $used
+    ];
 }
