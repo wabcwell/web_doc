@@ -18,25 +18,43 @@ $offset = ($page - 1) * $per_page;
 
 // 获取筛选参数
 $filter_type = $_GET['type'] ?? '';
-$filter_user = intval($_GET['user'] ?? 0);
+$yearmonth = $_GET['yearmonth'] ?? '';
 $search_keyword = $_GET['search'] ?? '';
+
+// 将年月转换为日期范围
+$start_date = '';
+$end_date = '';
+
+if ($yearmonth) {
+    $start_date = $yearmonth . '-01';
+    $end_date = date('Y-m-t', strtotime($yearmonth . '-01'));
+}
+
+// 获取排序参数
+$sort = $_GET['sort'] ?? 'date';
+$order = $_GET['order'] ?? 'desc';
+
+// 验证排序参数
+$allowed_sorts = ['name', 'type', 'size', 'user', 'date'];
+$allowed_orders = ['asc', 'desc'];
+$sort = in_array($sort, $allowed_sorts) ? $sort : 'date';
+$order = in_array($order, $allowed_orders) ? $order : 'desc';
 
 // 获取文件数据
 $db = get_db();
-$files = get_files($db, $per_page, $offset, $filter_type, $filter_user, $search_keyword);
-$total_files = get_files_count($db, $filter_type, $filter_user, $search_keyword);
+$files = get_files($db, $per_page, $offset, $filter_type, $start_date, $end_date, $search_keyword, $sort, $order);
+$total_files = get_files_count($db, $filter_type, $start_date, $end_date, $search_keyword);
 $total_pages = ceil($total_files / $per_page);
 
 // 获取文件类型列表
 $file_types = get_file_types($db);
 
-// 获取用户列表
-$users = get_users_for_filter($db);
+
 
 include '../sidebar.php';
 
 // 辅助函数：获取文件列表
-function get_files(PDO $db, int $limit, int $offset, string $type = '', int $user_id = 0, string $search = ''): array {
+function get_files(PDO $db, int $limit, int $offset, string $type = '', string $start_date = '', string $end_date = '', string $search = '', string $sort = 'date', string $order = 'desc'): array {
     $where = [];
     $params = [];
     
@@ -47,9 +65,14 @@ function get_files(PDO $db, int $limit, int $offset, string $type = '', int $use
         $params[] = $type;
     }
     
-    if ($user_id > 0) {
-        $where[] = "f.uploaded_by = ?";
-        $params[] = $user_id;
+    if ($start_date) {
+        $where[] = "DATE(f.uploaded_at) >= ?";
+        $params[] = $start_date;
+    }
+    
+    if ($end_date) {
+        $where[] = "DATE(f.uploaded_at) <= ?";
+        $params[] = $end_date;
     }
     
     if ($search) {
@@ -62,12 +85,24 @@ function get_files(PDO $db, int $limit, int $offset, string $type = '', int $use
     
     $where_sql = $where ? "WHERE " . implode(" AND ", $where) : "";
     
+    // 定义排序字段映射
+    $sort_columns = [
+        'name' => 'f.file_path',
+        'type' => 'f.file_type',
+        'size' => 'f.file_size',
+        'user' => 'u.username',
+        'date' => 'f.uploaded_at'
+    ];
+    
+    $sort_column = $sort_columns[$sort] ?? 'f.uploaded_at';
+    $sort_order = ($order === 'asc') ? 'ASC' : 'DESC';
+    
     $sql = "SELECT f.*, u.username, d.title as document_title
             FROM file_upload f
             LEFT JOIN users u ON f.uploaded_by = u.id
             LEFT JOIN documents d ON f.document_id = d.id
             {$where_sql}
-            ORDER BY f.uploaded_at DESC 
+            ORDER BY {$sort_column} {$sort_order}
             LIMIT ? OFFSET ?";
     
     $params[] = $limit;
@@ -79,7 +114,7 @@ function get_files(PDO $db, int $limit, int $offset, string $type = '', int $use
 }
 
 // 辅助函数：获取文件总数
-function get_files_count(PDO $db, string $type = '', int $user_id = 0, string $search = ''): int {
+function get_files_count(PDO $db, string $type = '', string $start_date = '', string $end_date = '', string $search = ''): int {
     $where = [];
     $params = [];
     
@@ -90,9 +125,14 @@ function get_files_count(PDO $db, string $type = '', int $user_id = 0, string $s
         $params[] = $type;
     }
     
-    if ($user_id > 0) {
-        $where[] = "uploaded_by = ?";
-        $params[] = $user_id;
+    if ($start_date) {
+        $where[] = "DATE(uploaded_at) >= ?";
+        $params[] = $start_date;
+    }
+    
+    if ($end_date) {
+        $where[] = "DATE(uploaded_at) <= ?";
+        $params[] = $end_date;
     }
     
     if ($search) {
@@ -119,12 +159,20 @@ function get_file_types(PDO $db): array {
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-// 辅助函数：获取用户列表（用于筛选）
-function get_users_for_filter(PDO $db): array {
-    $sql = "SELECT id, username FROM users ORDER BY username";
-    $stmt = $db->query($sql);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+// 辅助函数：获取文件类型的中文名称
+function get_file_type_chinese($file_type): string {
+    $type_map = [
+        'image' => '图片',
+        'video' => '视频',
+        'audio' => '音频',
+        'document' => '文档',
+        'archive' => '压缩包',
+        'other' => '其他'
+    ];
+    return $type_map[$file_type] ?? $file_type;
 }
+
+
 
 // 辅助函数：格式化文件大小
 function format_file_size($bytes): string {
@@ -290,8 +338,24 @@ $stats = get_file_stats($db);
         .filter-section {
             background: #f8f9fa;
             border-radius: 8px;
-            padding: 15px;
+            padding: 10px 0px 0px 0px;
             margin-bottom: 20px;
+        }
+
+        /* 排序指示器样式 */
+        .sortable-header a {
+            color: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .sortable-header a:hover {
+            color: #0d6efd;
+            text-decoration: none;
+        }
+        .sortable-header th {
+            white-space: nowrap;
         }
     </style>
 </head>
@@ -325,51 +389,72 @@ $stats = get_file_stats($db);
                         <div class="row">
                             <?php foreach ($stats['type_stats'] as $type): ?>
                                 <div class="col-6">
-                                    <small><?php echo ucfirst($type['file_type']); ?>: <?php echo $type['count']; ?>个</small>
+                                    <small><?php echo get_file_type_chinese($type['file_type']); ?>: <?php echo $type['count']; ?>个</small>
                                 </div>
                             <?php endforeach; ?>
-                        </div>
-                    </div>
+                          </div>
+                      </div>
                 </div>
             </div>
 
             <!-- 筛选和搜索区域 -->
-            <div class="filter-section">
-                <form method="GET" class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">文件类型</label>
-                        <select name="type" class="form-select">
-                            <option value="">全部类型</option>
+            <div class="filter-section" style="margin-bottom: 5px;">
+                <style>
+                    .filter-section .form-control-sm,
+                    .filter-section .form-select-sm {
+                        height: 31px !important;
+                        min-height: 31px !important;
+                        line-height: 1.25 !important;
+                    }
+                    .filter-section .btn-sm {
+                        height: 31px !important;
+                        min-height: 31px !important;
+                        line-height: 1.25 !important;
+                        padding-top: 0.25rem !important;
+                        padding-bottom: 0.25rem !important;
+                    }
+                </style>
+                <form method="GET" class="row g-1 align-items-center">
+                    <div class="col-md-2">
+                        <select name="type" class="form-select form-select-sm">
+                            <option value="">全部文件类型</option>
                             <?php foreach ($file_types as $type): ?>
                                 <option value="<?php echo $type; ?>" <?php echo $filter_type === $type ? 'selected' : ''; ?>>
-                                    <?php echo ucfirst($type); ?>
+                                    <?php echo get_file_type_chinese($type); ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label">上传者</label>
-                        <select name="user" class="form-select">
-                            <option value="">全部用户</option>
-                            <?php foreach ($users as $user): ?>
-                                <option value="<?php echo $user['id']; ?>" <?php echo $filter_user == $user['id'] ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($user['username']); ?>
-                                </option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">搜索</label>
-                        <input type="text" name="search" class="form-control" placeholder="文件名、描述..." 
-                               value="<?php echo htmlspecialchars($search_keyword); ?>">
                     </div>
                     <div class="col-md-2">
-                        <label class="form-label">&nbsp;</label>
+                        <select name="yearmonth" class="form-select form-select-sm">
+                            <option value="">全部时间</option>
+                            <?php
+                            $current_year = date('Y');
+                            $current_month = date('m');
+                            for ($year = $current_year; $year >= $current_year - 2; $year--):
+                                for ($month = ($year == $current_year ? $current_month : 12); $month >= 1; $month--):
+                                    $yearmonth = sprintf('%04d-%02d', $year, $month);
+                                    $display = sprintf('%d年%d月', $year, $month);
+                            ?>
+                                <option value="<?php echo $yearmonth; ?>" <?php echo isset($_GET['yearmonth']) && $_GET['yearmonth'] === $yearmonth ? 'selected' : ''; ?>>
+                                    <?php echo $display; ?>
+                                </option>
+                            <?php
+                                endfor;
+                            endfor;
+                            ?>
+                        </select>
+                    </div>
+                    <div class="col-md-5">
+                        <input type="text" name="search" class="form-control form-control-sm" placeholder="文件名、描述..." 
+                               value="<?php echo htmlspecialchars($search_keyword); ?>">
+                    </div>
+                    <div class="col-md-3">
                         <div>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="bi bi-search"></i> 搜索
                             </button>
-                            <a href="?" class="btn btn-secondary">重置</a>
+                            <a href="?" class="btn btn-secondary btn-sm">重置</a>
                         </div>
                     </div>
                 </form>
@@ -401,7 +486,17 @@ $stats = get_file_stats($db);
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0">文件列表</h5>
-                        <span class="text-muted">共 <?php echo number_format($total_files); ?> 个文件</span>
+                        <div class="d-flex align-items-center">
+                            <div id="batchActions" class="me-3" style="display: none;">
+                                <button type="button" class="btn btn-danger btn-sm" onclick="batchDelete()">
+                                    <i class="bi bi-trash"></i> 批量删除
+                                </button>
+                                <button type="button" class="btn btn-primary btn-sm ms-1" onclick="batchDownload()">
+                                    <i class="bi bi-download"></i> 批量下载
+                                </button>
+                            </div>
+                            <span class="text-muted">共 <?php echo number_format($total_files); ?> 个文件</span>
+                        </div>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -415,24 +510,84 @@ $stats = get_file_stats($db);
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th width="5%" class="text-center">#</th>
+                                        <th width="3%" class="text-center">
+                                            <input type="checkbox" id="selectAll" class="form-check-input">
+                                        </th>
                                         <th width="5%" class="text-center">图标</th>
-                                        <th width="20%">文件名</th>
-                                        <th width="10%">类型</th>
-                                        <th width="10%">大小</th>
+                                        <th width="22%" class="sortable-header">
+                                            <a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'name', 'order' => ($_GET['sort'] ?? '') === 'name' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc'])); ?>">
+                                                文件名
+                                                <?php if (($_GET['sort'] ?? '') === 'name'): ?>
+                                                    <i class="bi bi-chevron-<?php echo ($_GET['order'] ?? 'asc') === 'asc' ? 'up' : 'down'; ?> small"></i>
+                                                <?php else: ?>
+                                                    <i class="bi bi-arrow-down-up small text-muted"></i>
+                                                <?php endif; ?>
+                                            </a>
+                                        </th>
+                                        <th width="10%" class="sortable-header">
+                                            <a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'type', 'order' => ($_GET['sort'] ?? '') === 'type' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc'])); ?>">
+                                                类型
+                                                <?php if (($_GET['sort'] ?? '') === 'type'): ?>
+                                                    <i class="bi bi-chevron-<?php echo ($_GET['order'] ?? 'asc') === 'asc' ? 'up' : 'down'; ?> small"></i>
+                                                <?php else: ?>
+                                                    <i class="bi bi-arrow-down-up small text-muted"></i>
+                                                <?php endif; ?>
+                                            </a>
+                                        </th>
+                                        <th width="10%" class="sortable-header">
+                                            <a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'size', 'order' => ($_GET['sort'] ?? '') === 'size' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc'])); ?>">
+                                                大小
+                                                <?php if (($_GET['sort'] ?? '') === 'size'): ?>
+                                                    <i class="bi bi-chevron-<?php echo ($_GET['order'] ?? 'asc') === 'asc' ? 'up' : 'down'; ?> small"></i>
+                                                <?php else: ?>
+                                                    <i class="bi bi-arrow-down-up small text-muted"></i>
+                                                <?php endif; ?>
+                                            </a>
+                                        </th>
                                         <th width="15%">关联文档</th>
-                                        <th width="15%">上传者</th>
-                                        <th width="15%">上传时间</th>
-                                        <th width="15%" class="text-center">操作</th>
+                                        <th width="15%" class="sortable-header">
+                                            <a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'user', 'order' => ($_GET['sort'] ?? '') === 'user' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc'])); ?>">
+                                                上传者
+                                                <?php if (($_GET['sort'] ?? '') === 'user'): ?>
+                                                    <i class="bi bi-chevron-<?php echo ($_GET['order'] ?? 'asc') === 'asc' ? 'up' : 'down'; ?> small"></i>
+                                                <?php else: ?>
+                                                    <i class="bi bi-arrow-down-up small text-muted"></i>
+                                                <?php endif; ?>
+                                            </a>
+                                        </th>
+                                        <th width="15%" class="sortable-header">
+                                            <a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'date', 'order' => ($_GET['sort'] ?? '') === 'date' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc'])); ?>">
+                                                上传时间
+                                                <?php if (($_GET['sort'] ?? '') === 'date'): ?>
+                                                    <i class="bi bi-chevron-<?php echo ($_GET['order'] ?? 'asc') === 'asc' ? 'up' : 'down'; ?> small"></i>
+                                                <?php else: ?>
+                                                    <i class="bi bi-arrow-down-up small text-muted"></i>
+                                                <?php endif; ?>
+                                            </a>
+                                        </th>
+                                        <th width="12%" class="text-center">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($files as $index => $file): ?>
                                         <tr>
-                                            <td class="text-center"><?php echo $offset + $index + 1; ?></td>
                                             <td class="text-center">
-                                                <i class="bi <?php echo get_file_icon($file['file_type']); ?> file-icon" 
-                                                   style="color: <?php echo get_file_color($file['file_type']); ?>"></i>
+                                                <input type="checkbox" class="form-check-input file-checkbox" value="<?php echo $file['id']; ?>">
+                                            </td>
+                                            <td class="text-center">
+                                                <?php if ($file['file_type'] === 'image'): ?>
+                                                    <img src="<?php echo htmlspecialchars($file['file_path']); ?>" 
+                                                         alt="<?php echo htmlspecialchars(basename($file['file_path'])); ?>"
+                                                         class="img-thumbnail img-fluid"
+                                                         style="width: 40px; height: 40px; object-fit: cover; cursor: pointer;"
+                                                         data-bs-toggle="modal" 
+                                                         data-bs-target="#imageModal"
+                                                         data-image-src="<?php echo htmlspecialchars($file['file_path']); ?>"
+                                                         data-image-name="<?php echo htmlspecialchars(basename($file['file_path'])); ?>">
+                                                <?php else: ?>
+                                                    <i class="bi <?php echo get_file_icon($file['file_type']); ?> file-icon" 
+                                                       style="color: <?php echo get_file_color($file['file_type']); ?>"></i>
+                                                <?php endif; ?>
                                             </td>
                                             <td>
                                                 <div class="fw-bold"><?php echo htmlspecialchars(basename($file['file_path'])); ?></div>
@@ -443,7 +598,7 @@ $stats = get_file_stats($db);
                                             <td>
                                                 <span class="badge bg-secondary"><?php echo strtoupper($file['file_format']); ?></span>
                                                 <br>
-                                                <small class="text-muted"><?php echo ucfirst($file['file_type']); ?></small>
+                                                <small class="text-muted"><?php echo get_file_type_chinese($file['file_type']); ?></small>
                                             </td>
                                             <td><?php echo format_file_size($file['file_size']); ?></td>
                                             <td>
@@ -502,6 +657,28 @@ $stats = get_file_stats($db);
                     </ul>
                 </nav>
             <?php endif; ?>
+</div>
+        </div>
+    </div>
+
+    <!-- 图片预览模态框 -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">图片预览</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" src="" alt="" class="img-fluid" style="max-height: 70vh;">
+                </div>
+                <div class="modal-footer">
+                    <a id="downloadImage" href="" class="btn btn-primary" download>
+                        <i class="bi bi-download"></i> 下载图片
+                    </a>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -537,17 +714,97 @@ $stats = get_file_stats($db);
             }
         }
 
-        // 页面加载完成后的处理
+        // 批量选择功能
         document.addEventListener('DOMContentLoaded', function() {
-            // 自动隐藏成功消息
-            setTimeout(function() {
-                const alerts = document.querySelectorAll('.alert');
-                alerts.forEach(function(alert) {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
+            const selectAllCheckbox = document.getElementById('selectAll');
+            const fileCheckboxes = document.querySelectorAll('.file-checkbox');
+            const batchActions = document.getElementById('batchActions');
+
+            // 全选/取消全选
+            selectAllCheckbox.addEventListener('change', function() {
+                fileCheckboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked;
                 });
-            }, 3000);
+                updateBatchActions();
+            });
+
+            // 单个选择框变化
+            fileCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const checkedCount = document.querySelectorAll('.file-checkbox:checked').length;
+                    selectAllCheckbox.checked = checkedCount === fileCheckboxes.length;
+                    updateBatchActions();
+                });
+            });
+
+            // 更新批量操作按钮显示
+            function updateBatchActions() {
+                const checkedCount = document.querySelectorAll('.file-checkbox:checked').length;
+                if (checkedCount > 0) {
+                    batchActions.style.display = 'block';
+                } else {
+                    batchActions.style.display = 'none';
+                }
+            }
         });
+
+        // 批量删除
+        function batchDelete() {
+            const selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedFiles.length === 0) {
+                alert('请选择要删除的文件');
+                return;
+            }
+
+            if (confirm(`确定要删除选中的 ${selectedFiles.length} 个文件吗？此操作不可恢复！`)) {
+                // 这里可以添加批量删除的AJAX请求
+                alert(`正在删除 ${selectedFiles.length} 个文件...\n文件ID: ${selectedFiles.join(', ')}`);
+            }
+        }
+
+        // 批量下载
+        function batchDownload() {
+            const selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
+                .map(cb => cb.value);
+            
+            if (selectedFiles.length === 0) {
+                alert('请选择要下载的文件');
+                return;
+            }
+
+            // 这里可以添加批量下载的逻辑
+            alert(`正在准备下载 ${selectedFiles.length} 个文件...\n文件ID: ${selectedFiles.join(', ')}`);
+        }
+
+        // 图片预览功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageModal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const downloadImage = document.getElementById('downloadImage');
+            const imageModalLabel = document.getElementById('imageModalLabel');
+
+            imageModal.addEventListener('show.bs.modal', function(event) {
+                const thumbnail = event.relatedTarget;
+                const imageSrc = thumbnail.getAttribute('data-image-src');
+                const imageName = thumbnail.getAttribute('data-image-name');
+                
+                modalImage.src = imageSrc;
+                modalImage.alt = imageName;
+                downloadImage.href = imageSrc;
+                imageModalLabel.textContent = imageName;
+            });
+        });
+
+        // 自动隐藏成功消息
+        setTimeout(function() {
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                const bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 3000);
     </script>
 </body>
 </html>
