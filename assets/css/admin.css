@@ -23,7 +23,7 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    width: 200px;
+    width: 180px;
     height: 100vh;
     background: #2c3e50 !important;
     color: #ffffff;
@@ -182,17 +182,18 @@ body {
 
 /* 主内容区域 */
 .main-content {
-    margin-left: 200px;
-    padding: 30px;
+    margin-left: 180px;
+    padding: 30px 25px;
     min-height: 100vh;
     background: #f8f9fa;
 }
 
-/* 主内容容器 */
+/* 主内容容器 - 移除最大宽度限制 */
 .container {
-    max-width: 1200px;
     margin: 0 auto;
     padding: 0 20px;
+    max-width: none;
+    width: 100%;
 }
 
 /* 卡片容器间距 */
@@ -344,7 +345,7 @@ body {
 /* 响应式容器调整 */
 @media (max-width: 768px) {
     .main-content {
-        padding: 20px;
+        padding: 20px 15px;
         margin-left: 0;
     }
     
@@ -819,4 +820,11 @@ tr:hover {
     .table a.text-decoration-none:hover {
         color: #5a8b91;
     }
+}
+
+/* container-fluid样式调整 */
+.container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+    width: 100%;
 }
