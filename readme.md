@@ -4,11 +4,11 @@
 
 ## 功能特性
 
-- 📚 **Markdown 文档管理** - 支持 Markdown 格式文档的创建、编辑和管理
+- 📚 **富文本编辑** - 所见即所得的编辑体验
 - 👥 **用户权限系统** - 管理员和普通用户角色区分
 - 📱 **响应式设计** - 基于 Bootstrap 的响应式界面
 - 🔍 **全文搜索** - 支持文档内容的全文搜索
-- 🖼️ **文件上传** - 支持图片和附件上传
+- 🖼️ **文件上传** - 支持图片和附件上传和管理
 - 📊 **管理后台** - 完整的后台管理界面
 - 📤 **多格式导出** - 支持 PDF、Markdown、HTML、PNG、JPG 格式导出
 - 🎨 **代码高亮** - 支持多种编程语言的代码高亮显示
@@ -17,7 +17,7 @@
 
 ## 技术栈
 - **后端**: PHP 8.2+ + SQLite
-- **前端**: Lake Editor + Bootstrap 5.3
+- **前端**: UEditor Plus + Bootstrap 5.3
 - **本地化**: 所有资源本地化部署
 - **导出**: PDF/HTML/PNG多格式支持
 
@@ -212,6 +212,20 @@ web_doc/                                    # 项目根目录
 - **documents**: 文档表
 
 
+## 📝 编辑器集成
+
+### UEditor Plus 集成
+
+本项目已集成 [UEditor Plus](https://github.com/modstart-lib/ueditor-plus) 富文本编辑器，提供更强大的文档编辑功能。
+
+#### 核心特性
+- **富文本编辑** - 所见即所得的编辑体验
+- **图片上传** - 拖拽、粘贴等多种上传方式
+- **文件管理** - 内置文件管理器
+- **代码高亮** - 支持多种编程语言
+- **多媒体支持** - 视频、音频嵌入
+- **零外部依赖** - 完全本地化部署
+
 ## 待办事项 (To-Do)
 
 ### 🔧 功能增强计划
@@ -223,115 +237,6 @@ web_doc/                                    # 项目根目录
 - [ ] **文档历史版本数量自定义** - 实现文档历史版本数量的自定义设置功能，允许管理员配置保留的历史版本数量
 - [ ] **操作记录配置** - 开发文档操作记录最大条数的配置选项，支持自定义操作日志的存储上限
 - [ ] **回收站管理优化** - 添加回收站文档保留天数的上限设置功能，支持自动清理过期回收文档
-
-## 📝 编辑器集成
-
-### UEditor Plus 集成
-
-本项目已集成 [UEditor Plus](https://github.com/modstart-lib/ueditor-plus) 富文本编辑器，提供更强大的文档编辑功能。
-
-#### 功能特性
-- **富文本编辑** - 支持所见即所得的文档编辑体验
-- **图片上传** - 支持拖拽上传、粘贴上传等多种方式
-- **文件管理** - 内置文件管理器，支持图片和附件管理
-- **代码高亮** - 支持多种编程语言的代码高亮显示
-- **表格编辑** - 可视化表格编辑功能
-- **多媒体支持** - 支持视频、音频等多媒体内容嵌入
-
-#### 使用方式
-
-##### 1. 文档创建
-在 `admin/documents/add.php` 中使用UEditor Plus创建新文档：
-```php
-<!-- UEditor Plus 容器 -->
-<div id="editor" style="height: 400px;"></div>
-
-<!-- 引入UEditor Plus -->
-<script type="text/javascript" src="/admin/assets/ueditorplus/ueditor.config.js"></script>
-<script type="text/javascript" src="/admin/assets/ueditorplus/ueditor.all.js"></script>
-<script>
-    var ue = UE.getEditor('editor', {
-        serverUrl: '/admin/ueditor_upload.php?document_id=' + document_id,
-        UEDITOR_HOME_URL: '/admin/assets/ueditorplus/',
-        initialFrameWidth: '100%',
-        initialFrameHeight: 400
-    });
-</script>
-```
-
-##### 2. 文档编辑
-在 `admin/documents/edit.php` 中使用UEditor Plus编辑现有文档：
-```php
-<!-- 预填充内容 -->
-<script>
-    var ue = UE.getEditor('editor', {
-        serverUrl: '/admin/ueditor_upload.php?document_id=' + <?php echo $document['id']; ?>,
-        initialContent: '<?php echo addslashes($document['content']); ?>',
-        // 其他配置...
-    });
-</script>
-```
-
-##### 3. 文件上传配置
-上传处理在 `admin/ueditor_upload.php` 中实现：
-- 支持图片、文件、视频等多种类型上传
-- 自动关联到对应的document_id
-- 支持文件描述和分类管理
-
-#### 技术实现
-
-##### 文件结构
-```
-admin/assets/ueditorplus/
-├── ueditor.config.js          # 编辑器配置文件
-├── ueditor.all.js            # 编辑器核心文件
-├── ueditor.all.min.js        # 压缩版核心文件
-├── themes/                   # 主题样式
-├── lang/                     # 语言包
-├── dialogs/                  # 弹出框组件
-└── third-party/              # 第三方插件
-```
-
-##### 配置示例
-```javascript
-window.UEDITOR_CONFIG = {
-    serverUrl: '/admin/ueditor_upload.php',
-    UEDITOR_HOME_URL: '/admin/assets/ueditorplus/',
-    toolbars: [
-        ['fullscreen', 'source', '|', 'undo', 'redo', '|',
-         'bold', 'italic', 'underline', 'fontborder', 'strikethrough', '|',
-         'forecolor', 'backcolor', 'insertorderedlist', 'insertunorderedlist', '|',
-         'rowspacingtop', 'rowspacingbottom', 'lineheight', '|',
-         'customstyle', 'paragraph', 'fontfamily', 'fontsize', '|',
-         'directionalityltr', 'directionalityrtl', 'indent', '|',
-         'justifyleft', 'justifycenter', 'justifyright', 'justifyjustify', '|',
-         'touppercase', 'tolowercase', '|',
-         'link', 'unlink', 'anchor', '|', 'imagenone', 'imageleft', 'imageright', 'imagecenter', '|',
-         'insertimage', 'emotion', 'scrawl', 'insertvideo', 'music', 'attachment', '|',
-         'horizontal', 'date', 'time', 'spechars', '|',
-         'inserttable', 'deletetable', 'insertparagraphbeforetable', 'insertrow', 'deleterow', 'insertcol', 'deletecol', 'mergecells', 'mergeright', 'mergedown', 'splittocells', 'splittorows', 'splittocols', '|',
-         'print', 'preview', 'searchreplace']
-    ],
-    initialFrameWidth: '100%',
-    initialFrameHeight: 400,
-    autoHeightEnabled: false,
-    elementPathEnabled: false,
-    wordCount: true,
-    maximumWords: 10000
-};
-```
-
-#### 项目链接
-- **GitHub**: [https://github.com/modstart-lib/ueditor-plus](https://github.com/modstart-lib/ueditor-plus)
-- **在线演示**: [https://open-demo.modstart.com/ueditor-plus/_examples/](https://open-demo.modstart.com/ueditor-plus/_examples/)
-- **使用文档**: [https://open-doc.modstart.com/ueditor-plus](https://open-doc.modstart.com/ueditor-plus)
-
-#### 集成优势
-- **零外部依赖** - 所有资源已本地化部署
-- **无缝集成** - 与现有文档管理系统完美融合
-- **功能丰富** - 支持Word导入、Markdown导入等高级功能
-- **响应式设计** - 适配各种屏幕尺寸
-- **性能优化** - 压缩资源文件，加载速度更快
 
 ## 贡献指南
 
