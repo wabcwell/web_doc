@@ -268,17 +268,21 @@ function handleUpload() {
                     break;
             }
             
-            // 获取document_id参数
+            // 获取文档ID
             $document_id = isset($_GET['document_id']) ? intval($_GET['document_id']) : 0;
             
-            $stmt = $db->prepare("INSERT INTO file_upload (file_type, file_format, file_size, file_path, uploaded_by, document_id) VALUES (?, ?, ?, ?, ?, ?)");
+            // 获取UEditor上传表单中的描述信息（title字段），如果没有则留空
+            $file_description = isset($_POST['title']) ? trim($_POST['title']) : '';
+            
+            $stmt = $db->prepare("INSERT INTO file_upload (file_type, file_format, file_size, file_path, uploaded_by, document_id, description) VALUES (?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $fileType,
                 $extension,
                 $file['size'],
                 $url,
                 $_SESSION['user_id'] ?? 1,
-                $document_id
+                $document_id,
+                $file_description
             ]);
             
         } catch (PDOException $e) {

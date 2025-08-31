@@ -289,19 +289,7 @@ include '../sidebar.php';
     <script src="../assets/ueditorplus/lang/zh-cn/zh-cn.js"></script>
     
     <script>
-    // 设置UEditor服务器URL
-    window.UEDITOR_CONFIG = window.UEDITOR_CONFIG || {};
-    window.UEDITOR_CONFIG.serverUrl = '/admin/ueditor_upload.php?document_id=<?php echo $id; ?>';
-    
-    // 简化的高度调整
-    function autoHeight() {
-        var editor = UE.getEditor('editor');
-        editor.ready(function() {
-            // 启用UEditor内置自动增高
-            editor.setOpt('autoHeightEnabled', true);
-        });
-    }
-    // 初始化UEditorPlus - 启用自动增高
+    // 初始化UEditorPlus
     const ue = UE.getEditor('editor', {
         autoHeightEnabled: true,
         initialFrameHeight: 500,

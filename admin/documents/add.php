@@ -279,7 +279,7 @@ include '../sidebar.php';
     <script>
     // 设置UEditor服务器URL
     window.UEDITOR_CONFIG = window.UEDITOR_CONFIG || {};
-    window.UEDITOR_CONFIG.serverUrl = '/admin/ueditor_upload.php';
+    window.UEDITOR_CONFIG.serverUrl = '/admin/ueditor_upload.php?document_id=<?php echo $pre_generated_document_id; ?>';
     
     // 简化的高度调整
     function autoHeight() {
@@ -289,6 +289,7 @@ include '../sidebar.php';
             editor.setOpt('autoHeightEnabled', true);
         });
     }
+
     // 初始化UEditorPlus - 启用自动增高
     const ue = UE.getEditor('editor', {
         autoHeightEnabled: true,

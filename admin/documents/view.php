@@ -45,6 +45,37 @@ include '../sidebar.php';
     <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
     <link rel="stylesheet" href="../../assets/css/admin.css">
+    <style>
+        .document-content img {
+            max-width: 100%;
+            height: auto !important;
+            display: block;
+            margin: 1rem 0;
+            object-fit: contain;
+        }
+        
+        .document-content {
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+        
+        .document-content table {
+            max-width: 100%;
+            overflow-x: auto;
+            display: block;
+        }
+        
+        /* 防止图片变形 */
+        .document-content img:not([height]) {
+            height: auto !important;
+        }
+        
+        /* 确保容器不溢出 */
+        .document-content > * {
+            max-width: 100%;
+        }
+    </style>
 </head>
 <body>
     <div class="main-content">
