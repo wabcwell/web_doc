@@ -16,7 +16,50 @@ $documents = $tree->getAllDocumentsByHierarchy();
 $parent_id_param = $_GET['parent_id'] ?? 0;
 $sort_order_param = $_GET['sort_order'] ?? 0;
 
-// document_id将通过数据库自增机制生成，无需预生成
+// 调试信息：记录请求详情（可选，生产环境可移除）
+// $request_info = [
+//     'method' => $_SERVER['REQUEST_METHOD'],
+//     'uri' => $_SERVER['REQUEST_URI'],
+//     'time' => date('Y-m-d H:i:s')
+// ];
+// error_log('add.php accessed: ' . json_encode($request_info));
+
+// 进入页面时获取document_id并标记为已分配
+// =============================================================================
+// 防重复机制：防止document_id重复分配的核心逻辑
+// =============================================================================
+// 步骤1：获取当前时间戳，用于时间间隔判断
+$current_time = time(); // 当前Unix时间戳（秒）
+$last_gen_time = $_SESSION['last_document_gen_time'] ?? 0; // 上次生成ID的时间，默认为0（新会话）
+
+// 步骤2：判断是否需要生成新的document_id
+// 条件1：必须是GET请求（正常页面访问）
+// 条件2：不能是AJAX请求（防止异步请求重复生成）
+// 条件3：距离上次生成必须超过3秒（防止快速刷新/预加载）
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && 
+    empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+    ($current_time - $last_gen_time > 3)) {
+    
+    // 步骤3：生成新的document_id并标记为已分配
+    $pre_generated_document_id = get_next_available_document_id(); // 获取下一个可用ID
+    mark_document_id_allocated($pre_generated_document_id, $_SESSION['user_id'] ?? 1); // 标记为已分配
+    
+    // 步骤4：将生成的ID保存到会话，供后续使用
+    $_SESSION['pre_generated_document_id'] = $pre_generated_document_id;
+    $_SESSION['last_document_gen_time'] = $current_time; // 记录本次生成时间
+    $_SESSION['gen_token'] = uniqid('doc_', true); // 生成唯一令牌（可选，用于调试）
+    
+// 步骤5：会话中已有预生成的ID，直接复用
+} elseif (isset($_SESSION['pre_generated_document_id'])) {
+    $pre_generated_document_id = $_SESSION['pre_generated_document_id']; // 复用会话中保存的ID
+    
+// 步骤6：回退方案（会话失效或特殊情况）
+} else {
+    $pre_generated_document_id = get_next_available_document_id(); // 获取新的ID
+    mark_document_id_allocated($pre_generated_document_id, $_SESSION['user_id'] ?? 1); // 标记为已分配
+    $_SESSION['pre_generated_document_id'] = $pre_generated_document_id; // 保存到会话
+    $_SESSION['last_document_gen_time'] = $current_time; // 记录生成时间
+}
 
 // 处理表单提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -32,13 +75,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 生成唯一的update_code
         $update_code = uniqid() . '_' . time();
         
-        // 获取下一个可用的document_id（通过数据库自增）
-        $new_document_id = get_next_available_document_id();
+        // 使用预生成的document_id
+        $new_document_id = $pre_generated_document_id;
         
         $stmt = $db->prepare("INSERT INTO documents (document_id, title, content, parent_id, sort_order, tags, is_public, is_formal, created_at, updated_at, update_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)");
         $stmt->execute([$new_document_id, $title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal, $update_code]);
         
-        $document_id = $db->lastInsertId();
+        $document_id = $new_document_id;
         
         // 记录创建日志（创建操作不需要记录变更状态）
         log_edit(
@@ -254,9 +297,9 @@ include '../sidebar.php';
     <script src="../assets/ueditorplus/lang/zh-cn/zh-cn.js"></script>
     
     <script>
-    // 设置UEditor服务器URL
+    // 设置UEditor服务器URL - 上传时动态获取document_id
     window.UEDITOR_CONFIG = window.UEDITOR_CONFIG || {};
-    window.UEDITOR_CONFIG.serverUrl = '/admin/ueditor_upload.php?document_id=<?php echo $pre_generated_document_id; ?>';
+    window.UEDITOR_CONFIG.serverUrl = '/admin/ueditor_upload.php';
     
     // 简化的高度调整
     function autoHeight() {
@@ -279,7 +322,7 @@ include '../sidebar.php';
         autoFloatEnabled: false,
         minFrameHeight: 500,
         maxFrameHeight: 1200,
-        serverUrl: '/admin/ueditor_upload.php?document_id=<?php echo $pre_generated_document_id; ?>'
+        serverUrl: '/admin/ueditor_upload.php'
     });
 
     // 表单提交处理
