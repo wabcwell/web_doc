@@ -133,30 +133,26 @@ function init_database() {
                        UPDATE file_upload SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
                    END");
 
-        // 创建document_id_unused表 - 管理文档ID使用状态
-        $db->exec("CREATE TABLE IF NOT EXISTS document_id_unused (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            document_id INTEGER NOT NULL UNIQUE,
-            usage_status INTEGER DEFAULT 0 CHECK (usage_status IN (0, 1)),
+        // 创建document_id_apportion表 - 管理文档ID使用状态
+        $db->exec("CREATE TABLE IF NOT EXISTS document_id_apportion (
+            document_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usage_status INTEGER DEFAULT 0 CHECK (usage_status IN (0, 1, 2, 3)),
             created_by INTEGER NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
             updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            
-            -- 外键约束
-            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY (document_id) REFERENCES documents(document_id) ON DELETE CASCADE
+            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
         )");
 
-        // 创建document_id_unused表索引
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_document_id_unused_status ON document_id_unused(usage_status)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_document_id_unused_created_by ON document_id_unused(created_by)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_document_id_unused_created_at ON document_id_unused(created_at)");
+        // 创建document_id_apportion表索引
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_document_id_apportion_status ON document_id_apportion(usage_status)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_document_id_apportion_created_by ON document_id_apportion(created_by)");
+        $db->exec("CREATE INDEX IF NOT EXISTS idx_document_id_apportion_created_at ON document_id_apportion(created_at)");
 
         // 创建触发器 - 自动更新updated_at字段
-        $db->exec("CREATE TRIGGER IF NOT EXISTS update_document_id_unused_timestamp 
-                   AFTER UPDATE ON document_id_unused
+        $db->exec("CREATE TRIGGER IF NOT EXISTS update_document_id_apportion_timestamp 
+                   AFTER UPDATE ON document_id_apportion
                    BEGIN
-                       UPDATE document_id_unused SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
+                       UPDATE document_id_apportion SET updated_at = CURRENT_TIMESTAMP WHERE document_id = NEW.document_id;
                    END");
         
         // 添加默认数据
@@ -501,7 +497,7 @@ function check_admin() {
  */
 function is_document_id_used($document_id) {
     $db = get_db();
-    $stmt = $db->prepare("SELECT usage_status FROM document_id_unused WHERE document_id = ?");
+    $stmt = $db->prepare("SELECT usage_status FROM document_id_apportion WHERE document_id = ?");
     $stmt->execute([$document_id]);
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     return $result && $result['usage_status'] == 1;
@@ -512,7 +508,7 @@ function is_document_id_used($document_id) {
  */
 function mark_document_id_used($document_id, $user_id) {
     $db = get_db();
-    $stmt = $db->prepare("INSERT OR REPLACE INTO document_id_unused (document_id, usage_status, created_by) VALUES (?, 1, ?)");
+    $stmt = $db->prepare("INSERT OR REPLACE INTO document_id_apportion (document_id, usage_status, created_by) VALUES (?, 1, ?)");
     return $stmt->execute([$document_id, $user_id]);
 }
 
@@ -521,7 +517,7 @@ function mark_document_id_used($document_id, $user_id) {
  */
 function mark_document_id_unused($document_id) {
     $db = get_db();
-    $stmt = $db->prepare("UPDATE document_id_unused SET usage_status = 0 WHERE document_id = ?");
+    $stmt = $db->prepare("UPDATE document_id_apportion SET usage_status = 0 WHERE document_id = ?");
     return $stmt->execute([$document_id]);
 }
 
@@ -530,7 +526,7 @@ function mark_document_id_unused($document_id) {
  */
 function get_unused_document_ids() {
     $db = get_db();
-    $stmt = $db->query("SELECT document_id FROM document_id_unused WHERE usage_status = 0 ORDER BY document_id ASC");
+    $stmt = $db->query("SELECT document_id FROM document_id_apportion WHERE usage_status = 0 ORDER BY document_id ASC");
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
@@ -539,71 +535,133 @@ function get_unused_document_ids() {
  */
 function get_used_document_ids() {
     $db = get_db();
-    $stmt = $db->query("SELECT document_id FROM document_id_unused WHERE usage_status = 1 ORDER BY document_id ASC");
+    $stmt = $db->query("SELECT document_id FROM document_id_apportion WHERE usage_status = 1 ORDER BY document_id ASC");
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-/**
- * 预生成文档ID
- */
-function pre_generate_document_ids($count, $user_id) {
-    $db = get_db();
-    $max_id = $db->query("SELECT COALESCE(MAX(document_id), 0) FROM documents")->fetchColumn();
-    
-    $stmt = $db->prepare("INSERT OR IGNORE INTO document_id_unused (document_id, usage_status, created_by) VALUES (?, 0, ?)");
-    $generated = 0;
-    
-    for ($i = 1; $i <= $count; $i++) {
-        $new_id = $max_id + $i;
-        if ($stmt->execute([$new_id, $user_id])) {
-            $generated++;
-        }
-    }
-    
-    return $generated;
-}
+
 
 /**
  * 获取下一个可用的文档ID
+ * @return int 可用的文档ID
  */
 function get_next_available_document_id() {
     $db = get_db();
     
-    // 首先查找未使用的预生成ID
-    $stmt = $db->query("SELECT MIN(document_id) FROM document_id_unused WHERE usage_status = 0");
-    $unused_id = $stmt->fetchColumn();
-    
-    if ($unused_id) {
-        return $unused_id;
+    try {
+        // 直接插入一条新记录，使用自增主键生成ID
+        $user_id = $_SESSION['user_id'] ?? 1;
+        $stmt = $db->prepare("INSERT INTO document_id_apportion (usage_status, created_by) VALUES (0, ?)");
+        $stmt->execute([$user_id]);
+        
+        return (int)$db->lastInsertId();
+        
+    } catch (Exception $e) {
+        // 如果发生错误，返回一个安全的默认值
+        error_log("获取下一个可用文档ID时出错: " . $e->getMessage());
+        return 1;
     }
-    
-    // 如果没有未使用的预生成ID，获取最大文档ID+1
-    $max_id = $db->query("SELECT COALESCE(MAX(document_id), 0) FROM documents")->fetchColumn();
-    return $max_id + 1;
 }
 
 /**
- * 清理已使用的文档ID记录
+ * 标记文档ID为已分配
+ * @param int $document_id 要标记的文档ID
+ * @param int $user_id 用户ID
+ * @return bool 是否成功
  */
-function cleanup_used_document_ids() {
+function mark_document_id_allocated($document_id, $user_id) {
     $db = get_db();
-    $stmt = $db->prepare("DELETE FROM document_id_unused WHERE usage_status = 1 AND document_id NOT IN (SELECT document_id FROM documents)");
-    return $stmt->execute();
+    
+    try {
+        $stmt = $db->prepare("UPDATE document_id_apportion SET usage_status = 2, created_by = ?, updated_at = CURRENT_TIMESTAMP WHERE document_id = ? AND usage_status = 0");
+        $stmt->execute([$user_id, $document_id]);
+        
+        // 只更新已存在的记录，不创建新记录
+        return $stmt->rowCount() > 0;
+    } catch (Exception $e) {
+        error_log("标记文档ID为已分配时出错: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * 检查文档ID是否已分配
+ * @param int $document_id 要检查的文档ID
+ * @return bool 是否已分配
+ */
+function is_document_id_allocated($document_id) {
+    $db = get_db();
+    
+    try {
+        $stmt = $db->prepare("SELECT usage_status FROM document_id_apportion WHERE document_id = ?");
+        $stmt->execute([$document_id]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        return $result && $result['usage_status'] == 2;
+    } catch (Exception $e) {
+        error_log("检查文档ID是否已分配时出错: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * 获取已分配的文档ID列表
+ * @return array 已分配的文档ID列表
+ */
+function get_allocated_document_ids() {
+    $db = get_db();
+    
+    try {
+        $stmt = $db->query("SELECT document_id FROM document_id_apportion WHERE usage_status = 2 ORDER BY document_id ASC");
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    } catch (Exception $e) {
+        error_log("获取已分配的文档ID列表时出错: " . $e->getMessage());
+        return [];
+    }
 }
 
 /**
  * 获取文档ID使用统计
+ * @return array 统计信息
  */
 function get_document_id_stats() {
     $db = get_db();
     
-    $total = $db->query("SELECT COUNT(*) FROM document_id_unused")->fetchColumn();
-    $unused = $db->query("SELECT COUNT(*) FROM document_id_unused WHERE usage_status = 0")->fetchColumn();
-    $used = $db->query("SELECT COUNT(*) FROM document_id_unused WHERE usage_status = 1")->fetchColumn();
-    
-    return [
-        'total_ids' => $total,
-        'unused_ids' => $unused,
-        'used_ids' => $used
-    ];
+    try {
+        $stats = [];
+        
+        // 未使用
+        $stmt = $db->query("SELECT COUNT(*) FROM document_id_apportion WHERE usage_status = 0");
+        $stats['unused'] = (int)$stmt->fetchColumn();
+        
+        // 已使用
+        $stmt = $db->query("SELECT COUNT(*) FROM document_id_apportion WHERE usage_status = 1");
+        $stats['used'] = (int)$stmt->fetchColumn();
+        
+        // 已分配
+        $stmt = $db->query("SELECT COUNT(*) FROM document_id_apportion WHERE usage_status = 2");
+        $stats['allocated'] = (int)$stmt->fetchColumn();
+        
+        // 总数
+        $stmt = $db->query("SELECT COUNT(*) FROM document_id_apportion");
+        $stats['total'] = (int)$stmt->fetchColumn();
+        
+        // 最小和最大ID
+        $stmt = $db->query("SELECT COALESCE(MIN(document_id), 0) as min_id, COALESCE(MAX(document_id), 0) as max_id FROM document_id_apportion");
+        $range = $stmt->fetch(PDO::FETCH_ASSOC);
+        $stats['min_id'] = (int)$range['min_id'];
+        $stats['max_id'] = (int)$range['max_id'];
+        
+        return $stats;
+    } catch (Exception $e) {
+        error_log("获取文档ID使用统计时出错: " . $e->getMessage());
+        return [
+            'unused' => 0,
+            'used' => 0,
+            'allocated' => 0,
+            'total' => 0,
+            'min_id' => 0,
+            'max_id' => 0
+        ];
+    }
 }
