@@ -433,12 +433,12 @@ $stats = get_file_stats($db);
                             $current_month = date('m');
                             for ($year = $current_year; $year >= $current_year - 2; $year--):
                                 for ($month = ($year == $current_year ? $current_month : 12); $month >= 1; $month--):
-                                    $yearmonth = sprintf('%04d-%02d', $year, $month);
+                                    $ym = sprintf('%04d-%02d', $year, $month);
                                     $display = sprintf('%d年%d月', $year, $month);
                             ?>
-                                <option value="<?php echo $yearmonth; ?>" <?php echo isset($_GET['yearmonth']) && $_GET['yearmonth'] === $yearmonth ? 'selected' : ''; ?>>
-                                    <?php echo $display; ?>
-                                </option>
+                                <option value="<?php echo $ym; ?>" <?php echo ($ym === $yearmonth) ? 'selected' : ''; ?>>
+                                <?php echo $display; ?>
+                            </option>
                             <?php
                                 endfor;
                             endfor;
@@ -515,7 +515,15 @@ $stats = get_file_stats($db);
                                         </th>
                                         <th width="5%" class="text-center">图标</th>
                                         <th width="22%" class="sortable-header">
-                                            <a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'name', 'order' => ($_GET['sort'] ?? '') === 'name' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc'])); ?>">
+                                            <a href="?<?php 
+                                        $sort_params = [];
+                                        if ($filter_type !== '') $sort_params['type'] = $filter_type;
+                                        if ($yearmonth !== '') $sort_params['yearmonth'] = $yearmonth;
+                                        if ($search_keyword !== '') $sort_params['search'] = $search_keyword;
+                                        $sort_params['sort'] = 'name';
+                                        $sort_params['order'] = ($_GET['sort'] ?? '') === 'name' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc';
+                                        echo http_build_query($sort_params);
+                                        ?>">
                                                 文件名
                                                 <?php if (($_GET['sort'] ?? '') === 'name'): ?>
                                                     <i class="bi bi-chevron-<?php echo ($_GET['order'] ?? 'asc') === 'asc' ? 'up' : 'down'; ?> small"></i>
@@ -525,7 +533,15 @@ $stats = get_file_stats($db);
                                             </a>
                                         </th>
                                         <th width="10%" class="sortable-header">
-                                            <a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'type', 'order' => ($_GET['sort'] ?? '') === 'type' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc'])); ?>">
+                                            <a href="?<?php 
+                                        $sort_params = [];
+                                        if ($filter_type !== '') $sort_params['type'] = $filter_type;
+                                        if ($yearmonth !== '') $sort_params['yearmonth'] = $yearmonth;
+                                        if ($search_keyword !== '') $sort_params['search'] = $search_keyword;
+                                        $sort_params['sort'] = 'type';
+                                        $sort_params['order'] = ($_GET['sort'] ?? '') === 'type' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc';
+                                        echo http_build_query($sort_params);
+                                        ?>">
                                                 类型
                                                 <?php if (($_GET['sort'] ?? '') === 'type'): ?>
                                                     <i class="bi bi-chevron-<?php echo ($_GET['order'] ?? 'asc') === 'asc' ? 'up' : 'down'; ?> small"></i>
@@ -535,7 +551,15 @@ $stats = get_file_stats($db);
                                             </a>
                                         </th>
                                         <th width="10%" class="sortable-header">
-                                            <a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'size', 'order' => ($_GET['sort'] ?? '') === 'size' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc'])); ?>">
+                                            <a href="?<?php 
+                                        $sort_params = [];
+                                        if ($filter_type !== '') $sort_params['type'] = $filter_type;
+                                        if ($yearmonth !== '') $sort_params['yearmonth'] = $yearmonth;
+                                        if ($search_keyword !== '') $sort_params['search'] = $search_keyword;
+                                        $sort_params['sort'] = 'size';
+                                        $sort_params['order'] = ($_GET['sort'] ?? '') === 'size' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc';
+                                        echo http_build_query($sort_params);
+                                        ?>">
                                                 大小
                                                 <?php if (($_GET['sort'] ?? '') === 'size'): ?>
                                                     <i class="bi bi-chevron-<?php echo ($_GET['order'] ?? 'asc') === 'asc' ? 'up' : 'down'; ?> small"></i>
@@ -546,7 +570,15 @@ $stats = get_file_stats($db);
                                         </th>
                                         <th width="15%">关联文档</th>
                                         <th width="15%" class="sortable-header">
-                                            <a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'user', 'order' => ($_GET['sort'] ?? '') === 'user' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc'])); ?>">
+                                            <a href="?<?php 
+                                        $sort_params = [];
+                                        if ($filter_type !== '') $sort_params['type'] = $filter_type;
+                                        if ($yearmonth !== '') $sort_params['yearmonth'] = $yearmonth;
+                                        if ($search_keyword !== '') $sort_params['search'] = $search_keyword;
+                                        $sort_params['sort'] = 'user';
+                                        $sort_params['order'] = ($_GET['sort'] ?? '') === 'user' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc';
+                                        echo http_build_query($sort_params);
+                                        ?>">
                                                 上传者
                                                 <?php if (($_GET['sort'] ?? '') === 'user'): ?>
                                                     <i class="bi bi-chevron-<?php echo ($_GET['order'] ?? 'asc') === 'asc' ? 'up' : 'down'; ?> small"></i>
@@ -556,7 +588,15 @@ $stats = get_file_stats($db);
                                             </a>
                                         </th>
                                         <th width="15%" class="sortable-header">
-                                            <a href="?<?php echo http_build_query(array_merge($_GET, ['sort' => 'date', 'order' => ($_GET['sort'] ?? '') === 'date' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc'])); ?>">
+                                            <a href="?<?php 
+                                        $sort_params = [];
+                                        if ($filter_type !== '') $sort_params['type'] = $filter_type;
+                                        if ($yearmonth !== '') $sort_params['yearmonth'] = $yearmonth;
+                                        if ($search_keyword !== '') $sort_params['search'] = $search_keyword;
+                                        $sort_params['sort'] = 'date';
+                                        $sort_params['order'] = ($_GET['sort'] ?? '') === 'date' && ($_GET['order'] ?? '') === 'asc' ? 'desc' : 'asc';
+                                        echo http_build_query($sort_params);
+                                        ?>">
                                                 上传时间
                                                 <?php if (($_GET['sort'] ?? '') === 'date'): ?>
                                                     <i class="bi bi-chevron-<?php echo ($_GET['order'] ?? 'asc') === 'asc' ? 'up' : 'down'; ?> small"></i>
@@ -590,7 +630,15 @@ $stats = get_file_stats($db);
                                                 <?php endif; ?>
                                             </td>
                                             <td>
-                                                <div class="fw-bold"><?php echo htmlspecialchars(basename($file['file_path'])); ?></div>
+                                                <div class="fw-bold">
+                                                    <?php if (!empty($file['alias'])): ?>
+                                                        <?php echo htmlspecialchars($file['alias']); ?>
+                                                        <br>
+                                                        <small class="text-muted">(存储名: <?php echo htmlspecialchars(basename($file['file_path'])); ?>)</small>
+                                                    <?php else: ?>
+                                                        <?php echo htmlspecialchars(basename($file['file_path'])); ?>
+                                                    <?php endif; ?>
+                                                </div>
                                                 <?php if ($file['description']): ?>
                                                     <small class="text-muted"><?php echo htmlspecialchars($file['description']); ?></small>
                                                 <?php endif; ?>
@@ -633,9 +681,35 @@ $stats = get_file_stats($db);
             <?php if ($total_pages > 1): ?>
                 <nav aria-label="文件列表分页" class="mt-4">
                     <ul class="pagination justify-content-center">
+                        <?php 
+                        // 构建查询参数 - 保留所有当前筛选条件
+                        $query_params = [];
+                        
+                        // 保留必要的筛选参数
+                        if (!empty($filter_type)) {
+                            $query_params['type'] = $filter_type;
+                        }
+                        if (!empty($yearmonth)) {
+                            $query_params['yearmonth'] = $yearmonth;
+                        }
+                        if (!empty($search_keyword)) {
+                            $query_params['search'] = $search_keyword;
+                        }
+                        if (!empty($sort)) {
+                            $query_params['sort'] = $sort;
+                        }
+                        if (!empty($order)) {
+                            $query_params['order'] = $order;
+                        }
+                        
+                        // 构建基础查询字符串
+                        $base_query = http_build_query($query_params);
+                        $query_prefix = $base_query ? '?' . $base_query . '&' : '?';
+                        ?>
+                        
                         <?php if ($page > 1): ?>
                             <li class="page-item">
-                                <a class="page-link" href="?page=<?php echo $page - 1; ?>&type=<?php echo $filter_type; ?>&user=<?php echo $filter_user; ?>&search=<?php echo urlencode($search_keyword); ?>">上一页</a>
+                                <a class="page-link" href="<?php echo $query_prefix; ?>page=<?php echo $page - 1; ?>">上一页</a>
                             </li>
                         <?php endif; ?>
 
@@ -645,13 +719,13 @@ $stats = get_file_stats($db);
                         
                         for ($i = $start_page; $i <= $end_page; $i++): ?>
                             <li class="page-item <?php echo $i == $page ? 'active' : ''; ?>">
-                                <a class="page-link" href="?page=<?php echo $i; ?>&type=<?php echo $filter_type; ?>&user=<?php echo $filter_user; ?>&search=<?php echo urlencode($search_keyword); ?>"><?php echo $i; ?></a>
+                                <a class="page-link" href="<?php echo $query_prefix; ?>page=<?php echo $i; ?>"><?php echo $i; ?></a>
                             </li>
                         <?php endfor; ?>
 
                         <?php if ($page < $total_pages): ?>
                             <li class="page-item">
-                                <a class="page-link" href="?page=<?php echo $page + 1; ?>&type=<?php echo $filter_type; ?>&user=<?php echo $filter_user; ?>&search=<?php echo urlencode($search_keyword); ?>">下一页</a>
+                                <a class="page-link" href="<?php echo $query_prefix; ?>page=<?php echo $page + 1; ?>">下一页</a>
                             </li>
                         <?php endif; ?>
                     </ul>
