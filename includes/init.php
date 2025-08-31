@@ -492,16 +492,7 @@ function check_admin() {
     return isset($_SESSION['user_role']) && $_SESSION['user_role'] === 'admin';
 }
 
-/**
- * 检查文档ID是否已使用
- */
-function is_document_id_used($document_id) {
-    $db = get_db();
-    $stmt = $db->prepare("SELECT usage_status FROM document_id_apportion WHERE document_id = ?");
-    $stmt->execute([$document_id]);
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    return $result && $result['usage_status'] == 1;
-}
+
 
 /**
  * 标记文档ID为已使用
@@ -512,23 +503,26 @@ function mark_document_id_used($document_id, $user_id) {
     return $stmt->execute([$document_id, $user_id]);
 }
 
-/**
- * 标记文档ID为未使用
- */
-function mark_document_id_unused($document_id) {
-    $db = get_db();
-    $stmt = $db->prepare("UPDATE document_id_apportion SET usage_status = 0 WHERE document_id = ?");
-    return $stmt->execute([$document_id]);
-}
+
 
 /**
- * 获取未使用的文档ID列表
+ * 标记文档ID为已删除
+ * @param int $document_id 要标记的文档ID
+ * @return bool 是否成功
  */
-function get_unused_document_ids() {
+function mark_document_id_deleted($document_id) {
     $db = get_db();
-    $stmt = $db->query("SELECT document_id FROM document_id_apportion WHERE usage_status = 0 ORDER BY document_id ASC");
-    return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    
+    try {
+        $stmt = $db->prepare("UPDATE document_id_apportion SET usage_status = 3 WHERE document_id = ?");
+        return $stmt->execute([$document_id]);
+    } catch (Exception $e) {
+        error_log("标记文档ID为已删除时出错: " . $e->getMessage());
+        return false;
+    }
 }
+
+
 
 /**
  * 获取已使用的文档ID列表
@@ -584,25 +578,7 @@ function mark_document_id_allocated($document_id, $user_id) {
     }
 }
 
-/**
- * 检查文档ID是否已分配
- * @param int $document_id 要检查的文档ID
- * @return bool 是否已分配
- */
-function is_document_id_allocated($document_id) {
-    $db = get_db();
-    
-    try {
-        $stmt = $db->prepare("SELECT usage_status FROM document_id_apportion WHERE document_id = ?");
-        $stmt->execute([$document_id]);
-        $result = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        return $result && $result['usage_status'] == 2;
-    } catch (Exception $e) {
-        error_log("检查文档ID是否已分配时出错: " . $e->getMessage());
-        return false;
-    }
-}
+
 
 /**
  * 获取已分配的文档ID列表
@@ -616,6 +592,22 @@ function get_allocated_document_ids() {
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     } catch (Exception $e) {
         error_log("获取已分配的文档ID列表时出错: " . $e->getMessage());
+        return [];
+    }
+}
+
+/**
+ * 获取已删除的文档ID列表
+ * @return array 已删除的文档ID列表
+ */
+function get_deleted_document_ids() {
+    $db = get_db();
+    
+    try {
+        $stmt = $db->query("SELECT document_id FROM document_id_apportion WHERE usage_status = 3 ORDER BY document_id ASC");
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    } catch (Exception $e) {
+        error_log("获取已删除的文档ID列表时出错: " . $e->getMessage());
         return [];
     }
 }
@@ -642,6 +634,10 @@ function get_document_id_stats() {
         $stmt = $db->query("SELECT COUNT(*) FROM document_id_apportion WHERE usage_status = 2");
         $stats['allocated'] = (int)$stmt->fetchColumn();
         
+        // 已删除
+        $stmt = $db->query("SELECT COUNT(*) FROM document_id_apportion WHERE usage_status = 3");
+        $stats['deleted'] = (int)$stmt->fetchColumn();
+        
         // 总数
         $stmt = $db->query("SELECT COUNT(*) FROM document_id_apportion");
         $stats['total'] = (int)$stmt->fetchColumn();
@@ -659,6 +655,7 @@ function get_document_id_stats() {
             'unused' => 0,
             'used' => 0,
             'allocated' => 0,
+            'deleted' => 0,
             'total' => 0,
             'min_id' => 0,
             'max_id' => 0

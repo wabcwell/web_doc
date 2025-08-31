@@ -60,6 +60,9 @@ try {
         // 提交事务
         $db->commit();
         
+        // 将document_id_apportion中的ID标记为已删除（物理删除后标记状态）
+        mark_document_id_deleted($document_id);
+        
         echo json_encode([
             'success' => true, 
             'message' => '文档已永久删除',

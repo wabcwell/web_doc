@@ -16,10 +16,17 @@ $documents = $tree->getAllDocumentsByHierarchy();
 $parent_id_param = $_GET['parent_id'] ?? 0;
 $sort_order_param = $_GET['sort_order'] ?? 0;
 
-// 预生成document_id（用户进入页面时生成）
-$max_stmt = $db->query("SELECT MAX(document_id) as max_id FROM documents");
-$max_result = $max_stmt->fetch(PDO::FETCH_ASSOC);
-$pre_generated_document_id = ($max_result['max_id'] ?? 0) + 1;
+// 获取预生成的document_id - 防止重复分配
+$session_key = 'add_page_document_id_' . session_id();
+if (isset($_SESSION[$session_key])) {
+    // 如果已有预生成的ID，使用它而不是重新生成
+    $pre_generated_document_id = $_SESSION[$session_key];
+} else {
+    // 生成新的ID并存储到session
+    $pre_generated_document_id = get_next_available_document_id();
+    mark_document_id_allocated($pre_generated_document_id, $_SESSION['user_id'] ?? 1);
+    $_SESSION[$session_key] = $pre_generated_document_id;
+}
 
 // 处理表单提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -64,6 +71,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // 保存初始版本
         save_document_version($document_id, $title, $content, $_SESSION['user_id'], $tags, $update_code);
+        
+        // 将document_id_apportion中的ID标记为已使用
+        mark_document_id_used($new_document_id, $_SESSION['user_id'] ?? 1);
+        
+        // 清理session中的预生成ID
+        unset($_SESSION[$session_key]);
         
         header('Location: index.php?success=add');
         exit;
