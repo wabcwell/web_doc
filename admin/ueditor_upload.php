@@ -14,7 +14,7 @@ if ($action === 'config') {
     header('Content-Type: application/json; charset=utf-8');
     
     // 读取配置文件
-    $configPath = __DIR__ . '/documents/ueditor_config.json';
+    $configPath = __DIR__ . '/assets/ueditorplus/upload_config.json';
     if (file_exists($configPath)) {
         $config = json_decode(file_get_contents($configPath), true);
         if ($config) {
@@ -274,12 +274,13 @@ function handleUpload() {
             // 获取UEditor上传表单中的描述信息（title字段），如果没有则留空
             $file_description = isset($_POST['title']) ? trim($_POST['title']) : '';
             
-            $stmt = $db->prepare("INSERT INTO file_upload (file_type, file_format, file_size, file_path, uploaded_by, document_id, description) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO file_upload (file_type, file_format, file_size, file_path, alias, uploaded_by, document_id, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->execute([
                 $fileType,
                 $extension,
                 $file['size'],
                 $url,
+                $file['name'], // 保存原始文件名到alias字段
                 $_SESSION['user_id'] ?? 1,
                 $document_id,
                 $file_description

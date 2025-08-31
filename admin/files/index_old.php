@@ -208,7 +208,8 @@ function render_action_buttons(array $file, bool $is_admin): string {
     $html = '<div class="btn-group" role="group" style="gap: 2px;">';
     
     // 查看按钮 - 蓝色 (#64b5f6)
-    $html .= '<a href="/uploads/' . htmlspecialchars($file['file_path'], ENT_QUOTES, 'UTF-8') . '" target="_blank" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="查看文件"';
+    $file_url = ltrim($file['file_path'], '/'); // 移除开头的斜杠避免重复
+    $html .= '<a href="/' . htmlspecialchars($file_url, ENT_QUOTES, 'UTF-8') . '" target="_blank" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="查看文件"';
     $html .= ' onmouseover="this.style.backgroundColor=\'#90caf9\'; this.style.borderColor=\'#90caf9\';" ';
     $html .= ' onmouseout="this.style.backgroundColor=\'#64b5f6\'; this.style.borderColor=\'#64b5f6\';">';
     $html .= '<i class="bi bi-eye" style="font-size: 14px; margin: 0 auto;"></i>';
@@ -226,7 +227,7 @@ function render_action_buttons(array $file, bool $is_admin): string {
     $disabled = $is_admin ? '' : 'disabled';
     $disabled_style = $is_admin ? '' : 'opacity: 0.65; cursor: not-allowed;';
     $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s, border-color 0.2s; ' . $disabled_style . '" data-tooltip="删除文件" ';
-    $html .= $disabled . ' onclick="deleteFile(' . $file_id . ', \'' . addslashes($file_name) . '\')" ';
+    $html .= $disabled . ' onclick="event.preventDefault(); event.stopPropagation(); deleteFile(' . $file_id . ', \'' . addslashes($file_name) . '\'); return false;" ';
     $html .= ' onmouseover="if(!this.disabled){this.style.backgroundColor=\'#ffab91\'; this.style.borderColor=\'#ffab91\';}" ';
     $html .= ' onmouseout="if(!this.disabled){this.style.backgroundColor=\'#ff8a65\'; this.style.borderColor=\'#ff8a65\';}">';
     $html .= '<i class="bi bi-trash-fill" style="font-size: 14px; margin: 0 auto;"></i>';
@@ -610,19 +611,22 @@ $stats = get_file_stats($db);
                                 </thead>
                                 <tbody>
                                     <?php foreach ($files as $index => $file): ?>
-                                        <tr>
+                                        <tr id="file-<?php echo $file['id']; ?>" class="file-row">
                                             <td class="text-center">
                                                 <input type="checkbox" class="form-check-input file-checkbox" value="<?php echo $file['id']; ?>">
                                             </td>
                                             <td class="text-center">
                                                 <?php if ($file['file_type'] === 'image'): ?>
-                                                    <img src="<?php echo htmlspecialchars($file['file_path']); ?>" 
+                                                    <?php
+                                                    $image_url = ltrim($file['file_path'], '/'); // 移除开头的斜杠避免重复
+                                                    ?>
+                                                    <img src="<?php echo htmlspecialchars('/' . $image_url); ?>" 
                                                          alt="<?php echo htmlspecialchars(basename($file['file_path'])); ?>"
                                                          class="img-thumbnail img-fluid"
                                                          style="width: 40px; height: 40px; object-fit: cover; cursor: pointer;"
                                                          data-bs-toggle="modal" 
                                                          data-bs-target="#imageModal"
-                                                         data-image-src="<?php echo htmlspecialchars($file['file_path']); ?>"
+                                                         data-image-src="<?php echo htmlspecialchars('/' . $image_url); ?>"
                                                          data-image-name="<?php echo htmlspecialchars(basename($file['file_path'])); ?>">
                                                 <?php else: ?>
                                                     <i class="bi <?php echo get_file_icon($file['file_type']); ?> file-icon" 
@@ -781,55 +785,102 @@ $stats = get_file_stats($db);
         }
 
         // 删除文件
-        function deleteFile(fileId, fileName) {
-            if (confirm(`确定要删除文件 "${fileName}" 吗？此操作不可恢复！`)) {
+    function deleteFile(fileId, fileName) {
+        console.log('点击删除按钮，fileId:', fileId, 'fileName:', fileName);
+        console.log('当前时间:', new Date().toLocaleTimeString());
+        
+        // 添加调试：检查是否重复触发
+        if (window.lastDeleteClick && (Date.now() - window.lastDeleteClick < 1000)) {
+            console.log('检测到重复点击，忽略');
+            return;
+        }
+        window.lastDeleteClick = Date.now();
+        
+        if (confirm(`确定要删除文件 "${fileName}" 吗？此操作不可恢复！`)) {
+            console.log('用户第一次确认');
+            if (confirm(`再次确认：真的要永久删除 "${fileName}" 吗？`)) {
+                console.log('用户二次确认，开始删除');
+                // 使用AJAX异步删除，保持页面位置
                 fetch('delete.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-Requested-With': 'XMLHttpRequest'
                     },
                     body: `id=${fileId}`
                 })
                 .then(response => response.json())
                 .then(data => {
+                    console.log('AJAX响应:', data);
                     if (data.success) {
+                        // 成功删除，隐藏文件行
+                        const fileRow = document.getElementById(`file-${fileId}`);
+                        if (fileRow) {
+                            fileRow.style.transition = 'opacity 0.3s ease';
+                            fileRow.style.opacity = '0';
+                            setTimeout(() => {
+                                fileRow.remove();
+                                updateFileCount();
+                            }, 300);
+                        }
+                        
                         // 显示成功消息
                         showMessage('文件删除成功', 'success');
-                        // 刷新页面
-                        setTimeout(() => location.reload(), 1000);
+                        
+                        // 如果当前页没有文件了，重新加载页面
+                        const remainingFiles = document.querySelectorAll('.file-row').length;
+                        if (remainingFiles === 0) {
+                            // 延迟重新加载，让用户看到删除动画
+                            setTimeout(() => {
+                                location.reload();
+                            }, 500);
+                        }
                     } else {
-                        showMessage(data.message || '删除失败', 'error');
+                        showMessage(data.error || '删除失败', 'danger');
                     }
                 })
                 .catch(error => {
-                    console.error('Error:', error);
-                    showMessage('删除请求失败', 'error');
+                    console.error('AJAX错误:', error);
+                    showMessage('删除文件时发生错误', 'danger');
                 });
+            } else {
+                console.log('用户取消二次确认');
+            }
             }
         }
 
         // 显示消息提示
         function showMessage(message, type) {
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-danger';
-            const alertHTML = `
-                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                    <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}-fill"></i>
-                    <strong>${type === 'success' ? '成功！' : '错误！'}</strong> ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+            alertDiv.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            alertDiv.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             `;
             
-            const container = document.getElementById('messageContainer');
-            container.insertAdjacentHTML('afterbegin', alertHTML);
+            document.body.appendChild(alertDiv);
             
             // 3秒后自动关闭
             setTimeout(() => {
-                const alert = container.querySelector('.alert');
-                if (alert) {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
                 }
             }, 3000);
+        }
+
+        // 更新文件计数
+        function updateFileCount() {
+            const totalFiles = document.querySelectorAll('.file-row').length;
+            const totalElement = document.querySelector('.text-muted');
+            if (totalElement) {
+                const match = totalElement.textContent.match(/共 (\d+) 个文件/);
+                if (match) {
+                    const oldTotal = parseInt(match[1]);
+                    const newTotal = oldTotal - 1;
+                    totalElement.textContent = totalElement.textContent.replace(/共 \d+ 个文件/, `共 ${newTotal} 个文件`);
+                }
+            }
         }
 
         // 批量选择功能
@@ -876,42 +927,87 @@ $stats = get_file_stats($db);
                 return;
             }
 
+            // 防止重复触发
+            if (window.lastBatchDelete && (Date.now() - window.lastBatchDelete < 2000)) {
+                console.log('检测到重复批量删除，忽略');
+                return;
+            }
+            window.lastBatchDelete = Date.now();
+
             if (confirm(`确定要删除选中的 ${selectedFiles.length} 个文件吗？此操作不可恢复！`)) {
-                let successCount = 0;
-                let totalCount = selectedFiles.length;
+                if (confirm(`再次确认：真的要永久删除这 ${selectedFiles.length} 个文件吗？`)) {
+                let deletedCount = 0;
+                const totalCount = selectedFiles.length;
                 
-                // 逐个删除文件
-                selectedFiles.forEach(fileId => {
-                    fetch('delete.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                        body: `id=${fileId}`
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            successCount++;
-                        }
+                function deleteNextFile() {
+                    if (deletedCount < totalCount) {
+                        const fileId = selectedFiles[deletedCount];
                         
-                        // 所有请求完成后刷新页面
-                        if (successCount + (totalCount - successCount) === totalCount) {
-                            showMessage(`成功删除 ${successCount}/${totalCount} 个文件`, 'success');
-                            setTimeout(() => location.reload(), 1500);
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        totalCount--;
-                        if (successCount + (totalCount - successCount) === totalCount) {
-                            showMessage(`成功删除 ${successCount}/${totalCount} 个文件`, 'success');
-                            setTimeout(() => location.reload(), 1500);
-                        }
-                    });
-                });
+                        fetch('delete.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            body: `id=${fileId}`
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // 成功删除，隐藏文件行
+                                const fileRow = document.getElementById(`file-${fileId}`);
+                                if (fileRow) {
+                                    fileRow.style.transition = 'opacity 0.3s ease';
+                                    fileRow.style.opacity = '0';
+                                    setTimeout(() => {
+                                        fileRow.remove();
+                                        updateFileCount();
+                                    }, 300);
+                                }
+                                
+                                deletedCount++;
+                                
+                                if (deletedCount === totalCount) {
+                                    // 所有文件删除完成
+                                    showMessage(`成功删除 ${totalCount} 个文件`, 'success');
+                                    
+                                    // 如果当前页没有文件了，重新加载页面
+                                    const remainingFiles = document.querySelectorAll('.file-row').length;
+                                    if (remainingFiles === 0) {
+                                        setTimeout(() => {
+                                            location.reload();
+                                        }, 500);
+                                    }
+                                    
+                                    // 重置全选框和批量操作按钮
+                                    document.getElementById('selectAll').checked = false;
+                                    document.getElementById('batchActions').style.display = 'none';
+                                } else {
+                                    // 继续删除下一个文件
+                                    deleteNextFile();
+                                }
+                            } else {
+                                showMessage(`删除文件 ${fileId} 失败: ${data.error}`, 'danger');
+                                deletedCount++;
+                                deleteNextFile();
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            showMessage(`删除文件 ${fileId} 时发生错误`, 'danger');
+                            deletedCount++;
+                            deleteNextFile();
+                        });
+                    }
+                }
+                
+                // 开始批量删除
+                deleteNextFile();
+            } else {
+                console.log('用户取消批量删除二次确认');
             }
         }
+    }
 
         // 批量下载
         function batchDownload() {

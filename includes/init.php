@@ -13,6 +13,11 @@ if (session_status() === PHP_SESSION_NONE) {
 // 包含配置文件
 require_once __DIR__ . '/../config.php';
 
+// 设置PHP默认时区（全局生效）
+if (isset($timezone)) {
+    date_default_timezone_set($timezone);
+}
+
 /**
  * 初始化数据库 - 严格按照实际数据库结构创建
  */
@@ -47,17 +52,17 @@ function init_database() {
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
         )");
         
-        // 创建users表 - 与docs.db完全一致
+        // 创建users表 - 使用本地时间
         $db->exec("CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             email TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL,
             role TEXT DEFAULT 'editor',
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            created_at DATETIME DEFAULT (datetime('now', 'localtime'))
         )");
         
-        // 创建edit_log表 - 与docs.db完全一致
+        // 创建edit_log表 - 使用本地时间
         $db->exec("CREATE TABLE IF NOT EXISTS edit_log (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             document_id INTEGER NOT NULL,
@@ -70,7 +75,7 @@ function init_database() {
             op_corder INTEGER DEFAULT 0 CHECK (op_corder IN (0, 1)),
             op_public INTEGER DEFAULT 0 CHECK (op_public IN (0, 1, 2)),
             op_formal INTEGER DEFAULT 0 CHECK (op_formal IN (0, 1, 2)),
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            created_at DATETIME DEFAULT (datetime('now', 'localtime')),
             temp_action TEXT,
             update_code TEXT,
             FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
@@ -107,12 +112,13 @@ function init_database() {
             file_format TEXT NOT NULL,
             file_size INTEGER NOT NULL,
             file_path TEXT NOT NULL,
+            alias TEXT,
             document_id INTEGER,
             description TEXT,
             notes TEXT,
             uploaded_by INTEGER NOT NULL,
-            uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            uploaded_at DATETIME DEFAULT (datetime('now', 'localtime')),
+            updated_at DATETIME DEFAULT (datetime('now', 'localtime')),
             del_status INTEGER DEFAULT 0,
             deleted_at TEXT,
             FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE SET NULL,
@@ -163,12 +169,12 @@ function init_database() {
             (0, '欢迎使用', '# 欢迎使用\n\n这是您的第一篇文档。', 1)");
 
         // 插入测试文件数据
-        $db->exec("INSERT OR IGNORE INTO file_upload (file_type, file_format, file_size, file_path, document_id, description, notes, uploaded_by) VALUES 
-            ('image', 'jpg', 102400, 'uploads/test1.jpg', 1, '测试图片1', '这是测试图片的描述', 1),
-            ('document', 'pdf', 204800, 'uploads/test2.pdf', 1, '测试文档', 'PDF测试文档', 1),
-            ('image', 'png', 51200, 'uploads/test3.png', NULL, '未关联的测试图片', '这是一个未关联到文档的测试图片', 1),
-            ('video', 'mp4', 1048576, 'uploads/test4.mp4', 1, '测试视频', '测试视频文件', 1),
-            ('archive', 'zip', 307200, 'uploads/test5.zip', NULL, '测试压缩包', '包含多个文件的测试压缩包', 1)");
+        $db->exec("INSERT OR IGNORE INTO file_upload (file_type, file_format, file_size, file_path, alias, document_id, description, notes, uploaded_by) VALUES 
+            ('image', 'jpg', 102400, 'uploads/test1.jpg', '原始测试图片1.jpg', 1, '测试图片1', '这是测试图片的描述', 1),
+            ('document', 'pdf', 204800, 'uploads/test2.pdf', '测试文档.pdf', 1, '测试文档', 'PDF测试文档', 1),
+            ('image', 'png', 51200, 'uploads/test3.png', '测试图片3.png', NULL, '未关联的测试图片', '这是一个未关联到文档的测试图片', 1),
+            ('video', 'mp4', 1048576, 'uploads/test4.mp4', '测试视频.mp4', 1, '测试视频', '测试视频文件', 1),
+            ('archive', 'zip', 307200, 'uploads/test5.zip', '测试压缩包.zip', NULL, '测试压缩包', '包含多个文件的测试压缩包', 1)");
     }
 }
 

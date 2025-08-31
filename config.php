@@ -21,4 +21,7 @@ $upload_url = '/uploads';
 $timezone = 'Asia/Shanghai';
 $items_per_page = 20;
 
+// 设置PHP默认时区
+date_default_timezone_set($timezone);
+
 ?>

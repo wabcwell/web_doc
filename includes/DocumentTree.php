@@ -304,6 +304,11 @@ class DocumentTree {
      * 渲染树形结构
      */
     public function renderTree($tree, $level = 0) {
+        // 限制最大递归深度，防止内存溢出
+        if ($level > 50) {
+            return;
+        }
+        
         foreach ($tree as $doc) {
             $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $level);
             $depth_class = 'tree-indent-' . $level;
@@ -378,12 +383,18 @@ class DocumentTree {
     /**
      * 获取所有文档（按层级关系排序，用于管理后台）
      */
-    public function getAllDocumentsByHierarchy() {
-        $stmt = $this->db->query("SELECT d.*, u.username
-                                FROM documents d 
-                                LEFT JOIN users u ON d.user_id = u.id 
-                                WHERE d.del_status = 0
-                                ORDER BY d.parent_id ASC, d.sort_order ASC, d.document_id ASC");
+    public function getAllDocumentsByHierarchy($limit = null) {
+        $sql = "SELECT d.*, u.username
+                FROM documents d 
+                LEFT JOIN users u ON d.user_id = u.id 
+                WHERE d.del_status = 0
+                ORDER BY d.parent_id ASC, d.sort_order ASC, d.document_id ASC";
+        
+        if ($limit !== null) {
+            $sql .= " LIMIT " . intval($limit);
+        }
+        
+        $stmt = $this->db->query($sql);
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
         // 构建树形结构，使用document_id作为层级基础
@@ -434,41 +445,72 @@ class DocumentTree {
      * 构建层级结构
      */
     private function buildHierarchy($documents, $parent_document_id = 0, $level = 0) {
-        $result = [];
+        static $documentIdMap = null;
+        static $childrenMap = null;
         
-        // 建立document_id到内部ID的映射
-        $documentIdMap = [];
-        foreach ($documents as $doc) {
-            $documentIdMap[$doc['document_id']] = $doc['id'];
+        // 只在第一次调用时初始化映射
+        if ($documentIdMap === null || $childrenMap === null) {
+            $documentIdMap = [];
+            $childrenMap = [];
+            
+            // 预处理文档，建立父子关系映射
+            foreach ($documents as $doc) {
+                $documentIdMap[$doc['document_id']] = $doc['id'];
+                
+                // 将文档按parent_id分组
+                $parentId = $doc['parent_id'];
+                if (!isset($childrenMap[$parentId])) {
+                    $childrenMap[$parentId] = [];
+                }
+                $childrenMap[$parentId][] = $doc;
+            }
         }
         
-        foreach ($documents as $doc) {
-            // 找到当前parent_document_id对应的内部ID
-            $current_parent_internal_id = $parent_document_id == 0 ? 0 : ($documentIdMap[$parent_document_id] ?? 0);
-            
-            if ($doc['parent_id'] == $current_parent_internal_id) {
+        $result = [];
+        
+        // 递归构建树形结构
+        $current_parent_internal_id = $parent_document_id == 0 ? 0 : ($documentIdMap[$parent_document_id] ?? 0);
+        if (isset($childrenMap[$current_parent_internal_id])) {
+            foreach ($childrenMap[$current_parent_internal_id] as $doc) {
                 $doc['level'] = $level;
                 $result[] = $doc;
                 
-                // 递归获取子文档，传递document_id
-                $children = $this->buildHierarchy($documents, $doc['document_id'], $level + 1);
-                $result = array_merge($result, $children);
+                // 递归获取子文档
+                $children = $this->buildHierarchy([], $doc['document_id'], $level + 1);
+                if (!empty($children)) {
+                    $result = array_merge($result, $children);
+                }
             }
         }
+        
+        // 重置静态变量，以便下次调用时重新初始化
+        if ($parent_document_id == 0) {
+            $documentIdMap = null;
+            $childrenMap = null;
+        }
+        
         return $result;
     }
     
     /**
-     * 获取所有文档（扁平化列表）
+     * 获取所有文档（扁平化列表，带限制和分页）
      */
-    public function getAllDocuments() {
-        $stmt = $this->db->prepare("SELECT d.*, u.username 
-                                  FROM documents d 
-                                  LEFT JOIN users u ON d.user_id = u.id 
-                                  ORDER BY d.sort_order ASC, d.document_id ASC");
-        $stmt->execute();
-        $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    public function getAllDocuments($limit = null, $offset = 0) {
+        $sql = "SELECT d.*, u.username 
+                FROM documents d 
+                LEFT JOIN users u ON d.user_id = u.id 
+                WHERE d.del_status = 0";
         
-        return $documents;
+        if ($limit !== null) {
+            $sql .= " LIMIT ? OFFSET ?";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute([$limit, $offset]);
+        } else {
+            $sql .= " ORDER BY d.sort_order ASC, d.document_id ASC";
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute();
+        }
+        
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
