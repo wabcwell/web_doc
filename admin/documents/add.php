@@ -16,9 +16,7 @@ $documents = $tree->getAllDocumentsByHierarchy();
 $parent_id_param = $_GET['parent_id'] ?? 0;
 $sort_order_param = $_GET['sort_order'] ?? 0;
 
-// 直接获取新的document_id - 使用数据库自增机制
-$pre_generated_document_id = get_next_available_document_id();
-mark_document_id_allocated($pre_generated_document_id, $_SESSION['user_id'] ?? 1);
+// document_id将通过数据库自增机制生成，无需预生成
 
 // 处理表单提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -34,18 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 生成唯一的update_code
         $update_code = uniqid() . '_' . time();
         
-        // 使用预生成的document_id，并验证其有效性
-        $new_document_id = intval($_POST['document_id'] ?? $pre_generated_document_id);
-        
-        // 验证预生成的document_id是否已被使用
-        $check_stmt = $db->prepare("SELECT COUNT(*) FROM documents WHERE document_id = ?");
-        $check_stmt->execute([$new_document_id]);
-        if ($check_stmt->fetchColumn() > 0) {
-            // 如果已被使用，重新生成
-            $max_stmt = $db->query("SELECT MAX(document_id) as max_id FROM documents");
-            $max_result = $max_stmt->fetch(PDO::FETCH_ASSOC);
-            $new_document_id = ($max_result['max_id'] ?? 0) + 1;
-        }
+        // 获取下一个可用的document_id（通过数据库自增）
+        $new_document_id = get_next_available_document_id();
         
         $stmt = $db->prepare("INSERT INTO documents (document_id, title, content, parent_id, sort_order, tags, is_public, is_formal, created_at, updated_at, update_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)");
         $stmt->execute([$new_document_id, $title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal, $update_code]);
@@ -66,9 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // 将document_id_apportion中的ID标记为已使用
         mark_document_id_used($new_document_id, $_SESSION['user_id'] ?? 1);
-        
-        // 清理session中的预生成ID
-        unset($_SESSION[$session_key]);
         
         header('Location: index.php?success=add');
         exit;
@@ -158,7 +143,7 @@ include '../sidebar.php';
             <h1>添加新文档</h1>
             
             <form method="post" id="documentForm">
-                <input type="hidden" name="document_id" value="<?php echo $pre_generated_document_id; ?>">
+
                 <div class="d-flex flex-column flex-lg-row" id="responsive-container" style="gap: 15px;">
                     <!-- 左侧：文档标题和内容模块 -->
                     <div class="flex-grow-1">
