@@ -299,7 +299,7 @@ include '../sidebar.php';
     <script>
     // 设置UEditor服务器URL - 上传时动态获取document_id
     window.UEDITOR_CONFIG = window.UEDITOR_CONFIG || {};
-    window.UEDITOR_CONFIG.serverUrl = '/admin/ueditor_upload.php';
+    window.UEDITOR_CONFIG.serverUrl = '/admin/ueditor_upload.php?document_id=<?php echo $pre_generated_document_id; ?>';
     
     // 简化的高度调整
     function autoHeight() {
@@ -322,7 +322,7 @@ include '../sidebar.php';
         autoFloatEnabled: false,
         minFrameHeight: 500,
         maxFrameHeight: 1200,
-        serverUrl: '/admin/ueditor_upload.php'
+        serverUrl: '/admin/ueditor_upload.php?document_id=<?php echo $pre_generated_document_id; ?>'
     });
 
     // 表单提交处理
