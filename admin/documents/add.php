@@ -16,17 +16,9 @@ $documents = $tree->getAllDocumentsByHierarchy();
 $parent_id_param = $_GET['parent_id'] ?? 0;
 $sort_order_param = $_GET['sort_order'] ?? 0;
 
-// 获取预生成的document_id - 防止重复分配
-$session_key = 'add_page_document_id_' . session_id();
-if (isset($_SESSION[$session_key])) {
-    // 如果已有预生成的ID，使用它而不是重新生成
-    $pre_generated_document_id = $_SESSION[$session_key];
-} else {
-    // 生成新的ID并存储到session
-    $pre_generated_document_id = get_next_available_document_id();
-    mark_document_id_allocated($pre_generated_document_id, $_SESSION['user_id'] ?? 1);
-    $_SESSION[$session_key] = $pre_generated_document_id;
-}
+// 直接获取新的document_id - 使用数据库自增机制
+$pre_generated_document_id = get_next_available_document_id();
+mark_document_id_allocated($pre_generated_document_id, $_SESSION['user_id'] ?? 1);
 
 // 处理表单提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
