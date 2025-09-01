@@ -186,6 +186,11 @@
             if (img) {
                 this.setImage(img);
             }
+            // 默认勾选锁定图片大小比例
+            var locker = $G('lock');
+            if (!locker.disabled) {
+                locker.checked = true;
+            }
         },
         initEvents: function () {
             var _this = this,

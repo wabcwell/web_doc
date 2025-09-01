@@ -196,7 +196,6 @@ include '../sidebar.php';
                     <div class="flex-grow-1">
                         <!-- 文档标题 -->
                         <div class="form-group mb-3">
-                            <label for="title">文档标题 *</label>
                             <input type="text" class="form-control" id="title" name="title" required 
                                    value="<?php echo htmlspecialchars($document['title'] ?? ''); ?>" 
                                    placeholder="请输入文档标题">
@@ -209,6 +208,31 @@ include '../sidebar.php';
                     
                     <!-- 右侧：设置和按钮模块 -->
                     <div class="flex-shrink-0" style="width: 280px; flex: 0 0 280px;">
+                        <!-- 文档信息模块 -->
+                        <div class="card mb-3">
+                            <div class="card-header">
+                                <h6 class="mb-0"><i class="bi bi-info-circle"></i> 文档信息</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-2">
+                                    <small class="text-muted">文档ID</small>
+                                    <div class="fw-bold"><?php echo $document['document_id']; ?></div>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">创建时间</small>
+                                    <div class="fw-bold"><?php echo date('Y-m-d H:i', strtotime($document['created_at'])); ?></div>
+                                </div>
+                                <div class="mb-2">
+                                    <small class="text-muted">更新时间</small>
+                                    <div class="fw-bold"><?php echo date('Y-m-d H:i', strtotime($document['updated_at'])); ?></div>
+                                </div>
+                                <div class="mb-0">
+                                    <small class="text-muted">更新代码</small>
+                                    <div class="fw-bold text-break" style="font-size: 0.8em;"><?php echo $document['update_code'] ?? 'N/A'; ?></div>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="card">
                             <div class="card-body">
                                 <!-- 公开性选项 -->
@@ -289,6 +313,15 @@ include '../sidebar.php';
     <script src="../assets/ueditorplus/lang/zh-cn/zh-cn.js"></script>
     
     <script>
+    // 简化的高度调整
+    function autoHeight() {
+        var editor = UE.getEditor('editor');
+        editor.ready(function() {
+            // 启用UEditor内置自动增高
+            editor.setOpt('autoHeightEnabled', true);
+        });
+    }
+
     // 初始化UEditorPlus
     const ue = UE.getEditor('editor', {
         autoHeightEnabled: true,

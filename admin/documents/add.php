@@ -192,7 +192,6 @@ include '../sidebar.php';
                     <div class="flex-grow-1">
                         <!-- 文档标题 -->
                         <div class="form-group mb-3">
-                            <label for="title">文档标题 *</label>
                             <input type="text" class="form-control" id="title" name="title" required 
                                    placeholder="请输入文档标题">
                         </div>
