@@ -188,7 +188,29 @@ function format_file_size($bytes): string {
 }
 
 // 辅助函数：获取文件类型图标
-function get_file_icon($file_type): string {
+function get_file_icon($file_type, $file_format = ''): string {
+    // 为特定文件格式设置图标
+    if ($file_format) {
+        $format_icons = [
+            'pdf' => 'bi-file-earmark-pdf-fill',
+            'doc' => 'bi-file-earmark-word-fill',
+            'docx' => 'bi-file-earmark-word-fill',
+            'xls' => 'bi-file-earmark-excel-fill',
+            'xlsx' => 'bi-file-earmark-excel-fill',
+            'ppt' => 'bi-file-earmark-ppt-fill',
+            'pptx' => 'bi-file-earmark-ppt-fill',
+            'zip' => 'bi-file-earmark-zip-fill',
+            'rar' => 'bi-file-earmark-zip-fill',
+            'txt' => 'bi-file-earmark-text-fill',
+            'md' => 'bi-file-earmark-text-fill'
+        ];
+        
+        if (isset($format_icons[$file_format])) {
+            return $format_icons[$file_format];
+        }
+    }
+    
+    // 默认按文件类型设置图标
     $icons = [
         'image' => 'bi-image-fill',
         'video' => 'bi-camera-video-fill',
@@ -206,13 +228,6 @@ function render_action_buttons(array $file, bool $is_admin): string {
     $file_name = htmlspecialchars(basename($file['file_path']), ENT_QUOTES, 'UTF-8');
     
     $html = '<div class="btn-group" role="group" style="gap: 2px;">';
-    
-    // 查看按钮 - 蓝色 (#64b5f6)
-    $html .= '<a href="/uploads/' . htmlspecialchars($file['file_path'], ENT_QUOTES, 'UTF-8') . '" target="_blank" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="查看文件"';
-    $html .= ' onmouseover="this.style.backgroundColor=\'#90caf9\'; this.style.borderColor=\'#90caf9\';" ';
-    $html .= ' onmouseout="this.style.backgroundColor=\'#64b5f6\'; this.style.borderColor=\'#64b5f6\';">';
-    $html .= '<i class="bi bi-eye" style="font-size: 14px; margin: 0 auto;"></i>';
-    $html .= '</a>';
     
     // 编辑按钮 - 橙色 (#ffb74d)
     $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="编辑信息" ';
@@ -316,23 +331,57 @@ $stats = get_file_stats($db);
         }
         
         .stats-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+            background: #f8f9fa;
+            color: #333;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+            height: 100%;
+        }
+        
+        .stats-card-primary {
+            border-left: 3px solid #0d6efd;
+            background-color: #f0f6ff;
+        }
+        
+        .stats-card-secondary {
+            border-left: 3px solid #6c757d;
+            background-color: #f0f0f0;
+        }
+        
+        .stats-card-tertiary {
+            border-left: 3px solid #20c997;
+            background-color: #f0fdf4;
         }
         
         .stats-card h4 {
             margin: 0;
-            font-size: 1.1rem;
-            opacity: 0.9;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #495057;
         }
         
         .stats-card .display-4 {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin: 10px 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 8px 0;
+            color: #212529;
+        }
+        
+        .stats-card .type-distribution {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #e9ecef;
+        }
+        
+        .stats-card .type-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            padding: 3px 0;
+            font-size: 0.85rem;
         }
         
         .filter-section {
@@ -370,30 +419,31 @@ $stats = get_file_stats($db);
             </div>
 
             <!-- 统计信息卡片 -->
-            <div class="row mb-4">
-                <div class="col-md-3">
-                    <div class="stats-card">
+            <div class="row mb-3">
+                <div class="col-md-3 mb-2 mb-md-0">
+                    <div class="stats-card stats-card-primary h-100">
                         <h4>总文件数</h4>
                         <div class="display-4"><?php echo number_format($stats['total_files']); ?></div>
                     </div>
                 </div>
-                <div class="col-md-3">
-                    <div class="stats-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <div class="col-md-3 mb-2 mb-md-0">
+                    <div class="stats-card stats-card-secondary h-100">
                         <h4>总大小</h4>
                         <div class="display-4"><?php echo format_file_size($stats['total_size']); ?></div>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="stats-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                    <div class="stats-card stats-card-tertiary h-100">
                         <h4>文件类型分布</h4>
-                        <div class="row">
+                        <div class="type-distribution">
                             <?php foreach ($stats['type_stats'] as $type): ?>
-                                <div class="col-6">
-                                    <small><?php echo get_file_type_chinese($type['file_type']); ?>: <?php echo $type['count']; ?>个</small>
+                                <div class="type-item">
+                                    <span><?php echo get_file_type_chinese($type['file_type']); ?></span>
+                                    <span><?php echo $type['count']; ?>个</span>
                                 </div>
                             <?php endforeach; ?>
-                          </div>
-                      </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -625,8 +675,15 @@ $stats = get_file_stats($db);
                                                          data-image-src="<?php echo htmlspecialchars($file['file_path']); ?>"
                                                          data-image-name="<?php echo htmlspecialchars(basename($file['file_path'])); ?>">
                                                 <?php else: ?>
-                                                    <i class="bi <?php echo get_file_icon($file['file_type']); ?> file-icon" 
-                                                       style="color: <?php echo get_file_color($file['file_type']); ?>"></i>
+                                                    <?php if ($file['file_format'] === 'pdf'): ?>
+                                                        <a href="<?php echo htmlspecialchars($file['file_path']); ?>" target="_blank" style="text-decoration: none;">
+                                                            <i class="bi <?php echo get_file_icon($file['file_type'], $file['file_format']); ?> file-icon" 
+                                                               style="color: <?php echo get_file_color($file['file_type'], $file['file_format']); ?>; cursor: pointer; font-size: 30px;"></i>
+                                                        </a>
+                                                    <?php else: ?>
+                                                        <i class="bi <?php echo get_file_icon($file['file_type'], $file['file_format']); ?> file-icon" 
+                                                           style="color: <?php echo get_file_color($file['file_type'], $file['file_format']); ?>; cursor: pointer; font-size: 30px;"></i>
+                                                    <?php endif; ?>
                                                 <?php endif; ?>
                                             </td>
                                             <td>
@@ -758,7 +815,29 @@ $stats = get_file_stats($db);
 
     <!-- 添加辅助函数 -->
     <?php
-    function get_file_color($file_type) {
+    function get_file_color($file_type, $file_format = '') {
+        // 为特定文件格式设置颜色
+        if ($file_format) {
+            $format_colors = [
+                'pdf' => '#dc3545',     // 红色
+                'doc' => '#1E90FF',     // 蓝色
+                'docx' => '#1E90FF',    // 蓝色
+                'xls' => '#32CD32',     // 绿色
+                'xlsx' => '#32CD32',    // 绿色
+                'ppt' => '#FF8C00',     // 橙色
+                'pptx' => '#FF8C00',    // 橙色
+                'zip' => '#800080',     // 紫色
+                'rar' => '#800080',     // 紫色
+                'txt' => '#6c757d',     // 灰色
+                'md' => '#6c757d'       // 灰色
+            ];
+            
+            if (isset($format_colors[$file_format])) {
+                return $format_colors[$file_format];
+            }
+        }
+        
+        // 默认按文件类型设置颜色
         $colors = [
             'image' => '#28a745',
             'video' => '#dc3545',
@@ -776,8 +855,8 @@ $stats = get_file_stats($db);
     <script>
         // 编辑文件信息
         function editFile(fileId) {
-            // 这里可以添加编辑文件信息的逻辑
-            alert('编辑文件功能开发中...');
+            // 跳转到编辑页面
+            window.location.href = 'edit.php?id=' + fileId;
         }
 
         // 删除文件

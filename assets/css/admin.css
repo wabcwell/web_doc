@@ -18,6 +18,24 @@ body {
     margin-right: 8px;
 }
 
+/* 文件列表图标样式 */
+.file-icon {
+    font-size: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 1.5em;
+    line-height: 1;
+    text-align: center;
+    width: 100%;
+}
+
+/* 文件列表表格单元格垂直居中 */
+table td.text-center:first-child {
+    vertical-align: middle;
+}
+
 /* 侧边栏样式 - 统一导航区域背景样式系统 */
 .sidebar {
     position: fixed;
@@ -472,6 +490,85 @@ tr:hover {
     font-size: 12px;
 }
 
+/* 文件预览区域下载按钮优化 */
+.card-header .btn-download {
+    background: #7daea3; /* 莫兰迪绿色 */
+    border-color: #7daea3;
+    color: #ffffff;
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.card-header .btn-download:hover {
+    background: #639287; /* 悬停时使用深一点的绿色 */
+    border-color: #639287;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(125, 174, 163, 0.3);
+}
+
+.card-header .btn-download:focus {
+    box-shadow: 0 0 0 0.2rem rgba(125, 174, 163, 0.25);
+}
+
+/* 莫兰迪色系按钮样式 */
+.btn-morandi {
+    background: #6a8ca3; /* 莫兰迪蓝色 */
+    border-color: #6a8ca3;
+    color: #ffffff;
+    transition: all 0.2s ease;
+}
+
+.btn-morandi:hover {
+    background: #507088; /* 悬停时使用深一点的蓝色 */
+    border-color: #507088;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(106, 140, 163, 0.3);
+}
+
+.btn-morandi:focus {
+    box-shadow: 0 0 0 0.2rem rgba(106, 140, 163, 0.25);
+}
+
+/* 返回按钮深青色样式 */
+.btn-secondary {
+    background: #7da8a6 !important; /* 深青色 */
+    border-color: #7da8a6 !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+    background: #6a9592 !important; /* 悬停时使用更深一点的青色 */
+    border-color: #6a9592 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(125, 168, 166, 0.3) !important;
+}
+
+.btn-secondary:focus {
+    box-shadow: 0 0 0 0.2rem rgba(125, 168, 166, 0.25) !important;
+}
+
+/* 下载按钮深莫兰迪蓝色样式 */
+.btn-download {
+    background: #7a9fb3 !important; /* 深莫兰迪蓝色 */
+    border-color: #7a9fb3 !important;
+    color: #ffffff !important;
+    transition: all 0.2s ease;
+}
+
+.btn-download:hover {
+    background: #628799 !important; /* 悬停时使用更深一点的蓝色 */
+    border-color: #628799 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(122, 159, 179, 0.3) !important;
+}
+
+.btn-download:focus {
+    box-shadow: 0 0 0 0.2rem rgba(122, 159, 179, 0.25) !important;
+}
+
 /* 消息样式 */
 .alert {
     border-radius: 8px;
@@ -599,7 +696,7 @@ tr:hover {
 
 .card-header {
     background: #ffffff;
-    padding: 20px;
+    padding: 12px 20px;
     border-bottom: 1px solid #e9ecef;
     font-weight: 600;
     color: #495057;
@@ -747,6 +844,20 @@ tr:hover {
 
 .btn-secondary:hover {
     background: #5a6268;
+}
+
+/* 图片预览区域样式 - 自动缩放图片 */
+.card-body.text-center {
+    text-align: center;
+    min-height: 200px;
+}
+
+.card-body.text-center img {
+    max-width: 100%;
+    max-height: 550px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
 }
 
 /* 面包屑导航样式优化 */

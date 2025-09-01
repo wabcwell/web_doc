@@ -212,7 +212,8 @@ function handleUpload() {
     
     // 生成文件名
     $extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    $filename = uniqid() . '_' . time() . '.' . $extension;
+    // 使用Unix时间戳（精确到毫秒）来命名文件
+    $filename = round(microtime(true) * 1000) . '.' . $extension;
     $uploadPath = $fullDir . $filename;
     
     if (move_uploaded_file($file['tmp_name'], $uploadPath)) {
