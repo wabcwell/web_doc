@@ -58,32 +58,65 @@ include '../sidebar.php';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
     <link rel="stylesheet" href="../../assets/css/admin.css">
     <style>
-        .markdown-content {
-            line-height: 1.8;
-        }
-        .markdown-content h1, .markdown-content h2, .markdown-content h3,
-        .markdown-content h4, .markdown-content h5, .markdown-content h6 {
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
-            font-weight: 600;
-        }
-        .markdown-content pre {
-            background-color: #f8f9fa;
-            border: 1px solid #e9ecef;
-            border-radius: 0.375rem;
-            padding: 1rem;
-            overflow-x: auto;
-        }
-        .markdown-content code {
-            background-color: #f8f9fa;
-            padding: 0.2em 0.4em;
-            border-radius: 0.25rem;
-            font-size: 0.875em;
-        }
-        .markdown-content pre code {
-            background-color: transparent;
+        /* 保持与documents/view.php一致的布局样式 */
+        .container-fluid {
             padding: 0;
-            font-size: inherit;
+            margin: 0;
+        }
+        
+        .document-content-area {
+            flex: 1;
+            padding-right: 0;
+        }
+        
+        .document-info-area {
+            width: 300px;
+            padding-left: 20px;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 1127px) {
+            .document-info-area {
+                width: 100%;
+                padding-left: 0;
+                margin-top: 1rem;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .col-md-8 {
+                margin-right: 30%;
+            }
+        }
+        
+        .document-content img {
+            max-width: 100%;
+            height: auto !important;
+            display: block;
+            margin: 1rem 0;
+            object-fit: contain;
+        }
+        
+        .document-content {
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+            max-width: 100%;
+        }
+        
+        .document-content table {
+            max-width: 100%;
+            overflow-x: auto;
+            display: block;
+        }
+        
+        /* 防止图片变形 */
+        .document-content img:not([height]) {
+            height: auto !important;
+        }
+        
+        /* 确保容器不溢出 */
+        .document-content > * {
+            max-width: 100%;
         }
     </style>
 </head>
@@ -142,9 +175,9 @@ include '../sidebar.php';
                 <?php endif; ?>
             </div>
 
-            <!-- 文档内容区域 -->
-            <div class="row">
-                <div class="col-md-8">
+            <!-- 文档信息卡片 -->
+            <div class="d-flex flex-row flex-wrap">
+                <div class="document-content-area">
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0"><i class="bi bi-file-text"></i> 文档内容</h5>
@@ -185,7 +218,7 @@ include '../sidebar.php';
                     </div>
                 </div>
                 
-                <div class="col-md-4">
+                <div class="document-info-area">
                     <!-- 文档信息模块 -->
                     <div class="card mb-4">
                         <div class="card-header">

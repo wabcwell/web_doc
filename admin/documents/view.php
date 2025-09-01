@@ -46,6 +46,38 @@ include '../sidebar.php';
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
     <link rel="stylesheet" href="../../assets/css/admin.css">
     <style>
+        .container-fluid {
+            padding-left: 0;
+            padding-right: 0;
+            margin-left: 0;
+            margin-right: 0;
+        }
+        
+        /* 左侧文档内容区域 */
+        .document-content-area {
+            flex: 1;
+            padding-right: 0;
+        }
+        
+        /* 右侧文档信息（操作）区域 */
+        .document-info-area {
+            width: 300px;
+            padding-left: 20px;
+        }
+        
+        /* 在小屏幕上调整布局 */
+        @media (max-width: 1127px) {
+            .document-info-area {
+                width: 100%;
+                padding-left: 0;
+                margin-top: 20px;
+            }
+            
+            .document-content-area {
+                padding-right: 0;
+            }
+        }
+        
         .document-content img {
             max-width: 100%;
             height: auto !important;
@@ -74,6 +106,39 @@ include '../sidebar.php';
         /* 确保容器不溢出 */
         .document-content > * {
             max-width: 100%;
+        }
+        
+        /* 为.col-md-8添加margin-right以避免与.col-md-4重叠 */
+        @media (min-width: 768px) {
+            .col-md-8 {
+                margin-right: 30%; /* 使用相对单位而不是绝对像素值 */
+            }
+            
+            /* 使card填满col-md-8的宽度 */
+            .col-md-8 .card {
+                width: 100%;
+                margin-right: 0;
+            }
+        }
+        
+
+        
+        @media (max-width: 768px) {
+            .document-info-area {
+                position: relative;
+                width: auto;
+                right: 0;
+                margin-top: 20px;
+            }
+            
+            .document-content-area {
+                margin-right: 0;
+            }
+            
+            .document-content-area .card {
+                width: 100%;
+                margin-right: 0;
+            }
         }
     </style>
 </head>
@@ -105,8 +170,8 @@ include '../sidebar.php';
             </div>
 
             <!-- 文档信息卡片 -->
-            <div class="row">
-                <div class="col-md-8">
+            <div class="d-flex flex-row flex-wrap">
+                <div class="document-content-area">
                     <div class="card">
                         <div class="card-header">
                             <h5 class="mb-0">文档内容</h5>
@@ -147,7 +212,7 @@ include '../sidebar.php';
                     </div>
                 </div>
                 
-                <div class="col-md-4">
+                <div class="document-info-area">
                     <!-- 文档信息 -->
                     <div class="card mb-4">
                         <div class="card-header">
