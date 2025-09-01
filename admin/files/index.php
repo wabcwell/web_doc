@@ -247,6 +247,14 @@ function render_action_buttons(array $file, bool $is_admin): string {
     $html .= '<i class="bi bi-trash-fill" style="font-size: 14px; margin: 0 auto;"></i>';
     $html .= '</button>';
     
+    // 下载按钮 - 蓝色 (#2196f3)
+    $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #2196f3; border-color: #2196f3; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="下载文件" ';
+    $html .= 'onclick="downloadFile(' . $file_id . ')" ';
+    $html .= ' onmouseover="this.style.backgroundColor=\'#42a5f5\'; this.style.borderColor=\'#42a5f5\';" ';
+    $html .= ' onmouseout="this.style.backgroundColor=\'#2196f3\'; this.style.borderColor=\'#2196f3\';">';
+    $html .= '<i class="bi bi-download" style="font-size: 14px; margin: 0 auto;"></i>';
+    $html .= '</button>';
+    
     $html .= '</div>';
     
     return $html;
@@ -1004,6 +1012,12 @@ $stats = get_file_stats($db);
 
             // 这里可以添加批量下载的逻辑
             alert(`正在准备下载 ${selectedFiles.length} 个文件...\n文件ID: ${selectedFiles.join(', ')}`);
+        }
+
+        // 下载单个文件
+        function downloadFile(fileId) {
+            // 直接跳转到下载链接
+            window.location.href = 'download.php?id=' + fileId;
         }
 
         // 图片预览功能

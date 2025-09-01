@@ -28,12 +28,22 @@ if (!$file) {
 
 // 处理表单提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $fileName = $_POST['fileName'] ?? '';
     $description = $_POST['description'] ?? '';
     $notes = $_POST['notes'] ?? '';
     
+    // 获取文件扩展名并确保文件名包含扩展名
+    $fileExtension = pathinfo($file['file_path'], PATHINFO_EXTENSION);
+    if (!empty($fileName) && !empty($fileExtension)) {
+        // 确保文件名包含正确的扩展名
+        if (pathinfo($fileName, PATHINFO_EXTENSION) !== $fileExtension) {
+            $fileName .= '.' . $fileExtension;
+        }
+    }
+    
     // 更新文件信息
-    $stmt = $db->prepare("UPDATE file_upload SET description = ?, notes = ?, updated_at = datetime('now') WHERE id = ?");
-    $stmt->execute([$description, $notes, $id]);
+    $stmt = $db->prepare("UPDATE file_upload SET alias = ?, description = ?, notes = ?, updated_at = datetime('now') WHERE id = ?");
+    $stmt->execute([$fileName, $description, $notes, $id]);
     
     header('Location: edit.php?id=' . $id . '&success=update');
     exit;
@@ -78,6 +88,115 @@ function format_file_size($size) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../../assets/css/admin.css">
+    <style>
+        /* 图片预览样式 */
+        .preview-image {
+            max-height: 300px;
+            object-fit: contain;
+            cursor: pointer;
+        }
+        
+        /* 确保模态框样式一致 */
+        .modal-content {
+            border: none;
+            border-radius: 0.5rem;
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid #e9ecef;
+        }
+        
+        /* 添加模态框全屏样式 */
+        .modal-fullscreen-height {
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+        }
+        
+        .modal-fullscreen-height .modal-dialog {
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+        }
+        
+        .modal-fullscreen-height .modal-content {
+            height: 100vh !important;
+            max-height: 100vh !important;
+            border: none !important;
+            border-radius: 0 !important;
+        }
+        
+        .modal-fullscreen-height .modal-body {
+            height: calc(100% - 5rem) !important; /* 减去header和footer的高度 */
+        }
+        
+        .modal-fullscreen-height .modal-body img {
+            max-height: 100% !important;
+            max-width: 100% !important;
+            object-fit: contain !important;
+        }
+        
+        #imageModal .modal-dialog {
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+        }
+        
+        #imageModal .modal-content {
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
+        }
+        
+        #imageModal .modal-body {
+            height: calc(100vh - 5rem) !important; /* 减去header和footer的高度 */
+        }
+        
+        #imageModal .modal-body img {
+            max-height: 100% !important;
+            max-width: 100% !important;
+            object-fit: contain !important;
+        }
+        
+        #imageModal.modal-fullscreen-height .modal-dialog {
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+        }
+        
+        #imageModal.modal-fullscreen-height .modal-content {
+            max-width: 100vw !important;
+            max-height: 100vh !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            border: none !important;
+            border-radius: 0 !important;
+        }
+        
+        #imageModal.modal-fullscreen-height .modal-body {
+            max-height: calc(100vh - 5rem) !important; /* 减去header和footer的高度 */
+            height: calc(100% - 5rem) !important; /* 减去header和footer的高度 */
+        }
+        
+        #imageModal.modal-fullscreen-height .modal-body img {
+            max-height: 100% !important;
+            max-width: 100% !important;
+            object-fit: contain !important;
+        }
+    </style>
 </head>
 <body>
     <div class="main-content">
@@ -109,7 +228,10 @@ function format_file_size($size) {
                         </div>
                         <div class="card-body text-center">
                             <?php if ($file['file_type'] == 'image'): ?>
-                                <img src="/<?php echo ltrim($file['file_path'], '/'); ?>" class="img-fluid mb-3" alt="<?php echo htmlspecialchars($file['alias'] ?? basename($file['file_path'])); ?>">
+                                <!-- 点击图片查看大图 -->
+                                <img src="/<?php echo ltrim($file['file_path'], '/'); ?>" class="img-fluid mb-3 preview-image" alt="<?php echo htmlspecialchars($file['alias'] ?? basename($file['file_path'])); ?>" data-bs-toggle="modal" data-bs-target="#imageModal" data-image-src="/<?php echo ltrim($file['file_path'], '/'); ?>" data-image-name="<?php echo htmlspecialchars($file['alias'] ?? basename($file['file_path'])); ?>">
+                                
+                                <!-- 大图浏览模态框在页面底部 -->
                             <?php else: ?>
                                 <?php if ($file['file_format'] === 'pdf'): ?>
                                     <a href="/<?php echo ltrim($file['file_path'], '/'); ?>" target="_blank" style="text-decoration: none;">
@@ -159,6 +281,7 @@ function format_file_size($size) {
                                 <?php if (!empty($file['username'])): ?>
                                     <span>上传者: <?php echo htmlspecialchars($file['username']); ?></span>
                                 <?php endif; ?>
+                                <span>上传时间: <?php echo date('Y-m-d H:i', strtotime($file['uploaded_at'])); ?></span>
                             </div>
                         </div>
                     </div>
@@ -174,12 +297,8 @@ function format_file_size($size) {
                             <form method="post" id="fileForm">
                                 <div class="mb-3">
                                     <label for="fileName" class="form-label">文件名</label>
-                                    <input type="text" class="form-control" id="fileName" value="<?php echo htmlspecialchars($file['alias'] ?? basename($file['file_path'])); ?>" readonly>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label for="uploadedAt" class="form-label">上传时间</label>
-                                    <input type="text" class="form-control" id="uploadedAt" value="<?php echo date('Y-m-d H:i:s', strtotime($file['uploaded_at'])); ?>" readonly>
+                                    <input type="text" class="form-control" id="fileName" name="fileName" value="<?php echo htmlspecialchars($file['alias'] ?? pathinfo($file['file_path'], PATHINFO_FILENAME)); ?>">
+                                    <input type="hidden" id="fileExtension" name="fileExtension" value="<?php echo pathinfo($file['file_path'], PATHINFO_EXTENSION); ?>">
                                 </div>
                                 
                                 <div class="mb-3">
@@ -206,5 +325,66 @@ function format_file_size($size) {
     </div>
     
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 图片预览功能
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageModal = document.getElementById('imageModal');
+            const modalImage = document.getElementById('modalImage');
+            const imageModalLabel = document.getElementById('imageModalLabel');
+
+            imageModal.addEventListener('show.bs.modal', function(event) {
+                console.log('Modal show event triggered');
+                const thumbnail = event.relatedTarget;
+                const imageSrc = thumbnail.getAttribute('data-image-src');
+                const imageName = thumbnail.getAttribute('data-image-name');
+                
+                console.log('Image source:', imageSrc);
+                console.log('Image name:', imageName);
+                
+                modalImage.src = imageSrc;
+                modalImage.alt = imageName;
+                imageModalLabel.textContent = imageName;
+                
+                // 创建一个临时图片对象来获取图片的真实尺寸
+                const tempImage = new Image();
+                tempImage.onload = function() {
+                    const imageHeight = this.height;
+                    const windowHeight = window.innerHeight;
+                    
+                    // 移除可能已存在的全屏类
+                    imageModal.classList.remove('modal-fullscreen-height');
+                    
+                    // 如果图片高度大于等于浏览器高度，则添加全屏类
+                    if (imageHeight >= windowHeight) {
+                        imageModal.classList.add('modal-fullscreen-height');
+                    }
+                    
+                    console.log('Image height:', imageHeight);
+                    console.log('Window height:', windowHeight);
+                };
+                tempImage.src = imageSrc;
+                
+                console.log('Modal content updated');
+            });
+        });
+    </script>
+    <!-- 图片预览模态框 -->
+    <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalLabel">图片预览</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body text-center">
+                    <img id="modalImage" src="" alt="" class="img-fluid">
+                </div>
+                <div class="modal-footer">
+                    <!-- 移除了下载和关闭按钮 -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
 </body>
 </html>
