@@ -168,7 +168,7 @@ include 'sidebar.php';
 <body>
     <div class="main-content">
         <div class="container-fluid">
-            <h1>系统设置</h1>
+            <h1><i class="bi bi-gear"></i> 系统设置</h1>
             
             <!-- 消息提示 -->
             <?php if ($message): ?>

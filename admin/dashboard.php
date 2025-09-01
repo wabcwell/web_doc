@@ -39,7 +39,7 @@ include 'sidebar.php';
 <body>
     <div class="main-content">
         <div class="container-fluid">
-            <h1>仪表盘</h1>
+            <h1><i class="bi bi-speedometer2"></i> 仪表盘</h1>
 
             <?php if ($error): ?>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
