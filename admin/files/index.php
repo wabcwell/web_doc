@@ -485,7 +485,7 @@ $stats = get_file_stats($db);
             <div class="card">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">文件列表</h5>
+                        <h5 class="mb-0"><i class="bi bi-folder"></i> 文件列表</h5>
                         <div class="d-flex align-items-center">
                             <div id="batchActions" class="me-3" style="display: none;">
                                 <button type="button" class="btn btn-danger btn-sm" onclick="batchDelete()">

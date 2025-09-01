@@ -138,7 +138,7 @@ include 'sidebar.php';
                 <div class="col-lg-6">
                     <div class="card h-100">
                         <div class="card-header">
-                            <h5 class="mb-0">最近创建</h5>
+                            <h5 class="mb-0"><i class="bi bi-plus-circle"></i> 最近创建</h5>
                         </div>
                         <div class="card-body">
                             <?php if (empty($recentlyCreatedDocuments)): ?>
@@ -169,7 +169,7 @@ include 'sidebar.php';
                 <div class="col-lg-6">
                     <div class="card h-100">
                         <div class="card-header">
-                            <h5 class="mb-0">最近删除</h5>
+                            <h5 class="mb-0"><i class="bi bi-trash"></i> 最近删除</h5>
                         </div>
                         <div class="card-body">
                             <?php if (empty($recentlyDeletedDocuments)): ?>
@@ -203,7 +203,7 @@ include 'sidebar.php';
                 <div class="col-lg-6">
                     <div class="card h-100">
                         <div class="card-header">
-                            <h5 class="mb-0">版本最多文档</h5>
+                            <h5 class="mb-0"><i class="bi bi-collection"></i> 版本最多文档</h5>
                         </div>
                         <div class="card-body">
                             <?php if (empty($documentsWithMostVersions)): ?>
@@ -234,7 +234,7 @@ include 'sidebar.php';
                 <div class="col-lg-6">
                     <div class="card h-100">
                         <div class="card-header">
-                            <h5 class="mb-0">更新最多文档</h5>
+                            <h5 class="mb-0"><i class="bi bi-arrow-repeat"></i> 更新最多文档</h5>
                         </div>
                         <div class="card-body">
                             <?php if (empty($documentsWithMostOperations)): ?>
