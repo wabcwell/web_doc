@@ -292,7 +292,7 @@ include '../sidebar.php';
                                 
                                 <!-- 按钮组 -->
                                 <div class="d-grid gap-2">
-                                    <button type="submit" class="btn btn-primary">保存修改</button>
+                                    <button type="submit" class="btn btn-success">更新文档</button>
                                     <a href="index.php" class="btn btn-secondary">取消</a>
                                 </div>
                             </div>

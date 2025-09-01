@@ -421,9 +421,6 @@ $stats = get_file_stats($db);
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1><i class="bi bi-folder2-open"></i> 文件管理</h1>
-                <a href="../dashboard.php" class="btn btn-secondary">
-                    <i class="bi bi-arrow-left"></i> 返回仪表板
-                </a>
             </div>
 
             <!-- 统计信息卡片 -->

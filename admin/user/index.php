@@ -136,7 +136,7 @@ include __DIR__ . '/../sidebar.php';
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1><i class="bi bi-people"></i> 用户管理</h1>
-                <a href="add_user.php" class="btn btn-primary">
+                <a href="add_user.php" class="btn btn-secondary">
                     <i class="bi bi-plus-circle"></i> 添加用户
                 </a>
             </div>

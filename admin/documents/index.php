@@ -134,7 +134,7 @@ include '../sidebar.php';
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h1><i class="bi bi-file-text"></i> 文档管理</h1>
-                <a href="add.php" class="btn btn-primary">
+                <a href="add.php" class="btn btn-secondary">
                     <i class="bi bi-plus-circle"></i> 添加文档
                 </a>
             </div>
@@ -171,7 +171,7 @@ include '../sidebar.php';
                         <div class="text-center py-4">
                             <i class="bi bi-file-earmark-text text-muted" style="font-size: 3rem;"></i>
                             <p class="text-muted mt-3">暂无文档，开始创建你的第一篇文档吧！</p>
-                            <a href="add.php" class="btn btn-primary">
+                            <a href="add.php" class="btn btn-secondary">
                                 <i class="bi bi-plus-circle"></i> 创建文档
                             </a>
                         </div>
