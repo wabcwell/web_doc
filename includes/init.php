@@ -112,6 +112,8 @@ function init_database() {
             file_format TEXT NOT NULL,
             file_size INTEGER NOT NULL,
             file_path TEXT NOT NULL,
+            image_width INTEGER,
+            image_height INTEGER,
             alias TEXT,
             document_id INTEGER,
             description TEXT,
@@ -131,6 +133,17 @@ function init_database() {
         $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_file_type ON file_upload(file_type)");
         $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_uploaded_at ON file_upload(uploaded_at)");
         $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_del_status ON file_upload(del_status)");
+        
+        // 检查并添加image_width和image_height字段（用于存储图片尺寸）
+        $columns = $db->query("PRAGMA table_info(file_upload)")->fetchAll(PDO::FETCH_COLUMN, 1);
+        if (!in_array('image_width', $columns)) {
+            // 添加image_width字段
+            $db->exec("ALTER TABLE file_upload ADD COLUMN image_width INTEGER");
+        }
+        if (!in_array('image_height', $columns)) {
+            // 添加image_height字段
+            $db->exec("ALTER TABLE file_upload ADD COLUMN image_height INTEGER");
+        }
 
         // 创建触发器 - 自动更新updated_at字段
         $db->exec("CREATE TRIGGER IF NOT EXISTS update_file_upload_timestamp 

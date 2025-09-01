@@ -222,6 +222,9 @@ function format_file_size($size) {
                             <h5><?php echo htmlspecialchars($file['alias'] ?? basename($file['file_path'])); ?></h5>
                             <div class="d-flex justify-content-center gap-3 flex-wrap">
                                 <span class="text-muted"><?php echo get_file_type_chinese($file['file_type']); ?> (<?php echo strtoupper($file['file_format']); ?>)</span>
+                                <?php if ($file['file_type'] == 'image' && !empty($file['image_width']) && !empty($file['image_height'])): ?>
+                                    <span><?php echo $file['image_width']; ?> × <?php echo $file['image_height']; ?></span>
+                                <?php endif; ?>
                                 <span><?php echo format_file_size($file['file_size']); ?></span>
                                 <?php if (!empty($file['document_title'])): ?>
                                     <span>文档: <?php echo htmlspecialchars($file['document_title']); ?></span>
