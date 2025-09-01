@@ -96,105 +96,54 @@ function format_file_size($size) {
             cursor: pointer;
         }
         
-        /* 确保模态框样式一致 */
-        .modal-content {
-            border: none;
-            border-radius: 0.5rem;
+        /* 隐藏滚动条 */
+        body.modal-open {
+            overflow: hidden !important;
         }
         
-        .modal-header {
-            border-bottom: 1px solid #e9ecef;
+        /* 黑色背景的全屏模态框 */
+        #imageModal.modal-fullscreen .modal-content {
+            background-color: #000;
         }
         
-        .modal-footer {
-            border-top: 1px solid #e9ecef;
+        #imageModal.modal-fullscreen .modal-header {
+            background-color: #000;
+            border-bottom: 1px solid #333;
         }
         
-        /* 添加模态框全屏样式 */
-        .modal-fullscreen-height {
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            margin: 0 !important;
+        #imageModal.modal-fullscreen .modal-title {
+            color: #fff;
         }
         
-        .modal-fullscreen-height .modal-dialog {
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            margin: 0 !important;
+        #imageModal.modal-fullscreen .btn-close {
+            filter: invert(1) grayscale(100%) brightness(200%);
         }
         
-        .modal-fullscreen-height .modal-content {
-            height: 100vh !important;
-            max-height: 100vh !important;
-            border: none !important;
-            border-radius: 0 !important;
+        #imageModal.modal-fullscreen .modal-body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #000;
+            padding: 0;
         }
         
-        .modal-fullscreen-height .modal-body {
-            height: calc(100% - 5rem) !important; /* 减去header和footer的高度 */
+        #imageModal.modal-fullscreen .modal-body img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
         }
         
-        .modal-fullscreen-height .modal-body img {
-            max-height: 100% !important;
-            max-width: 100% !important;
-            object-fit: contain !important;
+        /* 确保模态框背景完全覆盖 */
+        .modal-backdrop.show {
+            opacity: 1 !important;
+        }
+            background-color: rgba(0, 0, 0, 0.8) !important;
         }
         
-        #imageModal .modal-dialog {
-            width: 100vw !important;
-            height: 100vh !important;
-            margin: 0 !important;
-        }
-        
-        #imageModal .modal-content {
-            width: 100vw !important;
-            height: 100vh !important;
-            margin: 0 !important;
-            border: none !important;
-            border-radius: 0 !important;
-        }
-        
-        #imageModal .modal-body {
-            height: calc(100vh - 5rem) !important; /* 减去header和footer的高度 */
-        }
-        
-        #imageModal .modal-body img {
-            max-height: 100% !important;
-            max-width: 100% !important;
-            object-fit: contain !important;
-        }
-        
-        #imageModal.modal-fullscreen-height .modal-dialog {
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            margin: 0 !important;
-        }
-        
-        #imageModal.modal-fullscreen-height .modal-content {
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-            width: 100vw !important;
-            height: 100vh !important;
-            margin: 0 !important;
-            border: none !important;
-            border-radius: 0 !important;
-        }
-        
-        #imageModal.modal-fullscreen-height .modal-body {
-            max-height: calc(100vh - 5rem) !important; /* 减去header和footer的高度 */
-            height: calc(100% - 5rem) !important; /* 减去header和footer的高度 */
-        }
-        
-        #imageModal.modal-fullscreen-height .modal-body img {
-            max-height: 100% !important;
-            max-width: 100% !important;
-            object-fit: contain !important;
+        /* 确保body在模态框打开时隐藏滚动条 */
+        body.modal-open {
+            overflow: hidden !important;
+            padding-right: 0 !important;
         }
     </style>
 </head>
@@ -270,7 +219,6 @@ function format_file_size($size) {
                                     </div>
                                 <?php endif; ?>
                             <?php endif; ?>
-                            
                             <h5><?php echo htmlspecialchars($file['alias'] ?? basename($file['file_path'])); ?></h5>
                             <div class="d-flex justify-content-center gap-3 flex-wrap">
                                 <span class="text-muted"><?php echo get_file_type_chinese($file['file_type']); ?> (<?php echo strtoupper($file['file_format']); ?>)</span>
@@ -345,24 +293,8 @@ function format_file_size($size) {
                 modalImage.alt = imageName;
                 imageModalLabel.textContent = imageName;
                 
-                // 创建一个临时图片对象来获取图片的真实尺寸
-                const tempImage = new Image();
-                tempImage.onload = function() {
-                    const imageHeight = this.height;
-                    const windowHeight = window.innerHeight;
-                    
-                    // 移除可能已存在的全屏类
-                    imageModal.classList.remove('modal-fullscreen-height');
-                    
-                    // 如果图片高度大于等于浏览器高度，则添加全屏类
-                    if (imageHeight >= windowHeight) {
-                        imageModal.classList.add('modal-fullscreen-height');
-                    }
-                    
-                    console.log('Image height:', imageHeight);
-                    console.log('Window height:', windowHeight);
-                };
-                tempImage.src = imageSrc;
+                // 始终使用全屏模式
+                imageModal.classList.add('modal-fullscreen');
                 
                 console.log('Modal content updated');
             });
@@ -370,17 +302,14 @@ function format_file_size($size) {
     </script>
     <!-- 图片预览模态框 -->
     <div class="modal fade" id="imageModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
+        <div class="modal-dialog modal-fullscreen">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="imageModalLabel">图片预览</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="关闭"></button>
                 </div>
-                <div class="modal-body text-center">
+                <div class="modal-body">
                     <img id="modalImage" src="" alt="" class="img-fluid">
-                </div>
-                <div class="modal-footer">
-                    <!-- 移除了下载和关闭按钮 -->
                 </div>
             </div>
         </div>
