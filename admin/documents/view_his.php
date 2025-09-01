@@ -232,7 +232,7 @@ include '../sidebar.php';
                 <div class="document-content-area">
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">文档内容</h5>
+                            <h5 class="mb-0"><i class="bi bi-file-text"></i> 文档内容</h5>
                             <div>
                                 <span class="badge bg-secondary">
                                     版本 <?php echo $current_content['version_number'] ?? '最新'; ?>
@@ -307,7 +307,7 @@ include '../sidebar.php';
                     <!-- 历史版本列表 -->
                     <div class="card mb-4">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">历史版本</h5>
+                            <h5 class="mb-0"><i class="bi bi-clock-history"></i> 历史版本</h5>
                             <?php if (!$show_all && $total_versions > 10): ?>
                                 <a href="?id=<?php echo $id; ?>&show_all=1" class="btn btn-sm btn-outline-primary">
                                     <i class="bi bi-list"></i> 查看所有
@@ -367,7 +367,7 @@ include '../sidebar.php';
                     <!-- 操作记录 -->
                     <div class="card">
                         <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">操作记录</h5>
+                            <h5 class="mb-0"><i class="bi bi-list-ul"></i> 操作记录</h5>
                             <a href="edit_log.php?id=<?php echo $id; ?>" class="btn btn-sm btn-outline-primary">
                                 <i class="bi bi-list"></i> 查看全部
                             </a>

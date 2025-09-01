@@ -174,7 +174,7 @@ include '../sidebar.php';
                 <div class="document-content-area">
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="mb-0">文档内容</h5>
+                            <h5 class="mb-0"><i class="bi bi-file-text"></i> 文档内容</h5>
                         </div>
                         <div class="card-body">
                             <div class="document-content">
@@ -216,7 +216,7 @@ include '../sidebar.php';
                     <!-- 文档信息 -->
                     <div class="card mb-4">
                         <div class="card-header">
-                            <h5 class="mb-0">文档信息</h5>
+                            <h5 class="mb-0"><i class="bi bi-info-circle"></i> 文档信息</h5>
                         </div>
                         <div class="card-body">
                             <dl class="row mb-0">
@@ -290,7 +290,7 @@ include '../sidebar.php';
                     <!-- 操作按钮 -->
                     <div class="card">
                         <div class="card-header">
-                            <h5 class="mb-0">操作</h5>
+                            <h5 class="mb-0"><i class="bi bi-gear"></i> 操作</h5>
                         </div>
                         <div class="card-body">
                             <div class="d-grid gap-2">
