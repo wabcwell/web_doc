@@ -12,11 +12,11 @@ function render_document_action_buttons(array $doc, int $next_child_sort): strin
     
     $html = '<div class="btn-group" role="group" style="gap: 2px;">';
     
-    // 编辑按钮 - 蓝灰色 (#90a4ae)
-    $html .= '<a href="edit.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="编辑"';
+    // 查看按钮 - 蓝灰色 (#90a4ae)
+    $html .= '<a href="view.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="查看"';
     $html .= ' onmouseover="this.style.backgroundColor=\'#b0bec5\'; this.style.borderColor=\'#b0bec5\';"';
     $html .= ' onmouseout="this.style.backgroundColor=\'#90a4ae\'; this.style.borderColor=\'#90a4ae\';">';
-    $html .= '<i class="bi bi-pencil" style="font-size: 14px; margin: 0 auto;"></i>';
+    $html .= '<i class="bi bi-eye" style="font-size: 14px; margin: 0 auto;"></i>';
     $html .= '</a>';
     
     // 版本历史按钮 - 橙色 (#ffb74d)
@@ -212,7 +212,7 @@ include '../sidebar.php';
                                                 <?php if (isset($doc['level']) && $doc['level'] > 0): ?>
                                                     └─
                                                 <?php endif; ?>
-                                                <a href="view.php?id=<?php echo $doc['document_id']; ?>" class="text-decoration-none">
+                                                <a href="edit.php?id=<?php echo $doc['document_id']; ?>" class="text-decoration-none">
                                                     <?php echo htmlspecialchars($doc['title']); ?>
                                                 </a>
                                             </div>
