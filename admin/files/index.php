@@ -866,7 +866,8 @@ $stats = get_file_stats($db);
 
         // 删除文件
         function deleteFile(fileId, fileName) {
-            if (confirm(`确定要删除文件 "${fileName}" 吗？此操作不可恢复！`)) {
+            document.getElementById('deleteFileName').textContent = fileName;
+            document.getElementById('confirmDeleteBtn').onclick = function() {
                 fetch('delete.php', {
                     method: 'POST',
                     headers: {
@@ -889,7 +890,11 @@ $stats = get_file_stats($db);
                     console.error('Error:', error);
                     showMessage('删除请求失败', 'error');
                 });
-            }
+            };
+            
+            // 显示模态框
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            deleteModal.show();
         }
 
         // 显示消息提示
@@ -960,7 +965,8 @@ $stats = get_file_stats($db);
                 return;
             }
 
-            if (confirm(`确定要删除选中的 ${selectedFiles.length} 个文件吗？此操作不可恢复！`)) {
+            document.getElementById('batchDeleteCount').textContent = selectedFiles.length;
+            document.getElementById('confirmBatchDeleteBtn').onclick = function() {
                 let successCount = 0;
                 let totalCount = selectedFiles.length;
                 
@@ -994,7 +1000,15 @@ $stats = get_file_stats($db);
                         }
                     });
                 });
-            }
+                
+                // 关闭模态框
+                const batchDeleteModal = bootstrap.Modal.getInstance(document.getElementById('batchDeleteModal'));
+                batchDeleteModal.hide();
+            };
+            
+            // 显示批量删除模态框
+            const batchDeleteModal = new bootstrap.Modal(document.getElementById('batchDeleteModal'));
+            batchDeleteModal.show();
         }
 
         // 批量下载
@@ -1045,5 +1059,52 @@ $stats = get_file_stats($db);
             });
         }, 3000);
     </script>
+
+    <!-- 删除确认模态框 -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">确认删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <p>您确定要删除文件 <strong id="deleteFileName"></strong> 吗？</p>
+                    <p class="text-danger mb-0">
+                        <i class="bi bi-exclamation-triangle-fill"></i> 
+                        此操作不可恢复，请谨慎操作！
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" id="confirmDeleteBtn" class="btn btn-danger">确认删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 批量删除确认模态框 -->
+    <div class="modal fade" id="batchDeleteModal" tabindex="-1" aria-labelledby="batchDeleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="batchDeleteModalLabel">确认批量删除</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
+                </div>
+                <div class="modal-body">
+                    <p>您确定要删除选中的 <strong id="batchDeleteCount"></strong> 个文件吗？</p>
+                    <p class="text-danger mb-0">
+                        <i class="bi bi-exclamation-triangle-fill"></i> 
+                        此操作不可恢复，请谨慎操作！
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" id="confirmBatchDeleteBtn" class="btn btn-danger">确认删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
