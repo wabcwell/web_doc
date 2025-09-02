@@ -5,7 +5,12 @@
  */
 
 // 数据库配置
-$db_path = __DIR__ . '/database/docs.db';
+$db_host = '192.168.100.193';
+$db_name = 'web_doc';
+$db_user = 'web_doc';
+$db_pass = 'YjA60cdN9';
+$db_charset = 'utf8mb4';
+$db_port = '33310';
 
 // 网站配置
 $logo_type = 'text'; //text或者img

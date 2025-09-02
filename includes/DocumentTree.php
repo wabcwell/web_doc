@@ -197,7 +197,7 @@ class DocumentTree {
                                   WHERE del_status = 0 
                                   AND is_public = 1 
                                   AND is_formal = 1
-                                  AND created_at >= datetime('now', '-' || ? || ' days')");
+                                  AND created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)");
         $stmt->execute([$days]);
         return $stmt->fetchColumn();
     }
@@ -209,7 +209,7 @@ class DocumentTree {
         $stmt = $this->db->prepare("SELECT COUNT(*) 
                                   FROM documents 
                                   WHERE del_status = 1
-                                  AND deleted_at >= datetime('now', '-' || ? || ' days')");
+                                  AND deleted_at >= DATE_SUB(NOW(), INTERVAL ? DAY)");
         $stmt->execute([$days]);
         return $stmt->fetchColumn();
     }
@@ -221,7 +221,7 @@ class DocumentTree {
         $stmt = $this->db->prepare("SELECT COUNT(*) 
                                   FROM edit_log_new 
                                   WHERE action = 'update'
-                                  AND created_at >= datetime('now', '-' || ? || ' days')");
+                                  AND created_at >= DATE_SUB(NOW(), INTERVAL ? DAY)");
         $stmt->execute([$days]);
         return $stmt->fetchColumn();
     }

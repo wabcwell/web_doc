@@ -67,7 +67,7 @@ try {
     );
     
     // 执行软删除（标记为已删除）
-    $stmt = $db->prepare("UPDATE documents SET del_status = 1, deleted_at = datetime('now'), update_code = ? WHERE document_id = ?");
+    $stmt = $db->prepare("UPDATE documents SET del_status = 1, deleted_at = NOW(), update_code = ? WHERE document_id = ?");
     $stmt->execute([$update_code, $document['document_id']]);
     
     // 提交事务

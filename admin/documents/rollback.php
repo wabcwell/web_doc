@@ -49,7 +49,7 @@ try {
     $update_code = uniqid() . '_' . time();
     
     // 将回滚版本的数据保存为新版本（确保数据一致）
-    $stmt = $db->prepare("INSERT INTO documents_version (document_id, title, content, tags, version_number, created_by, created_at, update_code) VALUES (?, ?, ?, ?, ?, ?, datetime('now'), ?)");
+    $stmt = $db->prepare("INSERT INTO documents_version (document_id, title, content, tags, version_number, created_by, created_at, update_code) VALUES (?, ?, ?, ?, ?, ?, NOW(), ?)");
     $stmt->execute([
         $document_id,
         $version['title'],
@@ -61,7 +61,7 @@ try {
     ]);
     
     // 更新文档为回滚版本的内容（与documents_version表数据完全一致）
-    $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, tags = ?, updated_at = datetime('now'), update_code = ? WHERE document_id = ?");
+    $stmt = $db->prepare("UPDATE documents SET title = ?, content = ?, tags = ?, updated_at = NOW(), update_code = ? WHERE document_id = ?");
     $stmt->execute([
         $version['title'],
         $version['content'],

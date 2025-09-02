@@ -49,7 +49,7 @@ try {
     $stmt->execute([$update_code, $document_id]);
     
     // 记录恢复操作到编辑日志
-    $stmt = $db->prepare("INSERT INTO edit_log (document_id, user_id, action, created_at, update_code) VALUES (?, ?, 'restore', datetime('now'), ?)");
+    $stmt = $db->prepare("INSERT INTO edit_log (document_id, user_id, action, created_at, update_code) VALUES (?, ?, 'restore', NOW(), ?)");
     $stmt->execute([$document_id, $_SESSION['user_id'], $update_code]);
     
     // 提交事务

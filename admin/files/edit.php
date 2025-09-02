@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
     
     // 更新文件信息
-    $stmt = $db->prepare("UPDATE file_upload SET alias = ?, description = ?, notes = ?, updated_at = datetime('now') WHERE id = ?");
+    $stmt = $db->prepare("UPDATE file_upload SET alias = ?, description = ?, notes = ?, updated_at = NOW() WHERE id = ?");
     $stmt->execute([$fileName, $description, $notes, $id]);
     
     header('Location: edit.php?id=' . $id . '&success=update');

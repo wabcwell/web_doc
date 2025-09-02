@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
         
         // 3. 物理删除成功后，更新数据库状态为已删除
         if ($file_deleted) {
-            $stmt = $db->prepare("UPDATE file_upload SET del_status = 1, deleted_at = datetime('now') WHERE id = ?");
+            $stmt = $db->prepare("UPDATE file_upload SET del_status = 1, deleted_at = NOW() WHERE id = ?");
             $stmt->execute([$_POST['id']]);
         }
         

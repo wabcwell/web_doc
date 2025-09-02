@@ -154,6 +154,69 @@
 - **多媒体支持** - 视频、音频嵌入
 - **零外部依赖** - 完全本地化部署
 
+## 数据库迁移
+
+### 迁移脚本
+
+项目提供了一个迁移脚本 `migrate_sqlite_to_mysql.py`，用于将数据从SQLite数据库迁移到MySQL数据库。
+
+### 使用方法
+
+1. 安装依赖：
+   ```bash
+   pip install mysql-connector-python
+   ```
+2. 修改迁移脚本中的MySQL连接参数（可选，脚本已预配置）：
+   ```python
+   conn = mysql.connector.connect(
+       host='192.168.100.193',
+       port=33310,
+       database='web_doc',
+       user='web_doc',
+       password='YjA60cdN9'
+   )
+   ```
+3. 运行迁移脚本：
+   ```bash
+   python migrate_sqlite_to_mysql.py
+   ```
+
+### 注意事项
+
+- 请确保在运行迁移脚本之前已创建MySQL数据库
+- 脚本会自动在MySQL中创建所需的表结构并迁移数据
+- 如果MySQL数据库中已存在相同ID的数据，迁移脚本会更新这些数据
+
+### 迁移脚本详细说明
+
+迁移脚本 `migrate_sqlite_to_mysql.py` 包含以下主要功能：
+
+1. **数据库连接**：
+   - `connect_sqlite()`：连接到SQLite数据库
+   - `connect_mysql()`：连接到MySQL数据库
+
+2. **表结构创建**：
+   - `create_mysql_tables()`：在MySQL中创建所有必需的表结构，包括：
+     - users：用户表
+     - documents：文档表
+     - documents_version：文档版本表
+     - edit_log：编辑日志表
+     - file_upload：文件上传表
+     - document_id_apportion：文档ID分配表
+
+3. **数据迁移**：
+   - `migrate_users()`：迁移用户数据
+   - `migrate_documents()`：迁移文档数据
+   - `migrate_documents_version()`：迁移文档版本数据
+   - `migrate_edit_log()`：迁移编辑日志数据
+   - `migrate_file_upload()`：迁移文件上传数据
+   - `migrate_document_id_apportion()`：迁移文档ID分配数据
+
+4. **主函数**：
+   - `main()`：协调整个迁移过程，依次执行连接数据库、创建表结构和迁移数据等操作
+
+迁移脚本会处理数据类型差异，并在遇到重复ID时更新现有数据，确保数据完整性。
+
 ## 待办事项 (To-Do)
 
 ### 🔧 功能增强计划

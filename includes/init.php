@@ -22,172 +22,166 @@ if (isset($timezone)) {
  * 初始化数据库 - 严格按照实际数据库结构创建
  */
 function init_database() {
-    global $db_path;
+    global $db_host, $db_name, $db_user, $db_pass, $db_charset, $db_port;
     
-    if (!file_exists($db_path)) {
-        $db = new PDO('sqlite:' . $db_path);
-        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $dsn = "mysql:host=$db_host;port=$db_port;charset=$db_charset";
+    $options = [
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES   => false,
+    ];
+    
+    try {
+        $pdo = new PDO($dsn, $db_user, $db_pass, $options);
+        $pdo->exec("CREATE DATABASE IF NOT EXISTS `$db_name`;");
+        $pdo->exec("USE `$db_name`;");
         
         // 严格按照实际数据库结构创建表
         
         // 创建documents表 - 与docs.db完全一致
-        $db->exec("CREATE TABLE IF NOT EXISTS documents (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            document_id INTEGER,
-            title TEXT NOT NULL,
-            content TEXT,
-            parent_id INTEGER,
-            sort_order INTEGER DEFAULT 0,
-            user_id INTEGER DEFAULT 1,
-            is_public INTEGER DEFAULT 1,
-            tags TEXT,
-            view_count INTEGER DEFAULT 0,
-            created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
-            del_status INTEGER DEFAULT 0,
-            deleted_at TEXT,
-            is_formal INTEGER DEFAULT 0,
-            update_code TEXT,
-            FOREIGN KEY (parent_id) REFERENCES documents(id) ON DELETE SET NULL,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
-        )");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `documents` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `document_id` int(11) DEFAULT NULL,
+            `title` text NOT NULL,
+            `content` longtext,
+            `parent_id` int(11) DEFAULT NULL,
+            `sort_order` int(11) DEFAULT 0,
+            `user_id` int(11) DEFAULT 1,
+            `is_public` int(11) DEFAULT 1,
+            `tags` text DEFAULT NULL,
+            `view_count` int(11) DEFAULT 0,
+            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            `del_status` int(11) DEFAULT 0,
+            `deleted_at` timestamp NULL DEFAULT NULL,
+            `is_formal` int(11) DEFAULT 0,
+            `update_code` varchar(255) DEFAULT NULL,
+            PRIMARY KEY (`id`),
+            KEY `idx_documents_document_id` (`document_id`),
+            CONSTRAINT `fk_documents_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `documents` (`id`) ON DELETE SET NULL,
+            CONSTRAINT `fk_documents_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         
         // 创建users表 - 使用本地时间
-        $db->exec("CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            email TEXT UNIQUE NOT NULL,
-            password TEXT NOT NULL,
-            role TEXT DEFAULT 'editor',
-            created_at DATETIME DEFAULT (datetime('now', 'localtime'))
-        )");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `users` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `username` varchar(255) NOT NULL,
+            `email` varchar(255) NOT NULL,
+            `password` varchar(255) NOT NULL,
+            `role` varchar(50) DEFAULT 'editor',
+            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (`id`),
+            UNIQUE KEY `username` (`username`),
+            UNIQUE KEY `email` (`email`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         
         // 创建edit_log表 - 使用本地时间
-        $db->exec("CREATE TABLE IF NOT EXISTS edit_log (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            document_id INTEGER NOT NULL,
-            user_id INTEGER NOT NULL,
-            action TEXT NOT NULL CHECK (action IN ('create', 'update', 'delete', 'rollback', 'restore')),
-            op_title INTEGER DEFAULT 0 CHECK (op_title IN (0, 1)),
-            op_content INTEGER DEFAULT 0 CHECK (op_content IN (0, 1)),
-            op_tags INTEGER DEFAULT 0 CHECK (op_tags IN (0, 1)),
-            op_parent INTEGER DEFAULT 0 CHECK (op_parent IN (0, 1)),
-            op_corder INTEGER DEFAULT 0 CHECK (op_corder IN (0, 1)),
-            op_public INTEGER DEFAULT 0 CHECK (op_public IN (0, 1, 2)),
-            op_formal INTEGER DEFAULT 0 CHECK (op_formal IN (0, 1, 2)),
-            created_at DATETIME DEFAULT (datetime('now', 'localtime')),
-            temp_action TEXT,
-            update_code TEXT,
-            FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
-            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-        )");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `edit_log` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `document_id` int(11) NOT NULL,
+            `user_id` int(11) NOT NULL,
+            `action` varchar(50) NOT NULL,
+            `op_title` int(11) DEFAULT 0,
+            `op_content` int(11) DEFAULT 0,
+            `op_tags` int(11) DEFAULT 0,
+            `op_parent` int(11) DEFAULT 0,
+            `op_corder` int(11) DEFAULT 0,
+            `op_public` int(11) DEFAULT 0,
+            `op_formal` int(11) DEFAULT 0,
+            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `temp_action` varchar(255) DEFAULT NULL,
+            `update_code` varchar(255) DEFAULT NULL,
+            PRIMARY KEY (`id`),
+            KEY `idx_edit_log_document_id` (`document_id`),
+            KEY `idx_edit_log_user_id` (`user_id`),
+            KEY `idx_edit_log_created_at` (`created_at`),
+            CONSTRAINT `fk_edit_log_document_id` FOREIGN KEY (`document_id`) REFERENCES `documents` (`id`) ON DELETE CASCADE,
+            CONSTRAINT `fk_edit_log_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         
         // 创建documents_version表 - 与docs.db完全一致
-        $db->exec("CREATE TABLE IF NOT EXISTS documents_version (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            document_id INTEGER NOT NULL,
-            title TEXT NOT NULL,
-            content TEXT,
-            tags TEXT,
-            version_number INTEGER NOT NULL,
-            created_by INTEGER NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            update_code TEXT,
-            FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE,
-            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
-        )");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `documents_version` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `document_id` int(11) NOT NULL,
+            `title` text NOT NULL,
+            `content` longtext,
+            `tags` text DEFAULT NULL,
+            `version_number` int(11) NOT NULL,
+            `created_by` int(11) NOT NULL,
+            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `update_code` varchar(255) DEFAULT NULL,
+            PRIMARY KEY (`id`),
+            KEY `idx_documents_version_document_id` (`document_id`),
+            KEY `idx_documents_version_created_by` (`created_by`),
+            CONSTRAINT `fk_documents_version_document_id` FOREIGN KEY (`document_id`) REFERENCES `documents` (`id`) ON DELETE CASCADE,
+            CONSTRAINT `fk_documents_version_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         
-        // 创建索引 - 与docs.db完全一致
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_documents_document_id ON documents(document_id)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_documents_version_document_id ON documents_version(document_id)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_documents_version_created_by ON documents_version(created_by)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_edit_log_document_id ON edit_log(document_id)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_edit_log_user_id ON edit_log(user_id)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_edit_log_created_at ON edit_log(created_at)");
-
         // 创建file_upload表 - 文件上传管理
-        $db->exec("CREATE TABLE IF NOT EXISTS file_upload (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            file_type TEXT NOT NULL CHECK (file_type IN ('image', 'video', 'audio', 'document', 'archive', 'other')),
-            file_format TEXT NOT NULL,
-            file_size INTEGER NOT NULL,
-            file_path TEXT NOT NULL,
-            image_width INTEGER,
-            image_height INTEGER,
-            alias TEXT,
-            document_id INTEGER,
-            description TEXT,
-            notes TEXT,
-            uploaded_by INTEGER NOT NULL,
-            uploaded_at DATETIME DEFAULT (datetime('now', 'localtime')),
-            updated_at DATETIME DEFAULT (datetime('now', 'localtime')),
-            del_status INTEGER DEFAULT 0,
-            deleted_at TEXT,
-            FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE SET NULL,
-            FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE
-        )");
-
-        // 创建file_upload表索引
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_document_id ON file_upload(document_id)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_uploaded_by ON file_upload(uploaded_by)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_file_type ON file_upload(file_type)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_uploaded_at ON file_upload(uploaded_at)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_file_upload_del_status ON file_upload(del_status)");
-        
-        // 检查并添加image_width和image_height字段（用于存储图片尺寸）
-        $columns = $db->query("PRAGMA table_info(file_upload)")->fetchAll(PDO::FETCH_COLUMN, 1);
-        if (!in_array('image_width', $columns)) {
-            // 添加image_width字段
-            $db->exec("ALTER TABLE file_upload ADD COLUMN image_width INTEGER");
-        }
-        if (!in_array('image_height', $columns)) {
-            // 添加image_height字段
-            $db->exec("ALTER TABLE file_upload ADD COLUMN image_height INTEGER");
-        }
-
-        // 创建触发器 - 自动更新updated_at字段
-        $db->exec("CREATE TRIGGER IF NOT EXISTS update_file_upload_timestamp 
-                   AFTER UPDATE ON file_upload
-                   BEGIN
-                       UPDATE file_upload SET updated_at = CURRENT_TIMESTAMP WHERE id = NEW.id;
-                   END");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `file_upload` (
+            `id` int(11) NOT NULL AUTO_INCREMENT,
+            `file_type` varchar(50) NOT NULL,
+            `file_format` varchar(50) NOT NULL,
+            `file_size` int(11) NOT NULL,
+            `file_path` varchar(255) NOT NULL,
+            `image_width` int(11) DEFAULT NULL,
+            `image_height` int(11) DEFAULT NULL,
+            `alias` varchar(255) DEFAULT NULL,
+            `document_id` int(11) DEFAULT NULL,
+            `description` text DEFAULT NULL,
+            `notes` text DEFAULT NULL,
+            `uploaded_by` int(11) NOT NULL,
+            `uploaded_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            `del_status` int(11) DEFAULT 0,
+            `deleted_at` timestamp NULL DEFAULT NULL,
+            PRIMARY KEY (`id`),
+            KEY `idx_file_upload_document_id` (`document_id`),
+            KEY `idx_file_upload_uploaded_by` (`uploaded_by`),
+            KEY `idx_file_upload_file_type` (`file_type`),
+            KEY `idx_file_upload_uploaded_at` (`uploaded_at`),
+            KEY `idx_file_upload_del_status` (`del_status`),
+            CONSTRAINT `fk_file_upload_document_id` FOREIGN KEY (`document_id`) REFERENCES `documents` (`id`) ON DELETE SET NULL,
+            CONSTRAINT `fk_file_upload_uploaded_by` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
         // 创建document_id_apportion表 - 管理文档ID使用状态
-        $db->exec("CREATE TABLE IF NOT EXISTS document_id_apportion (
-            document_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            usage_status INTEGER DEFAULT 0 CHECK (usage_status IN (0, 1, 2, 3)),
-            created_by INTEGER NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
-        )");
-
-        // 创建document_id_apportion表索引
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_document_id_apportion_status ON document_id_apportion(usage_status)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_document_id_apportion_created_by ON document_id_apportion(created_by)");
-        $db->exec("CREATE INDEX IF NOT EXISTS idx_document_id_apportion_created_at ON document_id_apportion(created_at)");
-
-        // 创建触发器 - 自动更新updated_at字段
-        $db->exec("CREATE TRIGGER IF NOT EXISTS update_document_id_apportion_timestamp 
-                   AFTER UPDATE ON document_id_apportion
-                   BEGIN
-                       UPDATE document_id_apportion SET updated_at = CURRENT_TIMESTAMP WHERE document_id = NEW.document_id;
-                   END");
+        $pdo->exec("CREATE TABLE IF NOT EXISTS `document_id_apportion` (
+            `document_id` int(11) NOT NULL AUTO_INCREMENT,
+            `usage_status` int(11) DEFAULT 0,
+            `created_by` int(11) NOT NULL,
+            `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            PRIMARY KEY (`document_id`),
+            KEY `idx_document_id_apportion_status` (`usage_status`),
+            KEY `idx_document_id_apportion_created_by` (`created_by`),
+            KEY `idx_document_id_apportion_created_at` (`created_at`),
+            CONSTRAINT `fk_document_id_apportion_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         
         // 添加默认数据
-        $db->exec("INSERT OR IGNORE INTO users (username, password, role) VALUES 
-            ('admin', '" . password_hash('admin123', PASSWORD_DEFAULT) . "', 'admin')");
+        $stmt = $pdo->prepare("INSERT IGNORE INTO `users` (username, password, role) VALUES (?, ?, ?)");
+        $stmt->execute(['admin', password_hash('admin123', PASSWORD_DEFAULT), 'admin']);
         
-        $db->exec("INSERT OR IGNORE INTO documents (parent_id, title, content, user_id) VALUES 
-            (0, '欢迎使用', '# 欢迎使用\n\n这是您的第一篇文档。', 1)");
+        $stmt = $pdo->prepare("INSERT IGNORE INTO `documents` (parent_id, title, content, user_id) VALUES (?, ?, ?, ?)");
+        $stmt->execute([0, '欢迎使用', '# 欢迎使用\n\n这是您的第一篇文档。', 1]);
 
         // 插入测试文件数据
-        $db->exec("INSERT OR IGNORE INTO file_upload (file_type, file_format, file_size, file_path, alias, document_id, description, notes, uploaded_by) VALUES 
-            ('image', 'jpg', 102400, 'uploads/test1.jpg', '原始测试图片1.jpg', 1, '测试图片1', '这是测试图片的描述', 1),
-            ('document', 'pdf', 204800, 'uploads/test2.pdf', '测试文档.pdf', 1, '测试文档', 'PDF测试文档', 1),
-            ('image', 'png', 51200, 'uploads/test3.png', '测试图片3.png', NULL, '未关联的测试图片', '这是一个未关联到文档的测试图片', 1),
-            ('video', 'mp4', 1048576, 'uploads/test4.mp4', '测试视频.mp4', 1, '测试视频', '测试视频文件', 1),
-            ('archive', 'zip', 307200, 'uploads/test5.zip', '测试压缩包.zip', NULL, '测试压缩包', '包含多个文件的测试压缩包', 1)");
+        $stmt = $pdo->prepare("INSERT IGNORE INTO `file_upload` (file_type, file_format, file_size, file_path, alias, document_id, description, notes, uploaded_by) VALUES 
+            (?, ?, ?, ?, ?, ?, ?, ?, ?),
+            (?, ?, ?, ?, ?, ?, ?, ?, ?),
+            (?, ?, ?, ?, ?, ?, ?, ?, ?),
+            (?, ?, ?, ?, ?, ?, ?, ?, ?),
+            (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->execute([
+            'image', 'jpg', 102400, 'uploads/test1.jpg', '原始测试图片1.jpg', 1, '测试图片1', '这是测试图片的描述', 1,
+            'document', 'pdf', 204800, 'uploads/test2.pdf', '测试文档.pdf', 1, '测试文档', 'PDF测试文档', 1,
+            'image', 'png', 51200, 'uploads/test3.png', '测试图片3.png', NULL, '未关联的测试图片', '这是一个未关联到文档的测试图片', 1,
+            'video', 'mp4', 1048576, 'uploads/test4.mp4', '测试视频.mp4', 1, '测试视频', '测试视频文件', 1,
+            'archive', 'zip', 307200, 'uploads/test5.zip', '测试压缩包.zip', NULL, '测试压缩包', '包含多个文件的测试压缩包', 1
+        ]);
+    } catch (PDOException $e) {
+        die("数据库初始化失败: " . $e->getMessage());
     }
 }
 
@@ -195,13 +189,18 @@ function init_database() {
  * 获取数据库连接
  */
 function get_db() {
-    global $db_path;
+    global $db_host, $db_name, $db_user, $db_pass, $db_charset, $db_port;
     static $db = null;
     
     if ($db === null) {
         init_database();
-        $db = new PDO('sqlite:' . $db_path);
-        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $dsn = "mysql:host=$db_host;port=$db_port;dbname=$db_name;charset=$db_charset";
+        $options = [
+            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES   => false,
+        ];
+        $db = new PDO($dsn, $db_user, $db_pass, $options);
     }
     
     return $db;
@@ -368,7 +367,7 @@ function get_document_stats() {
     
     $total_docs = $db->query("SELECT COUNT(*) FROM documents WHERE del_status = 0")->fetchColumn();
     $total_users = $db->query("SELECT COUNT(*) FROM users")->fetchColumn();
-    $recent_docs = $db->query("SELECT COUNT(*) FROM documents WHERE del_status = 0 AND created_at >= datetime('now', '-7 days')")->fetchColumn();
+    $recent_docs = $db->query("SELECT COUNT(*) FROM documents WHERE del_status = 0 AND created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)")->fetchColumn();
     $deleted_docs = $db->query("SELECT COUNT(*) FROM documents WHERE del_status = 1")->fetchColumn();
     
     return [
@@ -526,8 +525,8 @@ function check_admin() {
  */
 function mark_document_id_used($document_id, $user_id) {
     $db = get_db();
-    $stmt = $db->prepare("INSERT OR REPLACE INTO document_id_apportion (document_id, usage_status, created_by) VALUES (?, 1, ?)");
-    return $stmt->execute([$document_id, $user_id]);
+    $stmt = $db->prepare("INSERT INTO document_id_apportion (document_id, usage_status, created_by) VALUES (?, 1, ?) ON DUPLICATE KEY UPDATE usage_status = 1, created_by = ?");
+    return $stmt->execute([$document_id, $user_id, $user_id]);
 }
 
 
