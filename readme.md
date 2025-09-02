@@ -47,80 +47,7 @@
    - 管理后台: http://localhost:8000/admin
    - 默认管理员: admin/admin123
 
-### 目录结构
 
-```
-web_doc/                                    # 项目根目录
-├── admin/                                  # 🔧 管理后台系统
-│   ├── dashboard.php                       # 管理后台首页
-│   ├── settings.php                        # 系统设置页面（含网站副标题配置）
-│   ├── login.php                           # 管理员登录页面
-│   ├── logout.php                          # 退出登录
-│   ├── sidebar.php                         # 后台侧边栏模板
-│   ├── upload.php                          # 文件上传处理
-│   ├── documents/                          # 📚 文档管理模块
-│   │   ├── index.php                       # 文档列表页面
-│   │   ├── add.php                         # 添加新文档
-│   │   ├── edit.php                        # 编辑文档
-│   │   ├── view.php                        # 查看文档详情
-│   │   ├── delete.php                      # 删除文档（软删除）
-│   │   ├── view_his.php                    # 查看文档历史版本
-│   │   ├── rollback.php                    # 回滚到历史版本
-│   │   └── edit_log.php                    # 文档编辑日志
-│   ├── doc_recycle/                        # 🗑️ 文档回收站模块
-│   │   ├── index.php                       # 回收站文档列表
-│   │   ├── restore.php                     # 恢复已删除文档
-│   │   ├── permdel.php                     # 永久删除文档
-│   │   └── view.php                        # 查看回收站文档详情
-│   └── user/                               # 👥 用户管理模块
-│       ├── index.php                       # 用户列表页面
-│       ├── add_user.php                    # 添加新用户
-│       ├── edit_user.php                   # 编辑用户信息
-│       └── delete_user.php                 # 删除用户
-├── assets/                                 # 🎨 本地化静态资源（完全离线）
-│   ├── css/                                # 样式文件
-│   │   ├── admin.css                       # 管理后台专用样式
-│   │   ├── fonts/                          # Bootstrap字体文件
-│   │   └── static/                         # 核心样式库
-│   │       ├── bootstrap.min.css         # Bootstrap 5.3.0
-│   │       ├── bootstrap-icons.min.css   # Bootstrap图标样式
-│   │       └── prism.min.css              # 代码高亮样式
-│   ├── fonts/                              # 字体文件
-│   │   ├── bootstrap-icons.woff          # Bootstrap图标字体
-│   │   └── bootstrap-icons.woff2         # Bootstrap图标字体（压缩版）
-│   ├── icons/                              # 自定义图标
-│   ├── images/                             # 图片资源
-│   │   └── logo.png                       # 默认Logo图片
-│   └── js/                                 # JavaScript文件
-│       └── static/                         # 核心脚本库
-│           ├── bootstrap.bundle.min.js     # Bootstrap 5.3.0（含Popper）
-│           ├── prism.min.js                # 代码高亮核心
-│           ├── prism-javascript.min.js     # JavaScript代码高亮
-│           ├── prism-python.min.js         # Python代码高亮
-│           └── prism-php.min.js            # PHP代码高亮
-├── database/                               # 🗄️ SQLite数据库相关
-│   ├── docs.db                           # 主数据库文件（文档、用户、配置）
-│   ├── .htaccess.template                # 数据库目录安全模板
-│   ├── index.php                         # 数据库目录保护
-│   └── router.php                        # 数据库路由处理
-├── includes/                               # 🔧 核心功能文件
-│   ├── DocumentTree.php                  # 文档树结构处理类
-│   ├── auth.php                          # 用户认证功能
-│   ├── init.php                          # 系统初始化配置
-│   └── footer.php                        # 页脚模板
-├── uploads/                                # 📤 文件上传目录
-│   ├── logo/                             # Logo上传目录
-│   └── documents/                        # 文档附件上传目录
-├── config.php                             # ⚙️ 系统配置文件（含网站副标题）
-├── config.example.php                     # 配置模板文件
-├── index.php                             # 🏠 前台首页（文档展示）
-├── search.php                            # 🔍 全文搜索页面
-├── export.php                            # 📤 文档导出功能（PDF/HTML/MD/PNG/JPG）
-├── Parsedown.php                         # Markdown解析器
-├── SECURITY.md                           # 安全说明文档
-├── .gitignore                           # Git忽略文件
-└── README.md                            # 📖 项目说明文档（当前文件）
-```
 
 ## 资源本地化
 
@@ -152,6 +79,17 @@ web_doc/                                    # 项目根目录
 - **用户权限**: 管理员与普通用户权限区分
 - **全文搜索**: 快速查找文档内容
 - **文件上传**: 支持图片和附件上传
+- **文件管理**: 支持文件列表、编辑、删除、批量操作
+
+### 文件管理功能
+
+系统提供完整的文件管理功能，支持：
+- 📁 **文件列表** - 支持按类型、时间筛选，支持排序
+- ✏️ **文件编辑** - 可修改文件名、描述、备注信息
+- 🗑️ **文件删除** - 支持单个和批量删除操作
+- 📥 **文件下载** - 支持单个文件下载功能
+- 🔍 **文件搜索** - 支持按文件名关键字搜索
+- 📊 **批量操作** - 支持批量删除和批量下载
 
 ### 操作流程
 1. **管理员**: 登录后台 → 管理文档/用户 → 系统配置
@@ -172,27 +110,13 @@ web_doc/                                    # 项目根目录
 系统支持智能删除文档，自动处理子文档的层级和排序，保持排序位置稳定：
 
 #### 删除规则
-- **软删除机制**：删除文档时仅标记为已删除状态，不会从数据库中物理删除记录
-- **状态标记**：使用`del_status`字段标记删除状态（0=正常，1=已删除），并记录删除时间
-- **直接子文档处理**：仅处理被删除文档的直接子文档
-- **孙文档保持**：子文档的子文档层级和排序保持不变
-- **排序继承**：子文档继承被删除文档的排序值，避免位置重大变化
-- **数据保留**：删除的文档及其版本历史和编辑日志都会完整保留，支持数据恢复
+- **软删除机制**：删除文档时仅标记为已删除状态（del_status=1），记录删除时间
+- **层级保持**：删除文档时，其子文档层级关系保持不变
+- **数据保留**：删除的文档及其版本历史和编辑日志都会完整保留
 
-#### 删除场景
-
-1. **删除顶级文档**
-   - **父级调整**：直接子文档的父级设为0（成为顶级文档）
-   - **排序继承**：子文档排序权重 = 被删除的父级顶级文档的排序值（所有子文档相同）
-
-2. **删除非顶级文档**
-   - **父级调整**：直接子文档的父级设为被删除文档的原父级
-   - **排序继承**：子文档排序权重 = 被删除的父级文档的排序值（所有子文档相同）
-
-#### 文档恢复功能
-- **恢复机制**：管理员可通过数据库直接修改`del_status`字段来恢复被删除的文档
-- **数据完整性**：恢复后的文档会保留所有版本历史和编辑记录
-- **层级关系**：恢复时需注意文档的层级关系可能需要重新调整
+#### 文档恢复
+- **恢复机制**：管理员可通过回收站功能恢复已删除文档
+- **数据完整性**：恢复后的文档保留所有历史数据
 
 #### 示例
 - 删除顶级文档"PHP教程"（排序值=5），其子文档"基础语法"、"面向对象"等都将继承排序值5
@@ -208,8 +132,12 @@ web_doc/                                    # 项目根目录
 
 ### 数据库结构
 
-- **users**: 用户表
-- **documents**: 文档表
+- **users**: 用户表（id, username, password, role, created_at）
+- **documents**: 文档表（id, title, content, parent_id, sort_order, del_status, del_time, created_at, updated_at）
+- **documents_version**: 文档版本表（id, document_id, content, created_at）
+- **edit_log**: 操作记录表（id, document_id, user_id, action, created_at）
+- **document_id_apportion**: 文档ID分配表
+- **file_upload**: 文件上传记录表（id, file_path, alias, description, notes, file_type, file_size, uploaded_by, document_id, created_at, updated_at, del_status, deleted_at）
 
 
 ## 📝 编辑器集成
@@ -230,13 +158,11 @@ web_doc/                                    # 项目根目录
 
 ### 🔧 功能增强计划
 
-#### 编辑器升级
-- [x] **集成富文本编辑器** - 已集成 [UEditor Plus](https://github.com/modstart-lib/ueditor-plus) 富文本编辑器，提供更丰富的文档编辑体验
-
 #### 配置功能扩展
-- [ ] **文档历史版本数量自定义** - 实现文档历史版本数量的自定义设置功能，允许管理员配置保留的历史版本数量
-- [ ] **操作记录配置** - 开发文档操作记录最大条数的配置选项，支持自定义操作日志的存储上限
-- [ ] **回收站管理优化** - 添加回收站文档保留天数的上限设置功能，支持自动清理过期回收文档
+- [x] **集成富文本编辑器** - 已集成 [UEditor Plus](https://github.com/modstart-lib/ueditor-plus) 富文本编辑器
+- [x] **文档历史版本数量自定义** - 已实现文档历史版本数量的自定义设置功能（max_history_versions）
+- [x] **操作记录配置** - 已实现文档操作记录最大条数的配置选项（max_operation_logs）
+- [ ] **回收站管理优化** - 添加回收站文档保留天数的上限设置功能
 
 ## 贡献指南
 
