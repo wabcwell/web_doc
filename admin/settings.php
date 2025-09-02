@@ -113,44 +113,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // 更新配置
             $config_content = preg_replace(
-                '/(\$site_name\s*=\s*["\']).*?(["\'])/',
+                '/(\$site_name\s*=\s*["\'])[^"\']*(["\'])/',
                 '$1' . addslashes($new_site_name) . '$2',
                 $config_content
             );
 
             $config_content = preg_replace(
-                '/(\$site_subtitle\s*=\s*["\']).*?(["\'])/',
+                '/(\$site_subtitle\s*=\s*["\'])[^"\']*(["\'])/',
                 '$1' . addslashes($new_site_subtitle) . '$2',
                 $config_content
             );
             
             $config_content = preg_replace(
-                '/(\$site_url\s*=\s*["\']).*?(["\'])/',
+                '/(\$site_url\s*=\s*["\'])[^"\']*(["\'])/',
                 '$1' . addslashes($new_site_url) . '$2',
                 $config_content
             );
 
             $config_content = preg_replace(
-                '/(\$logo_type\s*=\s*["\']).*?(["\'])/',
+                '/(\$logo_type\s*=\s*["\'])[^"\']*(["\'])/',
                 '$1' . addslashes($new_logo_type) . '$2',
                 $config_content
             );
 
             $config_content = preg_replace(
-                '/(\$logo_path\s*=\s*["\']).*?(["\'])/',
+                '/(\$logo_path\s*=\s*["\'])[^"\']*(["\'])/',
                 '$1' . addslashes($new_logo_path) . '$2',
                 $config_content
             );
             
-            $config_content = preg_replace(
-                '/(\$max_history_versions\s*=\s*).*?(;)/',
-                '$1' . $new_max_history_versions . '$2',
+            // 直接替换数字值，避免使用正则表达式
+            $config_content = str_replace(
+                '$max_history_versions = ' . $max_history_versions . ';',
+                '$max_history_versions = ' . $new_max_history_versions . ';',
                 $config_content
             );
             
-            $config_content = preg_replace(
-                '/(\$max_operation_logs\s*=\s*).*?(;)/',
-                '$1' . $new_max_operation_logs . '$2',
+            $config_content = str_replace(
+                '$max_operation_logs = ' . $max_operation_logs . ';',
+                '$max_operation_logs = ' . $new_max_operation_logs . ';',
                 $config_content
             );
             
@@ -339,7 +340,7 @@ include 'sidebar.php';
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-success">
                                 <i class="bi bi-save"></i> 保存设置
                             </button>
                         </div>

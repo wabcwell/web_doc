@@ -453,14 +453,14 @@ tr:hover {
 }
 
 .btn-success {
-    background: #2271b1;
+    background: #198754;
     color: #ffffff;
-    border-color: #2271b1;
+    border-color: #198754;
 }
 
 .btn-success:hover {
-    background: #1a5a8c;
-    border-color: #1a5a8c;
+    background: #146c43;
+    border-color: #146c43;
 }
 
 .btn-danger {

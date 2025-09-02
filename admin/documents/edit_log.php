@@ -372,6 +372,24 @@ function get_action_text($action) {
                                                         进行了更新操作（未检测到具体变更）
                                                     </div>
                                                 <?php endif; ?>
+                                                
+                                                <?php if (!empty($log['update_code'])): ?>
+                                                    <?php 
+                                                    // 根据update_code查找对应的历史版本ID
+                                                    $version_stmt = $db->prepare("SELECT id FROM documents_version WHERE update_code = ? AND document_id = ?");
+                                                    $version_stmt->execute([$log['update_code'], $log['document_id']]);
+                                                    $version_id = $version_stmt->fetchColumn();
+                                                    ?>
+                                                    <?php if ($version_id): ?>
+                                                        <div class="mt-2">
+                                                            <a href="view_his.php?id=<?php echo $id; ?>&version=<?php echo $version_id; ?>" 
+                                                               class="btn btn-sm btn-outline-info"
+                                                               title="查看此更新生成的历史版本">
+                                                                <i class="bi bi-clock-history"></i> 查看历史版本
+                                                            </a>
+                                                        </div>
+                                                    <?php endif; ?>
+                                                <?php endif; ?>
                                             <?php endif; ?>
                                         </div>
                                     </div>

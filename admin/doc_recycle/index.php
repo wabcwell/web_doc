@@ -249,7 +249,7 @@ function render_action_buttons(array $doc, bool $is_admin): string {
                                                 <?php endif; ?>
                                             </td>
                                             <td>
-                                                <span class="text-primary"><?php echo htmlspecialchars($doc['username'] ?? '未知用户'); ?></span>
+                                                <span class="text-dark"><?php echo htmlspecialchars($doc['username'] ?? '未知用户'); ?></span>
                                             </td>
                                             <td>
                                                 <small class="text-muted">
