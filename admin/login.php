@@ -44,8 +44,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="../assets/css/static/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-    <div class="container mt-5">
-        <div class="row justify-content-center">
+    <div class="container mt-3">
+        <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
