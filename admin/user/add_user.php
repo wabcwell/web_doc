@@ -62,7 +62,7 @@ include '../sidebar.php';
     <div class="main-content">
         <div class="container-fluid">
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1>添加用户</h1>
+                <h1><i class="bi bi-person-plus"></i> 添加用户</h1>
                 <a href="index.php" class="btn btn-secondary">
                     <i class="bi bi-arrow-left"></i> 返回列表
                 </a>

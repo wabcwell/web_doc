@@ -183,7 +183,7 @@ include '../sidebar.php';
 <body>
     <div class="main-content">
         <div class="container-fluid">
-            <h1>添加新文档</h1>
+            <h1><i class="bi bi-file-earmark-plus"></i> 添加新文档</h1>
             
             <form method="post" id="documentForm">
 

@@ -509,7 +509,7 @@ $stats = get_file_stats($db);
                             <button type="submit" class="btn btn-primary btn-sm">
                                 <i class="bi bi-search"></i> 搜索
                             </button>
-                            <a href="?" class="btn btn-secondary btn-sm">重置</a>
+                            <button type="button" onclick="location.href='?'" class="btn btn-secondary btn-sm">重置</button>
                         </div>
                     </div>
                 </form>

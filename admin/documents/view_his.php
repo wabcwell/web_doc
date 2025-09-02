@@ -212,7 +212,7 @@ include '../sidebar.php';
             <!-- 页面标题 -->
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h1><?php echo htmlspecialchars($current_content['title'] ?? '未知文档'); ?></h1>
+                    <h1><i class="bi bi-clock-history"></i> <?php echo htmlspecialchars($current_content['title'] ?? '未知文档'); ?></h1>
                     <nav aria-label="breadcrumb">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="index.php">文档管理</a></li>

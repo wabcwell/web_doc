@@ -188,7 +188,7 @@ include '../sidebar.php';
 <body>
     <div class="main-content">
         <div class="container-fluid">
-            <h1>编辑文档</h1>
+            <h1><i class="bi bi-pencil-square"></i> 编辑文档</h1>
             
             <form method="post" id="documentForm">
                 <div class="d-flex flex-column flex-lg-row" id="responsive-container" style="gap: 15px;">
