@@ -198,6 +198,125 @@ table td.text-center:first-child {
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
 
+/* 仪表盘统计卡片样式 */
+.stat-card {
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card .card-body {
+    padding: 20px;
+}
+
+.stat-card .stat-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card .card-title {
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.stat-card .mb-0 {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+}
+
+.stat-card .fs-7 {
+    font-size: 0.8rem;
+}
+
+/* 莫兰迪配色方案 */
+.stat-card.documents {
+    background: linear-gradient(135deg, #a8b5db 0%, #c7c7c7 100%);
+    color: #2c3e50;
+}
+
+.stat-card.users {
+    background: linear-gradient(135deg, #b8c6db 0%, #f5f7fa 100%);
+    color: #2c3e50;
+}
+
+.stat-card.created {
+    background: linear-gradient(135deg, #d4e4f7 0%, #a9c9e8 100%);
+    color: #2c3e50;
+}
+
+.stat-card.deleted {
+    background: linear-gradient(135deg, #f8d7da 0%, #e2b4bd 100%);
+    color: #2c3e50;
+}
+
+/* 登录页面样式 */
+.login-card {
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e0e0e0;
+}
+
+.login-card .card-header {
+    background-color: #ffffff;
+    border-bottom: 1px solid #e0e0e0;
+    border-radius: 10px 10px 0 0 !important;
+    padding: 20px;
+}
+
+.login-card .card-body {
+    padding: 30px;
+}
+
+.login-form .form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.login-form .form-control {
+    border-radius: 6px;
+    border: 1px solid #ced4da;
+    padding: 10px 15px;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.login-form .form-control:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+}
+
+.login-btn {
+    background-color: #3498db;
+    border-color: #3498db;
+    border-radius: 6px;
+    padding: 10px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.login-btn:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+}
+
+.login-btn:active {
+    background-color: #2980b9;
+    border-color: #2980b9;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
 /* 主内容区域 */
 .main-content {
     margin-left: 180px;
@@ -281,6 +400,119 @@ table td.text-center:first-child {
     margin-bottom: 0.375rem;
 }
 
+/* 文档列表页面样式 */
+.doc-list-btn-group {
+    gap: 2px;
+}
+
+.doc-list-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.doc-list-btn i {
+    font-size: 14px;
+    margin: 0 auto;
+}
+
+/* 文档列表按钮颜色方案 */
+.doc-list-btn.view {
+    background-color: #90a4ae;
+    border-color: #90a4ae;
+    color: white;
+}
+
+.doc-list-btn.view:hover {
+    background-color: #b0bec5;
+    border-color: #b0bec5;
+}
+
+.doc-list-btn.history {
+    background-color: #ffb74d;
+    border-color: #ffb74d;
+    color: white;
+}
+
+.doc-list-btn.history:hover {
+    background-color: #ffcc80;
+    border-color: #ffcc80;
+}
+
+.doc-list-btn.log {
+    background-color: #64b5f6;
+    border-color: #64b5f6;
+    color: white;
+}
+
+.doc-list-btn.log:hover {
+    background-color: #90caf9;
+    border-color: #90caf9;
+}
+
+.doc-list-btn.add {
+    background-color: #4caf50;
+    border-color: #4caf50;
+    color: white;
+}
+
+.doc-list-btn.add:hover {
+    background-color: #66bb6a;
+    border-color: #66bb6a;
+}
+
+.doc-list-btn.delete {
+    background-color: #ff8a65;
+    border-color: #ff8a65;
+    color: white;
+}
+
+.doc-list-btn.delete:hover {
+    background-color: #ffab91;
+    border-color: #ffab91;
+}
+
+/* CSS悬停提示样式 */
+.doc-list-btn[data-tooltip] {
+    position: relative;
+}
+
+.doc-list-btn[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 5px;
+    padding: 4px 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: 12px;
+    white-space: nowrap;
+    border-radius: 3px;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.doc-list-btn[data-tooltip]:hover::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-bottom: 1px;
+    border: 4px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    pointer-events: none;
+}
+}
+
 .stat-card h3 {
     font-size: 1.75rem;
     font-weight: 700;
@@ -358,6 +590,59 @@ table td.text-center:first-child {
     margin-bottom: 30px;
     color: #495057;
     font-weight: 600;
+}
+
+/* 文档编辑页面样式 */
+#responsive-container {
+    gap: 15px;
+}
+
+@media screen and (max-width: 1200px) {
+    #responsive-container {
+        flex-direction: column !important;
+    }
+    
+    #responsive-container .flex-shrink-0 {
+        width: 100% !important;
+        flex: none !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        margin-top: 15px;
+    }
+}
+
+.edui-default .edui-toolbar {
+    border-bottom: 1px solid #d4d4d4 !important;
+    box-sizing: border-box !important;
+}
+
+.edui-default .edui-editor {
+    border-radius: 0.375rem !important;
+    overflow: hidden !important;
+}
+
+.edui-default .edui-editor-bottomContainer {
+    height: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.document-info-id {
+    font-size: 0.8em;
+}
+
+.responsive-container {
+    gap: 15px;
+}
+
+.document-sidebar {
+    width: 280px;
+    flex: 0 0 280px;
+}
+
+.document-editor {
+    width: 100%;
+    min-height: 500px;
 }
 
 /* 响应式容器调整 */
@@ -513,6 +798,324 @@ tr:hover {
 }
 
 /* 莫兰迪色系按钮样式 */
+
+/* 文件管理页面样式 */
+.file-icon {
+    width: 20px;
+    height: 20px;
+    display: inline-block;
+    text-align: center;
+    line-height: 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    color: #fff;
+    font-size: 12px;
+}
+
+.file-icon-pdf { background-color: #f44336; }
+.file-icon-doc,
+.file-icon-docx { background-color: #2196f3; }
+.file-icon-xls,
+.file-icon-xlsx { background-color: #4caf50; }
+.file-icon-ppt,
+.file-icon-pptx { background-color: #ff9800; }
+.file-icon-txt { background-color: #9e9e9e; }
+.file-icon-img { background-color: #9c27b0; }
+.file-icon-default { background-color: #607d8b; }
+
+.file-preview-icon {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.file-preview-link {
+    text-decoration: none;
+}
+
+.file-preview-btn {
+    color: #007bff;
+    cursor: pointer;
+    font-size: 20px;
+}
+
+.file-stats-card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.file-stats-card-primary {
+    border-left: 4px solid #4e73df;
+}
+
+.file-stats-card-secondary {
+    border-left: 4px solid #1cc88a;
+}
+
+.file-stats-card-tertiary {
+    border-left: 4px solid #36b9cc;
+}
+
+.file-filter-section {
+    margin-bottom: 1rem;
+}
+
+.file-filter-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.file-filter-form .form-control-sm,
+.file-filter-form .form-select-sm {
+    height: calc(1.5em + 0.5rem + 2px);
+}
+
+.file-filter-form .btn-sm {
+    height: calc(1.5em + 0.5rem + 2px);
+}
+
+.file-table-select-all {
+    width: 3%;
+}
+
+.file-table-icon-col {
+    width: 5%;
+}
+
+.file-table-type-col {
+    width: 10%;
+}
+
+.file-table-size-col {
+    width: 10%;
+}
+
+.file-table-doc-col {
+    width: 15%;
+}
+
+.file-table-user-col {
+    width: 15%;
+}
+
+.file-table-date-col {
+    width: 15%;
+}
+
+.file-table-actions-col {
+    width: 17%;
+    text-align: center;
+}
+
+.file-batch-actions {
+    display: none;
+}
+
+.file-modal-image {
+    max-height: 70vh;
+}
+
+.file-empty-icon {
+    font-size: 3rem;
+    color: #ccc;
+}
+
+/* 回收站页面样式 */
+.recycle-btn-history {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background-color: #ffb74d;
+    border-color: #ffb74d;
+    color: white;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.recycle-btn-history:hover {
+    background-color: #ffcc80;
+    border-color: #ffcc80;
+}
+
+.recycle-btn-log {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background-color: #64b5f6;
+    border-color: #64b5f6;
+    color: white;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.recycle-btn-log:hover {
+    background-color: #90caf9;
+    border-color: #90caf9;
+}
+
+.recycle-btn-restore {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background-color: #4caf50;
+    border-color: #4caf50;
+    color: white;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.recycle-btn-restore:hover {
+    background-color: #66bb6a;
+    border-color: #66bb6a;
+}
+
+.recycle-btn-delete {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    background-color: #ff8a65;
+    border-color: #ff8a65;
+    color: white;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.recycle-btn-delete:hover:not(:disabled) {
+    background-color: #ffab91;
+    border-color: #ffab91;
+}
+
+.recycle-btn-delete:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.recycle-empty-icon {
+    font-size: 4rem;
+}
+
+.recycle-table-id-col {
+    width: 60px;
+}
+
+.recycle-table-actions-col {
+    width: 200px;
+    text-align: center;
+}
+
+/* 用户管理页面样式 */
+.user-actions .btn-group {
+    gap: 2px;
+}
+
+.user-actions .btn {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.user-actions .btn i {
+    font-size: 14px;
+    margin: 0;
+}
+
+/* 编辑按钮 - 蓝色系 */
+.btn-edit {
+    background-color: #2196f3 !important;
+    color: white !important;
+    border: none !important;
+}
+
+.btn-edit:hover {
+    background-color: #1976d2 !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+}
+
+/* 删除按钮 - 红色系 */
+.btn-delete {
+    background-color: #f44336 !important;
+    color: white !important;
+    border: none !important;
+}
+
+.btn-delete:hover {
+    background-color: #d32f2f !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3);
+}
+
+/* 禁用状态 */
+.btn-disabled {
+    background-color: #bdbdbd !important;
+    color: white !important;
+    border: none !important;
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.btn-disabled:hover {
+    background-color: #bdbdbd !important;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 纯CSS悬停提示样式 */
+[data-tooltip] {
+    position: relative;
+}
+
+[data-tooltip]:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    z-index: 1000;
+    margin-bottom: 5px;
+    pointer-events: none;
+}
+
+[data-tooltip]:hover::before {
+    content: "";
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 4px solid transparent;
+    border-top-color: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    margin-bottom: 1px;
+    pointer-events: none;
+}
+
+.user-role-badge {
+    font-size: 0.75rem;
+}
+
+.user-empty-icon {
+    font-size: 4rem;
+}
+
+.table-id-col {
+    width: 60px;
+}
+
+.table-actions-col {
+    width: 100px;
+    text-align: center;
+}
 .btn-morandi {
     background: #6a8ca3; /* 莫兰迪蓝色 */
     border-color: #6a8ca3;
@@ -938,4 +1541,33 @@ tr:hover {
     padding-left: 0;
     padding-right: 0;
     width: 100%;
+}
+
+/* 文档添加页面样式 */
+.document-add-container {
+    gap: 15px;
+}
+
+.document-add-sidebar {
+    width: 280px;
+    flex: 0 0 280px;
+}
+
+.document-add-content {
+    display: none;
+}
+
+/* 响应式断点：1200px */
+@media screen and (max-width: 1200px) {
+    .document-add-container {
+        flex-direction: column !important;
+    }
+    
+    .document-add-sidebar {
+        width: 100% !important;
+        flex: none !important;
+        min-width: 100% !important;
+        max-width: 100% !important;
+        margin-top: 15px;
+    }
 }

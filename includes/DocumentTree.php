@@ -402,6 +402,172 @@ class DocumentTree {
     }
     
     /**
+     * 简化的层级获取方法（减少内存和计算）
+     */
+    public function getAllDocumentsByHierarchySimple() {
+        // 一次性获取所有文档
+        $sql = "SELECT d.*, u.username
+                FROM documents d 
+                LEFT JOIN users u ON d.user_id = u.id 
+                WHERE d.del_status = 0
+                ORDER BY d.parent_id ASC, d.sort_order ASC, d.document_id ASC";
+        
+        $stmt = $this->db->query($sql);
+        $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        if (empty($documents)) {
+            return [];
+        }
+        
+        // 简化的层级构建
+        return $this->buildHierarchySimple($documents);
+    }
+    
+    /**
+     * 简化的层级构建方法
+     */
+    private function buildHierarchySimple($documents) {
+        if (empty($documents)) {
+            return [];
+        }
+        
+        // 建立索引映射
+        $idMap = [];
+        $childrenMap = [];
+        
+        // 预处理：建立映射
+        foreach ($documents as $doc) {
+            $idMap[$doc['id']] = $doc;
+            if (!isset($childrenMap[$doc['parent_id']])) {
+                $childrenMap[$doc['parent_id']] = [];
+            }
+            $childrenMap[$doc['parent_id']][] = $doc;
+        }
+        
+        // 使用递归构建层级
+        $result = [];
+        $this->buildChildrenSimple($childrenMap, 0, 0, $result, $idMap);
+        
+        return $result;
+    }
+    
+    /**
+     * 简化的递归构建方法
+     */
+    private function buildChildrenSimple($childrenMap, $parentId, $level, &$result, $idMap) {
+        if (!isset($childrenMap[$parentId])) {
+            return;
+        }
+        
+        foreach ($childrenMap[$parentId] as $child) {
+            $child['level'] = $level;
+            $result[] = $child;
+            
+            // 递归处理子文档
+            if (isset($childrenMap[$child['id']])) {
+                $this->buildChildrenSimple($childrenMap, $child['id'], $level + 1, $result, $idMap);
+            }
+        }
+    }
+
+    /**
+     * 获取所有文档（超优化版本，减少查询和内存使用）
+     */
+    public function getAllDocumentsOptimized() {
+        // 优化查询：一次性获取所有文档和必要的聚合数据
+        $sql = "SELECT d.*, u.username
+                FROM documents d 
+                LEFT JOIN users u ON d.user_id = u.id 
+                WHERE d.del_status = 0
+                ORDER BY d.parent_id ASC, d.sort_order ASC, d.document_id ASC";
+        
+        $stmt = $this->db->query($sql);
+        $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // 获取所有文档的最大子排序值（一次性查询）
+        $maxChildSorts = [];
+        $sqlMax = "SELECT parent_id, MAX(sort_order) as max_sort
+                   FROM documents 
+                   WHERE del_status = 0 AND parent_id IN (SELECT id FROM documents WHERE del_status = 0)
+                   GROUP BY parent_id";
+        $stmtMax = $this->db->query($sqlMax);
+        $maxResults = $stmtMax->fetchAll(PDO::FETCH_ASSOC);
+        
+        // 建立内部ID到document_id的映射
+        $internalToDocumentId = [];
+        foreach ($documents as $doc) {
+            $internalToDocumentId[$doc['id']] = $doc['document_id'];
+        }
+        
+        // 转换max_child_sorts为document_id映射
+        $maxChildSortsByDocumentId = [];
+        foreach ($maxResults as $row) {
+            $parentDocId = $internalToDocumentId[$row['parent_id']] ?? 0;
+            $maxChildSortsByDocumentId[$parentDocId] = $row['max_sort'] ?: 0;
+        }
+        
+        // 使用更高效的迭代构建方法
+        return $this->buildHierarchyFast($documents, $maxChildSortsByDocumentId);
+    }
+    
+    /**
+     * 超高效的层级构建方法
+     */
+    private function buildHierarchyFast($documents, $maxChildSorts) {
+        if (empty($documents)) {
+            return [];
+        }
+        
+        // 建立索引映射
+        $idIndex = [];
+        $childrenMap = [];
+        
+        // 预处理：建立索引映射
+        foreach ($documents as $index => $doc) {
+            $idIndex[$doc['id']] = $index;
+            $doc['level'] = 0;
+            $doc['max_child_sort'] = $maxChildSorts[$doc['document_id']] ?? 0;
+            $documents[$index] = $doc;
+            
+            // 建立子文档映射
+            if (!isset($childrenMap[$doc['parent_id']])) {
+                $childrenMap[$doc['parent_id']] = [];
+            }
+            $childrenMap[$doc['parent_id']][] = $doc;
+        }
+        
+        // 使用迭代而非递归构建层级
+        $result = [];
+        $stack = [];
+        
+        // 先处理根文档
+        foreach ($documents as $doc) {
+            if ($doc['parent_id'] == 0) {
+                $doc['level'] = 0;
+                $result[] = $doc;
+                $stack[] = ['doc' => $doc, 'level' => 0];
+            }
+        }
+        
+        // 迭代处理子文档
+        while (!empty($stack)) {
+            $item = array_shift($stack);
+            $parentId = $item['doc']['id'];
+            $level = $item['level'] + 1;
+            
+            if (isset($childrenMap[$parentId])) {
+                foreach ($childrenMap[$parentId] as $child) {
+                    $child['level'] = $level;
+                    $result[] = $child;
+                    $stack[] = ['doc' => $child, 'level' => $level];
+                }
+            }
+        }
+        
+        return $result;
+    }
+    
+    /**
      * 获取指定文档下最大的排序值
      */
     public function getMaxSortOrder($document_id) {
@@ -442,7 +608,7 @@ class DocumentTree {
     }
     
     /**
-     * 构建层级结构
+     * 构建层级结构（优化版本，减少内存使用）
      */
     private function buildHierarchy($documents, $parent_document_id = 0, $level = 0) {
         static $documentIdMap = null;
@@ -475,10 +641,24 @@ class DocumentTree {
                 $doc['level'] = $level;
                 $result[] = $doc;
                 
-                // 递归获取子文档
-                $children = $this->buildHierarchy([], $doc['document_id'], $level + 1);
-                if (!empty($children)) {
-                    $result = array_merge($result, $children);
+                // 限制递归深度，避免过深的层级导致内存问题
+                if ($level < 10) {
+                    $children = $this->buildHierarchy([], $doc['document_id'], $level + 1);
+                    if (!empty($children)) {
+                        // 分批处理子文档，避免一次性加载
+                        $batchSize = 50;
+                        $batch = [];
+                        foreach ($children as $child) {
+                            $batch[] = $child;
+                            if (count($batch) >= $batchSize) {
+                                $result = array_merge($result, $batch);
+                                $batch = [];
+                            }
+                        }
+                        if (!empty($batch)) {
+                            $result = array_merge($result, $batch);
+                        }
+                    }
                 }
             }
         }

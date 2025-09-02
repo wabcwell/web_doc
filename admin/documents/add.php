@@ -10,7 +10,8 @@ Auth::requireLogin();
 // 获取父文档选项
 $db = get_db();
 $tree = new DocumentTree($db);
-$documents = $tree->getAllDocumentsByHierarchy();
+// 限制返回文档数量，避免内存溢出
+$documents = $tree->getAllDocumentsByHierarchy(1000);
 
 // 获取URL参数用于自动填充
 $parent_id_param = $_GET['parent_id'] ?? 0;
@@ -70,6 +71,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tags = $_POST['tags'] ?? '';
     $is_public = isset($_POST['is_public']) ? intval($_POST['is_public']) : 1;
     $is_formal = isset($_POST['is_formal']) ? intval($_POST['is_formal']) : 0;
+    
+    // 验证parent_id的有效性
+    if ($parent_id != 0) {
+        $stmt_check = $db->prepare("SELECT id FROM documents WHERE document_id = ?");
+        $stmt_check->execute([$parent_id]);
+        if (!$stmt_check->fetch()) {
+            // 如果parent_id不存在，则设置为0（顶级文档）
+            $parent_id = 0;
+        } else {
+            // 将业务ID转换为内部ID
+            $stmt_convert = $db->prepare("SELECT id FROM documents WHERE document_id = ?");
+            $stmt_convert->execute([$parent_id]);
+            $parent_internal_id = $stmt_convert->fetchColumn();
+            $parent_id = $parent_internal_id ?: 0;
+        }
+    }
+    // 确保parent_id不为NULL，顶级文档的parent_id应为0
+    if ($parent_id === null) {
+        $parent_id = 0;
+    }
     
     if (!empty($title)) {
         // 生成唯一的update_code
@@ -187,7 +208,7 @@ include '../sidebar.php';
             
             <form method="post" id="documentForm">
 
-                <div class="d-flex flex-column flex-lg-row" id="responsive-container" style="gap: 15px;">
+                <div class="d-flex flex-column flex-lg-row document-add-container" id="responsive-container">
                     <!-- 左侧：文档标题和内容模块 -->
                     <div class="flex-grow-1">
                         <!-- 文档标题 -->
@@ -197,12 +218,12 @@ include '../sidebar.php';
                         </div>
                         
                         <!-- 文档内容 -->
-                        <script id="editor" type="text/plain" style="width:100%;min-height:500px;"></script>
-                        <textarea name="content" id="content" style="display: none;"></textarea>
+                        <script id="editor" type="text/plain"></script>
+                        <textarea name="content" id="content" class="document-add-content"></textarea>
                     </div>
                     
                     <!-- 右侧：设置和按钮模块 -->
-                    <div class="flex-shrink-0" style="width: 280px; flex: 0 0 280px;">
+                    <div class="flex-shrink-0 document-add-sidebar">
                         <div class="card">
                             <div class="card-body">
                                 <!-- 公开性选项 -->

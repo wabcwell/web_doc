@@ -42,12 +42,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <title>登录 - 文档管理系统</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="../assets/css/static/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="../assets/css/admin.css" rel="stylesheet">
 </head>
 <body class="bg-light">
     <div class="container mt-3">
         <div class="row justify-content-center align-items-center" style="min-height: 80vh;">
             <div class="col-md-6">
-                <div class="card">
+                <div class="card login-card">
                     <div class="card-header">
                         <h4 class="text-center mb-0">用户登录</h4>
                     </div>
@@ -60,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         <?php endif; ?>
                         
-                        <form method="POST">
+                        <form method="POST" class="login-form">
                             <div class="mb-3">
                                 <label for="username" class="form-label">用户名</label>
                                 <input type="text" class="form-control" id="username" name="username" required>
@@ -69,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <label for="password" class="form-label">密码</label>
                                 <input type="password" class="form-control" id="password" name="password" required>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">登录</button>
+                            <button type="submit" class="btn login-btn w-100">登录</button>
                         </form>
                         
 

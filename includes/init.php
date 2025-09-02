@@ -38,13 +38,13 @@ function init_database() {
         
         // 严格按照实际数据库结构创建表
         
-        // 创建documents表 - 与docs.db完全一致
+        // 创建documents表 - 移除所有外键约束
         $pdo->exec("CREATE TABLE IF NOT EXISTS `documents` (
             `id` int(11) NOT NULL AUTO_INCREMENT,
             `document_id` int(11) DEFAULT NULL,
             `title` text NOT NULL,
             `content` longtext,
-            `parent_id` int(11) DEFAULT NULL,
+            `parent_id` int(11) NOT NULL DEFAULT 0,
             `sort_order` int(11) DEFAULT 0,
             `user_id` int(11) DEFAULT 1,
             `is_public` int(11) DEFAULT 1,
@@ -58,8 +58,8 @@ function init_database() {
             `update_code` varchar(255) DEFAULT NULL,
             PRIMARY KEY (`id`),
             KEY `idx_documents_document_id` (`document_id`),
-            CONSTRAINT `fk_documents_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `documents` (`id`) ON DELETE SET NULL,
-            CONSTRAINT `fk_documents_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+            KEY `idx_documents_parent_id` (`parent_id`),
+            KEY `idx_documents_user_id` (`user_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         
         // 创建users表 - 使用本地时间
@@ -75,7 +75,7 @@ function init_database() {
             UNIQUE KEY `email` (`email`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         
-        // 创建edit_log表 - 使用本地时间
+        // 创建edit_log表 - 移除所有外键约束
         $pdo->exec("CREATE TABLE IF NOT EXISTS `edit_log` (
             `id` int(11) NOT NULL AUTO_INCREMENT,
             `document_id` int(11) NOT NULL,
@@ -94,12 +94,10 @@ function init_database() {
             PRIMARY KEY (`id`),
             KEY `idx_edit_log_document_id` (`document_id`),
             KEY `idx_edit_log_user_id` (`user_id`),
-            KEY `idx_edit_log_created_at` (`created_at`),
-            CONSTRAINT `fk_edit_log_document_id` FOREIGN KEY (`document_id`) REFERENCES `documents` (`id`) ON DELETE CASCADE,
-            CONSTRAINT `fk_edit_log_user_id` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+            KEY `idx_edit_log_created_at` (`created_at`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         
-        // 创建documents_version表 - 与docs.db完全一致
+        // 创建documents_version表 - 移除所有外键约束
         $pdo->exec("CREATE TABLE IF NOT EXISTS `documents_version` (
             `id` int(11) NOT NULL AUTO_INCREMENT,
             `document_id` int(11) NOT NULL,
@@ -112,12 +110,10 @@ function init_database() {
             `update_code` varchar(255) DEFAULT NULL,
             PRIMARY KEY (`id`),
             KEY `idx_documents_version_document_id` (`document_id`),
-            KEY `idx_documents_version_created_by` (`created_by`),
-            CONSTRAINT `fk_documents_version_document_id` FOREIGN KEY (`document_id`) REFERENCES `documents` (`id`) ON DELETE CASCADE,
-            CONSTRAINT `fk_documents_version_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+            KEY `idx_documents_version_created_by` (`created_by`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         
-        // 创建file_upload表 - 文件上传管理
+        // 创建file_upload表 - 文件上传管理（移除所有外键约束）
         $pdo->exec("CREATE TABLE IF NOT EXISTS `file_upload` (
             `id` int(11) NOT NULL AUTO_INCREMENT,
             `file_type` varchar(50) NOT NULL,
@@ -140,12 +136,10 @@ function init_database() {
             KEY `idx_file_upload_uploaded_by` (`uploaded_by`),
             KEY `idx_file_upload_file_type` (`file_type`),
             KEY `idx_file_upload_uploaded_at` (`uploaded_at`),
-            KEY `idx_file_upload_del_status` (`del_status`),
-            CONSTRAINT `fk_file_upload_document_id` FOREIGN KEY (`document_id`) REFERENCES `documents` (`id`) ON DELETE SET NULL,
-            CONSTRAINT `fk_file_upload_uploaded_by` FOREIGN KEY (`uploaded_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+            KEY `idx_file_upload_del_status` (`del_status`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
 
-        // 创建document_id_apportion表 - 管理文档ID使用状态
+        // 创建document_id_apportion表 - 管理文档ID使用状态（移除所有外键约束）
         $pdo->exec("CREATE TABLE IF NOT EXISTS `document_id_apportion` (
             `document_id` int(11) NOT NULL AUTO_INCREMENT,
             `usage_status` int(11) DEFAULT 0,
@@ -155,31 +149,14 @@ function init_database() {
             PRIMARY KEY (`document_id`),
             KEY `idx_document_id_apportion_status` (`usage_status`),
             KEY `idx_document_id_apportion_created_by` (`created_by`),
-            KEY `idx_document_id_apportion_created_at` (`created_at`),
-            CONSTRAINT `fk_document_id_apportion_created_by` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE CASCADE
+            KEY `idx_document_id_apportion_created_at` (`created_at`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;");
         
-        // 添加默认数据
+        // 添加默认管理员用户（不自动创建文档）
         $stmt = $pdo->prepare("INSERT IGNORE INTO `users` (username, password, role) VALUES (?, ?, ?)");
         $stmt->execute(['admin', password_hash('admin123', PASSWORD_DEFAULT), 'admin']);
-        
-        $stmt = $pdo->prepare("INSERT IGNORE INTO `documents` (parent_id, title, content, user_id) VALUES (?, ?, ?, ?)");
-        $stmt->execute([0, '欢迎使用', '# 欢迎使用\n\n这是您的第一篇文档。', 1]);
 
-        // 插入测试文件数据
-        $stmt = $pdo->prepare("INSERT IGNORE INTO `file_upload` (file_type, file_format, file_size, file_path, alias, document_id, description, notes, uploaded_by) VALUES 
-            (?, ?, ?, ?, ?, ?, ?, ?, ?),
-            (?, ?, ?, ?, ?, ?, ?, ?, ?),
-            (?, ?, ?, ?, ?, ?, ?, ?, ?),
-            (?, ?, ?, ?, ?, ?, ?, ?, ?),
-            (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([
-            'image', 'jpg', 102400, 'uploads/test1.jpg', '原始测试图片1.jpg', 1, '测试图片1', '这是测试图片的描述', 1,
-            'document', 'pdf', 204800, 'uploads/test2.pdf', '测试文档.pdf', 1, '测试文档', 'PDF测试文档', 1,
-            'image', 'png', 51200, 'uploads/test3.png', '测试图片3.png', NULL, '未关联的测试图片', '这是一个未关联到文档的测试图片', 1,
-            'video', 'mp4', 1048576, 'uploads/test4.mp4', '测试视频.mp4', 1, '测试视频', '测试视频文件', 1,
-            'archive', 'zip', 307200, 'uploads/test5.zip', '测试压缩包.zip', NULL, '测试压缩包', '包含多个文件的测试压缩包', 1
-        ]);
+        // 不插入任何测试数据
     } catch (PDOException $e) {
         die("数据库初始化失败: " . $e->getMessage());
     }
@@ -467,13 +444,16 @@ function save_document_version($document_id, $title, $content, $user_id, $tags =
     // 清理旧版本，只保留最近配置的最大历史版本数
     global $max_history_versions;
     if ($max_history_versions > 0) {
+        // 使用兼容的DELETE JOIN语法
         $stmt = $db->prepare("DELETE FROM documents_version 
                             WHERE document_id = ? 
                             AND id NOT IN (
-                                SELECT id FROM documents_version 
-                                WHERE document_id = ? 
-                                ORDER BY version_number DESC 
-                                LIMIT $max_history_versions
+                                SELECT * FROM (
+                                    SELECT id FROM documents_version 
+                                    WHERE document_id = ? 
+                                    ORDER BY version_number DESC 
+                                    LIMIT $max_history_versions
+                                ) AS temp
                             )");
         $stmt->execute([$document_id, $document_id]);
     }
@@ -653,10 +633,12 @@ function cleanup_operation_logs($document_id = null) {
             $stmt = $db->prepare("DELETE FROM edit_log 
                                 WHERE document_id = ? 
                                 AND id NOT IN (
-                                    SELECT id FROM edit_log 
-                                    WHERE document_id = ? 
-                                    ORDER BY created_at DESC 
-                                    LIMIT $max_operation_logs
+                                    SELECT * FROM (
+                                        SELECT id FROM edit_log 
+                                        WHERE document_id = ? 
+                                        ORDER BY created_at DESC 
+                                        LIMIT $max_operation_logs
+                                    ) AS temp
                                 )");
             $deleted_count = $stmt->execute([$document_id, $document_id]);
             

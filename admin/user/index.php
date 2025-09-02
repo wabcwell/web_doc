@@ -31,105 +31,7 @@ include __DIR__ . '/../sidebar.php';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="../../assets/css/admin.css">
-    <style>
-        .table td, .table th {
-            vertical-align: middle;
-        }
-        
-        /* 用户操作按钮样式 - 参考回收站设计 */
-        .user-actions .btn-group {
-            gap: 2px;
-        }
-        
-        .user-actions .btn {
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            border: none;
-        }
-        
-        .user-actions .btn i {
-            font-size: 14px;
-            margin: 0;
-        }
-        
-        /* 编辑按钮 - 蓝色系 */
-        .btn-edit {
-            background-color: #2196f3 !important;
-            color: white !important;
-            border: none !important;
-        }
-        .btn-edit:hover {
-            background-color: #1976d2 !important;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
-        }
-        
-        /* 删除按钮 - 红色系 */
-        .btn-delete {
-            background-color: #f44336 !important;
-            color: white !important;
-            border: none !important;
-        }
-        .btn-delete:hover {
-            background-color: #d32f2f !important;
-            transform: translateY(-1px);
-            box-shadow: 0 2px 4px rgba(244, 67, 54, 0.3);
-        }
-        
-        /* 禁用状态 */
-        .btn-disabled {
-            background-color: #bdbdbd !important;
-            color: white !important;
-            border: none !important;
-            opacity: 0.65;
-            cursor: not-allowed;
-        }
-        .btn-disabled:hover {
-            background-color: #bdbdbd !important;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        /* 纯CSS悬停提示样式 */
-        [data-tooltip] {
-            position: relative;
-        }
-        
-        [data-tooltip]:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            white-space: nowrap;
-            z-index: 1000;
-            margin-bottom: 5px;
-            pointer-events: none;
-        }
-        
-        [data-tooltip]:hover::before {
-            content: "";
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 4px solid transparent;
-            border-top-color: rgba(0, 0, 0, 0.8);
-            z-index: 1000;
-            margin-bottom: 1px;
-            pointer-events: none;
-        }
-    </style>
+
 </head>
 <body>
     <div class="main-content">
@@ -170,7 +72,7 @@ include __DIR__ . '/../sidebar.php';
                     ?>
                     <?php if (empty($userList)): ?>
                         <div class="text-center py-5">
-                            <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                            <i class="bi bi-inbox text-muted user-empty-icon"></i>
                             <h4 class="text-muted mt-3">暂无用户</h4>
                             <p class="text-muted">当前系统中没有任何用户</p>
                         </div>
@@ -179,12 +81,12 @@ include __DIR__ . '/../sidebar.php';
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
-                                        <th scope="col" style="width: 60px;">ID</th>
+                                        <th scope="col" class="table-id-col">ID</th>
                                         <th scope="col">用户名</th>
                                         <th scope="col">邮箱</th>
                                         <th scope="col">角色</th>
                                         <th scope="col">创建时间</th>
-                                        <th scope="col" style="width: 100px; text-align: center;">操作</th>
+                                        <th scope="col" class="table-actions-col">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -198,7 +100,7 @@ include __DIR__ . '/../sidebar.php';
                                             <small class="text-muted"><?php echo htmlspecialchars($user['email']); ?></small>
                                         </td>
                                         <td>
-                                            <span class="badge bg-<?php echo $user['role'] === 'admin' ? 'danger' : 'secondary'; ?>" style="font-size: 0.75rem;">
+                                            <span class="badge bg-<?php echo $user['role'] === 'admin' ? 'danger' : 'secondary'; ?> user-role-badge">
                                                 <?php echo $user['role'] === 'admin' ? '管理员' : '普通用户'; ?>
                                             </span>
                                         </td>

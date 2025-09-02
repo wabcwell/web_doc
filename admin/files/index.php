@@ -426,19 +426,19 @@ $stats = get_file_stats($db);
             <!-- 统计信息卡片 -->
             <div class="row mb-3">
                 <div class="col-md-3 mb-2 mb-md-0">
-                    <div class="stats-card stats-card-primary h-100">
+                    <div class="file-stats-card file-stats-card-primary h-100">
                         <h4>总文件数</h4>
                         <div class="display-4"><?php echo number_format($stats['total_files']); ?></div>
                     </div>
                 </div>
                 <div class="col-md-3 mb-2 mb-md-0">
-                    <div class="stats-card stats-card-secondary h-100">
+                    <div class="file-stats-card file-stats-card-secondary h-100">
                         <h4>总大小</h4>
                         <div class="display-4"><?php echo format_file_size($stats['total_size']); ?></div>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="stats-card stats-card-tertiary h-100">
+                    <div class="file-stats-card file-stats-card-tertiary h-100">
                         <h4>文件类型分布</h4>
                         <div class="type-distribution">
                             <?php foreach ($stats['type_stats'] as $type): ?>
@@ -453,23 +453,8 @@ $stats = get_file_stats($db);
             </div>
 
             <!-- 筛选和搜索区域 -->
-            <div class="filter-section" style="margin-bottom: 5px;">
-                <style>
-                    .filter-section .form-control-sm,
-                    .filter-section .form-select-sm {
-                        height: 31px !important;
-                        min-height: 31px !important;
-                        line-height: 1.25 !important;
-                    }
-                    .filter-section .btn-sm {
-                        height: 31px !important;
-                        min-height: 31px !important;
-                        line-height: 1.25 !important;
-                        padding-top: 0.25rem !important;
-                        padding-bottom: 0.25rem !important;
-                    }
-                </style>
-                <form method="GET" class="row g-1 align-items-center">
+            <div class="filter-section file-filter-section">
+                <form method="GET" class="row g-1 align-items-center file-filter-form">
                     <div class="col-md-2">
                         <select name="type" class="form-select form-select-sm">
                             <option value="">全部文件类型</option>
@@ -542,7 +527,7 @@ $stats = get_file_stats($db);
                     <div class="d-flex justify-content-between align-items-center">
                         <h5 class="mb-0"><i class="bi bi-folder"></i> 文件列表</h5>
                         <div class="d-flex align-items-center">
-                            <div id="batchActions" class="me-3" style="display: none;">
+                            <div id="batchActions" class="me-3 file-batch-actions">
                                 <button type="button" class="btn btn-danger btn-sm" onclick="batchDelete()">
                                     <i class="bi bi-trash"></i> 批量删除
                                 </button>
@@ -554,7 +539,7 @@ $stats = get_file_stats($db);
                 <div class="card-body p-0">
                     <?php if (empty($files)): ?>
                         <div class="text-center py-5">
-                            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
+                            <i class="bi bi-inbox file-empty-icon"></i>
                             <p class="text-muted mt-3">暂无文件</p>
                         </div>
                     <?php else: ?>
@@ -562,10 +547,10 @@ $stats = get_file_stats($db);
                             <table class="table table-hover mb-0">
                                 <thead class="table-light">
                                     <tr>
-                                        <th width="3%" class="text-center">
+                                        <th class="file-select-all">
                                             <input type="checkbox" id="selectAll" class="form-check-input">
                                         </th>
-                                        <th width="5%" class="text-center">图标</th>
+                                        <th class="file-table-icon-col">图标</th>
                                         <th width="25%" class="sortable-header">
                                             <a href="?<?php 
                                         $sort_params = [];
@@ -584,7 +569,7 @@ $stats = get_file_stats($db);
                                                 <?php endif; ?>
                                             </a>
                                         </th>
-                                        <th width="10%" class="sortable-header">
+                                        <th class="file-table-type-col sortable-header">
                                             <a href="?<?php 
                                         $sort_params = [];
                                         if ($filter_type !== '') $sort_params['type'] = $filter_type;
@@ -602,7 +587,7 @@ $stats = get_file_stats($db);
                                                 <?php endif; ?>
                                             </a>
                                         </th>
-                                        <th width="10%" class="sortable-header">
+                                        <th class="file-table-size-col sortable-header">
                                             <a href="?<?php 
                                         $sort_params = [];
                                         if ($filter_type !== '') $sort_params['type'] = $filter_type;
@@ -620,8 +605,8 @@ $stats = get_file_stats($db);
                                                 <?php endif; ?>
                                             </a>
                                         </th>
-                                        <th width="20%">关联文档</th>
-                                        <th width="10%" class="sortable-header">
+                                        <th class="file-table-doc-col">关联文档</th>
+                                        <th class="file-table-user-col sortable-header">
                                             <a href="?<?php 
                                         $sort_params = [];
                                         if ($filter_type !== '') $sort_params['type'] = $filter_type;
@@ -639,7 +624,7 @@ $stats = get_file_stats($db);
                                                 <?php endif; ?>
                                             </a>
                                         </th>
-                                        <th width="12%" class="sortable-header">
+                                        <th class="file-table-date-col sortable-header">
                                             <a href="?<?php 
                                         $sort_params = [];
                                         if ($filter_type !== '') $sort_params['type'] = $filter_type;
@@ -657,7 +642,7 @@ $stats = get_file_stats($db);
                                                 <?php endif; ?>
                                             </a>
                                         </th>
-                                        <th width="12%" class="text-center">操作</th>
+                                        <th class="file-table-actions-col">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -670,21 +655,18 @@ $stats = get_file_stats($db);
                                                 <?php if ($file['file_type'] === 'image'): ?>
                                                     <img src="<?php echo htmlspecialchars($file['file_path']); ?>" 
                                                          alt="<?php echo htmlspecialchars(basename($file['file_path'])); ?>"
-                                                         class="img-thumbnail img-fluid"
-                                                         style="width: 40px; height: 40px; object-fit: cover; cursor: pointer;"
+                                                         class="img-thumbnail img-fluid file-preview-icon"
                                                          data-bs-toggle="modal" 
                                                          data-bs-target="#imageModal"
                                                          data-image-src="<?php echo htmlspecialchars($file['file_path']); ?>"
                                                          data-image-name="<?php echo htmlspecialchars(basename($file['file_path'])); ?>">
                                                 <?php else: ?>
                                                     <?php if ($file['file_format'] === 'pdf'): ?>
-                                                        <a href="<?php echo htmlspecialchars($file['file_path']); ?>" target="_blank" style="text-decoration: none;">
-                                                            <i class="bi <?php echo get_file_icon($file['file_type'], $file['file_format']); ?> file-icon" 
-                                                               style="color: <?php echo get_file_color($file['file_type'], $file['file_format']); ?>; cursor: pointer; font-size: 30px;"></i>
+                                                        <a href="<?php echo htmlspecialchars($file['file_path']); ?>" target="_blank" class="file-preview-link">
+                                                            <i class="bi <?php echo get_file_icon($file['file_type'], $file['file_format']); ?> file-icon file-preview-btn"></i>
                                                         </a>
                                                     <?php else: ?>
-                                                        <i class="bi <?php echo get_file_icon($file['file_type'], $file['file_format']); ?> file-icon" 
-                                                           style="color: <?php echo get_file_color($file['file_type'], $file['file_format']); ?>; cursor: pointer; font-size: 30px;"></i>
+                                                        <i class="bi <?php echo get_file_icon($file['file_type'], $file['file_format']); ?> file-icon file-preview-btn"></i>
                                                     <?php endif; ?>
                                                 <?php endif; ?>
                                             </td>
@@ -803,7 +785,7 @@ $stats = get_file_stats($db);
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="关闭"></button>
                 </div>
                 <div class="modal-body text-center">
-                    <img id="modalImage" src="" alt="" class="img-fluid" style="max-height: 70vh;">
+                    <img id="modalImage" src="" alt="" class="img-fluid file-modal-image">
                 </div>
                 <div class="modal-footer">
                     <a id="downloadImage" href="" class="btn btn-primary" download>

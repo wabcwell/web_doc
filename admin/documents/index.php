@@ -1,48 +1,48 @@
 <?php
-require_once __DIR__ . '/../../includes/init.php';
-require_once __DIR__ . '/../../includes/Auth.php';
-require_once __DIR__ . '/../../includes/DocumentTree.php';
+require_once '../../includes/init.php';
+require_once '../../includes/DocumentTree.php';
 
-Auth::requireLogin();
+// 检查是否登录
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../login.php');
+    exit;
+}
 
 // 渲染文档操作按钮的函数
 function render_document_action_buttons(array $doc, int $next_child_sort): string {
     $doc_id = $doc['document_id'];
     $doc_title = htmlspecialchars($doc['title'], ENT_QUOTES, 'UTF-8');
     
-    $html = '<div class="btn-group" role="group" style="gap: 2px;">';
+    $html = '<div class="btn-group" role="group">';
     
-    // 查看按钮 - 蓝灰色 (#90a4ae)
-    $html .= '<a href="view.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #90a4ae; border-color: #90a4ae; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="查看"';
-    $html .= ' onmouseover="this.style.backgroundColor=\'#b0bec5\'; this.style.borderColor=\'#b0bec5\';"';
-    $html .= ' onmouseout="this.style.backgroundColor=\'#90a4ae\'; this.style.borderColor=\'#90a4ae\';">';
+    // 编辑按钮 - 橙色 (#ffb74d)
+    $html .= '<a href="edit.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center" data-tooltip="编辑"';
+    $html .= ' style="background-color: #ffb74d; border-color: #ffb74d; color: white; width: 32px; height: 32px; padding: 0;"';
+    $html .= ' onmouseover="this.style.backgroundColor=\'#ffcc80\'; this.style.borderColor=\'#ffcc80\';"';
+    $html .= ' onmouseout="this.style.backgroundColor=\'#ffb74d\'; this.style.borderColor=\'#ffb74d\';">';
+    $html .= '<i class="bi bi-pencil" style="font-size: 14px; margin: 0 auto;"></i>';
+    $html .= '</a>';
+    
+    // 查看按钮 - 浅蓝色 (#64b5f6)
+    $html .= '<a href="/index.php?id=' . $doc_id . '" target="_blank" class="btn btn-sm d-flex align-items-center justify-content-center" data-tooltip="查看"';
+    $html .= ' style="background-color: #64b5f6; border-color: #64b5f6; color: white; width: 32px; height: 32px; padding: 0;"';
+    $html .= ' onmouseover="this.style.backgroundColor=\'#90caf9\'; this.style.borderColor=\'#90caf9\';"';
+    $html .= ' onmouseout="this.style.backgroundColor=\'#64b5f6\'; this.style.borderColor=\'#64b5f6\';">';
     $html .= '<i class="bi bi-eye" style="font-size: 14px; margin: 0 auto;"></i>';
     $html .= '</a>';
     
-    // 版本历史按钮 - 橙色 (#ffb74d)
-    $html .= '<a href="view_his.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="版本历史"';
-    $html .= ' onmouseover="this.style.backgroundColor=\'#ffcc80\'; this.style.borderColor=\'#ffcc80\';"';
-    $html .= ' onmouseout="this.style.backgroundColor=\'#ffb74d\'; this.style.borderColor=\'#ffb74d\';">';
-    $html .= '<i class="bi bi-clock-history" style="font-size: 14px; margin: 0 auto;"></i>';
-    $html .= '</a>';
-    
-    // 更新记录按钮 - 浅蓝色 (#64b5f6)
-    $html .= '<a href="edit_log.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="更新记录"';
-    $html .= ' onmouseover="this.style.backgroundColor=\'#90caf9\'; this.style.borderColor=\'#90caf9\';"';
-    $html .= ' onmouseout="this.style.backgroundColor=\'#64b5f6\'; this.style.borderColor=\'#64b5f6\';">';
-    $html .= '<i class="bi bi-list-check" style="font-size: 14px; margin: 0 auto;"></i>';
-    $html .= '</a>';
-    
     // 添加下级文档按钮 - 绿色 (#4caf50)
-    $html .= '<a href="add.php?parent_id=' . $doc_id . '&sort_order=' . $next_child_sort . '" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #4caf50; border-color: #4caf50; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="添加下级"';
+    $html .= '<a href="add.php?parent_id=' . $doc_id . '&sort_order=' . $next_child_sort . '" class="btn btn-sm d-flex align-items-center justify-content-center" data-tooltip="添加下级"';
+    $html .= ' style="background-color: #4caf50; border-color: #4caf50; color: white; width: 32px; height: 32px; padding: 0;"';
     $html .= ' onmouseover="this.style.backgroundColor=\'#66bb6a\'; this.style.borderColor=\'#66bb6a\';"';
     $html .= ' onmouseout="this.style.backgroundColor=\'#4caf50\'; this.style.borderColor=\'#4caf50\';">';
     $html .= '<i class="bi bi-plus" style="font-size: 14px; margin: 0 auto;"></i>';
     $html .= '</a>';
     
     // 删除按钮 - 珊瑚色 (#ff8a65)
-    $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="删除"';
-    $html .= ' onclick="confirmDelete(' . $doc_id . ', \'' . $doc_title . '\')"';
+    $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" data-tooltip="删除"';
+    $html .= ' style="background-color: #ff8a65; border-color: #ff8a65; color: white; width: 32px; height: 32px; padding: 0;"';
+    $html .= ' onclick="confirmDelete(\'' . $doc_title . '\', \'delete.php?id=' . $doc_id . '\')"';
     $html .= ' onmouseover="this.style.backgroundColor=\'#ffab91\'; this.style.borderColor=\'#ffab91\';"';
     $html .= ' onmouseout="this.style.backgroundColor=\'#ff8a65\'; this.style.borderColor=\'#ff8a65\';">';
     $html .= '<i class="bi bi-trash" style="font-size: 14px; margin: 0 auto;"></i>';
@@ -53,8 +53,10 @@ function render_document_action_buttons(array $doc, int $next_child_sort): strin
     return $html;
 }
 
+// 创建DocumentTree实例
 $documentTree = new DocumentTree();
-$documents = $documentTree->getAllDocumentsByHierarchy();
+// 获取所有文档，使用简化优化
+$documents = $documentTree->getAllDocumentsByHierarchySimple();
 
 // 获取参数用于添加按钮
 $parent_id = isset($_GET['parent_id']) ? intval($_GET['parent_id']) : 0;
@@ -76,56 +78,54 @@ include '../sidebar.php';
     <link rel="stylesheet" href="../../assets/css/admin.css">
     <style>
         .btn-group .btn {
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             padding: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative; /* 为CSS提示提供定位上下文 */
+            border-radius: 4px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
         }
         .btn-group .btn i {
             font-size: 14px;
         }
         
-        /* CSS悬停提示样式 */
-        .btn[data-tooltip] {
+        /* 纯CSS悬停提示样式 */
+        [data-tooltip] {
             position: relative;
         }
         
-        .btn[data-tooltip]:hover::after {
+        [data-tooltip]:hover::after {
             content: attr(data-tooltip);
             position: absolute;
             bottom: 100%;
             left: 50%;
             transform: translateX(-50%);
-            margin-bottom: 5px;
-            padding: 4px 8px;
             background: rgba(0, 0, 0, 0.8);
             color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
             font-size: 12px;
             white-space: nowrap;
-            border-radius: 3px;
             z-index: 1000;
+            margin-bottom: 5px;
             pointer-events: none;
         }
         
-        .btn[data-tooltip]:hover::before {
-            content: '';
+        [data-tooltip]:hover::before {
+            content: "";
             position: absolute;
             bottom: 100%;
             left: 50%;
             transform: translateX(-50%);
-            margin-bottom: 1px;
             border: 4px solid transparent;
             border-top-color: rgba(0, 0, 0, 0.8);
             z-index: 1000;
+            margin-bottom: 1px;
             pointer-events: none;
-        }
-        
-        /* 修复操作列的样式 */
-        .table td:last-child {
-            position: relative;
         }
     </style>
 </head>
@@ -191,14 +191,8 @@ include '../sidebar.php';
                                 </thead>
                                 <tbody>
                                     <?php foreach ($documents as $doc): 
-
-                                        
-                                        // 计算同级文档的下一个排序值
-                                        $next_sort_order = $doc['sort_order'] + 1;
-                                        
-                                        // 计算下级文档的下一个排序值
-                                        $max_child_sort = $documentTree->getMaxChildSortOrder($doc['document_id']);
-                                        $next_child_sort = $max_child_sort + 1;
+                                        // 使用预计算的下级排序值
+                                        $next_child_sort = ($doc['max_child_sort'] ?? 0) + 1;
                                     ?>
                                     <tr>
                                         <td><?php echo $doc['document_id']; ?></td>
@@ -230,7 +224,7 @@ include '../sidebar.php';
                                         </td>
                                         <td>
                                             <?php 
-                                            $is_formal = isset($doc['is_formal']) ? $doc['is_formal'] : 1; // 默认正式文档
+                                            $is_formal = isset($doc['is_formal']) ? $doc['is_formal'] : 1;
                                             switch($is_formal) {
                                                 case 0:
                                                     $formal_status = '草稿';
@@ -249,8 +243,10 @@ include '../sidebar.php';
                                                 <?php echo $formal_status; ?>
                                             </span>
                                         </td>
-                                        <td>
-                                            <?php echo render_document_action_buttons($doc, $next_child_sort); ?>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center">
+                                                <?php echo render_document_action_buttons($doc, $next_child_sort); ?>
+                                            </div>
                                         </td>
                                     </tr>
                                     <?php endforeach; ?>
@@ -288,17 +284,12 @@ include '../sidebar.php';
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // 删除确认函数
-        function confirmDelete(id, title) {
+        // 删除确认
+        function confirmDelete(title, url) {
             document.getElementById('deleteDocumentTitle').textContent = title;
-            document.getElementById('confirmDeleteBtn').href = 'delete.php?id=' + id;
-            
-            // 显示模态框
-            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
-            deleteModal.show();
+            document.getElementById('confirmDeleteBtn').href = url;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
         }
-
-
     </script>
 </body>
 </html>

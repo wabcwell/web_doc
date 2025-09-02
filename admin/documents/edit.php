@@ -17,7 +17,8 @@ if (!$id) {
 // 获取文档和父文档选项
 $db = get_db();
 $tree = new DocumentTree($db);
-$documents = $tree->getAllDocumentsByHierarchy();
+// 限制返回文档数量，避免内存溢出
+$documents = $tree->getAllDocumentsByHierarchy(1000);
 
 // 获取当前文档
 $stmt = $db->prepare("SELECT * FROM documents WHERE document_id = ?");
@@ -126,64 +127,7 @@ include '../sidebar.php';
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../../assets/css/admin.css">
-    <style>
-        /* 解决容器高度限制 */
-        .form-group:has(#editor) {
-            height: auto !important;
-        }
-        
-        /* 移除可能的高度限制 */
-        .card {
-            height: auto !important;
-        }
-        
-        /* 移除容器宽度限制，支持无限拉伸 */
-        .container-fluid {
-            max-width: none;
-            width: 100%;
-        }
-        
-        /* 确保编辑器容器能自动增高 */
-        #editor {
-            height: auto !important;
-            min-height: 500px;
-        }
-        
-        /* 精确修复元素路径间距问题 */
-        .edui-default .edui-editor-bottombar {
-            height: 24px !important;
-            line-height: 24px !important;
-            padding: 0 5px !important;
-            margin: 0 !important;
-            border-top: 1px solid #d4d4d4 !important;
-            box-sizing: border-box !important;
-        }
-        
-        .edui-default .edui-editor {
-            border-radius: 0.375rem !important;
-            overflow: hidden !important;
-        }
-        
-        .edui-default .edui-editor-bottomContainer {
-            height: 24px !important;
-            margin: 0 !important;
-            padding: 0 !important;
-        }
-        
-        /* 响应式断点：1200px */
-        @media screen and (max-width: 1200px) {
-            #responsive-container {
-                flex-direction: column !important;
-            }
-            #responsive-container .flex-shrink-0 {
-                width: 100% !important;
-                flex: none !important;
-                min-width: 100% !important;
-                max-width: 100% !important;
-                margin-top: 15px;
-            }
-        }
-    </style>
+
 </head>
 <body>
     <div class="main-content">
@@ -191,7 +135,7 @@ include '../sidebar.php';
             <h1><i class="bi bi-pencil-square"></i> 编辑文档</h1>
             
             <form method="post" id="documentForm">
-                <div class="d-flex flex-column flex-lg-row" id="responsive-container" style="gap: 15px;">
+                <div class="d-flex flex-column flex-lg-row responsive-container">
                     <!-- 左侧：文档标题和内容模块 -->
                     <div class="flex-grow-1">
                         <!-- 文档标题 -->
@@ -202,12 +146,12 @@ include '../sidebar.php';
                         </div>
                         
                         <!-- 文档内容 -->
-                        <script id="editor" type="text/plain" style="width:100%;min-height:500px;"><?php echo $document['content'] ?? ''; ?></script>
-                        <textarea name="content" id="content" style="display: none;"></textarea>
+                        <script id="editor" type="text/plain" class="document-editor"><?php echo $document['content'] ?? ''; ?></script>
+                        <textarea name="content" id="content" class="document-add-content"></textarea>
                     </div>
                     
                     <!-- 右侧：设置和按钮模块 -->
-                    <div class="flex-shrink-0" style="width: 280px; flex: 0 0 280px;">
+                    <div class="flex-shrink-0 document-sidebar">
                         <!-- 文档信息模块 -->
                         <div class="card mb-3">
                             <div class="card-header">
@@ -228,7 +172,7 @@ include '../sidebar.php';
                                 </div>
                                 <div class="mb-0">
                                     <small class="text-muted">更新代码</small>
-                                    <div class="fw-bold text-break" style="font-size: 0.8em;"><?php echo $document['update_code'] ?? 'N/A'; ?></div>
+                                    <div class="fw-bold text-break document-info-id"><?php echo $document['update_code'] ?? 'N/A'; ?></div>
                                 </div>
                             </div>
                         </div>

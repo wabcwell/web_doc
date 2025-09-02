@@ -49,24 +49,24 @@ function render_action_buttons(array $doc, bool $is_admin): string {
     $doc_id = $doc['document_id'];
     $doc_title = htmlspecialchars($doc['title'], ENT_QUOTES, 'UTF-8');
     
-    $html = '<div class="btn-group" role="group" style="gap: 2px;">';
+    $html = '<div class="btn-group" role="group">';
     
     // 历史版本按钮 - 橙色 (#ffb74d)
-    $html .= '<a href="../documents/view_his.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ffb74d; border-color: #ffb74d; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="历史版本"';
+    $html .= '<a href="../documents/view_his.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center recycle-btn-history" data-tooltip="历史版本"';
     $html .= ' onmouseover="this.style.backgroundColor=\'#ffcc80\'; this.style.borderColor=\'#ffcc80\';" ';
     $html .= ' onmouseout="this.style.backgroundColor=\'#ffb74d\'; this.style.borderColor=\'#ffb74d\';">';
     $html .= '<i class="bi bi-clock-history" style="font-size: 14px; margin: 0 auto;"></i>';
     $html .= '</a>';
     
     // 更新历史按钮 - 浅蓝色 (#64b5f6)
-    $html .= '<a href="../documents/edit_log.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #64b5f6; border-color: #64b5f6; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="更新历史"';
+    $html .= '<a href="../documents/edit_log.php?id=' . $doc_id . '" class="btn btn-sm d-flex align-items-center justify-content-center recycle-btn-log" data-tooltip="更新历史"';
     $html .= ' onmouseover="this.style.backgroundColor=\'#90caf9\'; this.style.borderColor=\'#90caf9\';" ';
     $html .= ' onmouseout="this.style.backgroundColor=\'#64b5f6\'; this.style.borderColor=\'#64b5f6\';">';
     $html .= '<i class="bi bi-list-ul" style="font-size: 14px; margin: 0 auto;"></i>';
     $html .= '</a>';
     
     // 恢复按钮 - 绿色 (#4caf50)
-    $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #4caf50; border-color: #4caf50; color: white; transition: background-color 0.2s, border-color 0.2s;" data-tooltip="恢复文档" ';
+    $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center recycle-btn-restore" data-tooltip="恢复文档" ';
     $html .= 'onclick="showRestoreConfirm(' . $doc_id . ', \'' . $doc_title . '\')" ';
     $html .= ' onmouseover="this.style.backgroundColor=\'#66bb6a\'; this.style.borderColor=\'#66bb6a\';" ';
     $html .= ' onmouseout="this.style.backgroundColor=\'#4caf50\'; this.style.borderColor=\'#4caf50\';">';
@@ -76,7 +76,7 @@ function render_action_buttons(array $doc, bool $is_admin): string {
     // 永久删除按钮 - 珊瑚色 (#ff8a65)
     $disabled = $is_admin ? '' : 'disabled';
     $disabled_style = $is_admin ? '' : 'opacity: 0.65; cursor: not-allowed;';
-    $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center" style="width: 30px; height: 30px; padding: 0; background-color: #ff8a65; border-color: #ff8a65; color: white; transition: background-color 0.2s, border-color 0.2s; ' . $disabled_style . '" data-tooltip="永久删除" ';
+    $html .= '<button type="button" class="btn btn-sm d-flex align-items-center justify-content-center recycle-btn-delete" data-tooltip="永久删除" ';
     $html .= $disabled . ' onclick="showDeleteConfirm(' . $doc_id . ', \'' . $doc_title . '\')" ';
     $html .= ' onmouseover="if(!this.disabled){this.style.backgroundColor=\'#ffab91\'; this.style.borderColor=\'#ffab91\';}" ';
     $html .= ' onmouseout="if(!this.disabled){this.style.backgroundColor=\'#ff8a65\'; this.style.borderColor=\'#ff8a65\';}">';
@@ -215,7 +215,7 @@ function render_action_buttons(array $doc, bool $is_admin): string {
                 <div class="card-body">
                     <?php if (empty($documents)): ?>
                         <div class="text-center py-5">
-                            <i class="bi bi-inbox text-muted" style="font-size: 4rem;"></i>
+                            <i class="bi bi-inbox text-muted recycle-empty-icon"></i>
                             <h4 class="text-muted mt-3">回收站是空的</h4>
                             <p class="text-muted">当前没有已删除的文档</p>
                         </div>
@@ -224,12 +224,12 @@ function render_action_buttons(array $doc, bool $is_admin): string {
                             <table class="table table-hover align-middle">
                                 <thead class="table-light">
                                     <tr>
-                                        <th scope="col" style="width: 60px;">ID</th>
+                                        <th scope="col" class="recycle-table-id-col">ID</th>
                                         <th scope="col">文档标题</th>
                                         <th scope="col">父文档</th>
                                         <th scope="col">删除者</th>
                                         <th scope="col">删除时间</th>
-                                        <th scope="col" style="width: 200px; text-align: center;">操作</th>
+                                        <th scope="col" class="recycle-table-actions-col">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>

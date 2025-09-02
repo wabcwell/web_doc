@@ -17,7 +17,8 @@ if (!$id) {
 // 获取文档和父文档选项
 $db = get_db();
 $tree = new DocumentTree($db);
-$documents = $tree->getAllDocumentsByHierarchy();
+// 限制返回文档数量，避免内存溢出
+$documents = $tree->getAllDocumentsByHierarchy(1000);
 
 // 获取当前文档
 $stmt = $db->prepare("SELECT * FROM documents WHERE id = ?");
