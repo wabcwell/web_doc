@@ -408,7 +408,7 @@ function log_edit($document_id, $user_id, $action, $changes = [], $update_code =
     
     $stmt = $db->prepare("INSERT INTO edit_log (document_id, user_id, action, op_title, op_content, op_tags, op_parent, op_corder, op_public, op_formal, update_code) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    return $stmt->execute([
+    $result = $stmt->execute([
         $document_id, $user_id, $action,
         $params['op_title'],
         $params['op_content'],
@@ -419,6 +419,11 @@ function log_edit($document_id, $user_id, $action, $changes = [], $update_code =
         $params['op_formal'],
         $update_code
     ]);
+    
+    // 记录日志后自动清理该文档的旧操作记录
+    cleanup_operation_logs($document_id);
+    
+    return $result;
 }
 
 /**
@@ -460,16 +465,19 @@ function save_document_version($document_id, $title, $content, $user_id, $tags =
                         VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([$document_id, $title, $content, $tags, $user_id, $next_version, $update_code]);
     
-    // 清理旧版本，只保留最近20个
-    $stmt = $db->prepare("DELETE FROM documents_version 
-                        WHERE document_id = ? 
-                        AND id NOT IN (
-                            SELECT id FROM documents_version 
+    // 清理旧版本，只保留最近配置的最大历史版本数
+    global $max_history_versions;
+    if ($max_history_versions > 0) {
+        $stmt = $db->prepare("DELETE FROM documents_version 
                             WHERE document_id = ? 
-                            ORDER BY version_number DESC 
-                            LIMIT 20
-                        )");
-    $stmt->execute([$document_id, $document_id]);
+                            AND id NOT IN (
+                                SELECT id FROM documents_version 
+                                WHERE document_id = ? 
+                                ORDER BY version_number DESC 
+                                LIMIT $max_history_versions
+                            )");
+        $stmt->execute([$document_id, $document_id]);
+    }
     
     return $next_version;
 }
@@ -629,6 +637,42 @@ function get_deleted_document_ids() {
         error_log("获取已删除的文档ID列表时出错: " . $e->getMessage());
         return [];
     }
+}
+
+/**
+ * 清理操作记录
+ * 根据配置的最大操作记录数清理edit_log表中单个文档的旧记录
+ */
+function cleanup_operation_logs($document_id = null) {
+    global $max_operation_logs;
+    
+    if ($max_operation_logs > 0 && $document_id !== null) {
+        $db = get_db();
+        
+        try {
+            // 删除单个文档超出限制的旧操作记录
+            $stmt = $db->prepare("DELETE FROM edit_log 
+                                WHERE document_id = ? 
+                                AND id NOT IN (
+                                    SELECT id FROM edit_log 
+                                    WHERE document_id = ? 
+                                    ORDER BY created_at DESC 
+                                    LIMIT $max_operation_logs
+                                )");
+            $deleted_count = $stmt->execute([$document_id, $document_id]);
+            
+            if ($deleted_count > 0) {
+                error_log("清理了文档 " . $document_id . " 的 " . $deleted_count . " 条旧操作记录");
+            }
+            
+            return $deleted_count;
+        } catch (Exception $e) {
+            error_log("清理操作记录时出错: " . $e->getMessage());
+            return 0;
+        }
+    }
+    
+    return 0;
 }
 
 /**

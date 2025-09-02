@@ -20,6 +20,8 @@ $upload_url = '/uploads';
 // 其他配置
 $timezone = 'Asia/Shanghai';
 $items_per_page = 20;
+$max_history_versions = 20; // 单文档最大历史版本数，0表示不限制
+$max_operation_logs = 100; // 单文档最大操作记录数，0表示不限制
 
 // 设置PHP默认时区
 date_default_timezone_set($timezone);

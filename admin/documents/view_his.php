@@ -244,6 +244,9 @@ include '../sidebar.php';
                                 <?php endif; ?>
                             </div>
                         </div>
+                        <div class="card-header bg-light">
+                            <h4 class="mb-0"><?php echo htmlspecialchars($current_content['title'] ?? '未知文档'); ?></h4>
+                        </div>
                         <div class="card-body">
                             <div class="document-content">
                                 <?php 
@@ -330,7 +333,7 @@ include '../sidebar.php';
                                     <a href="?id=<?php echo $id; ?>&version=<?php echo $version['id']; ?><?php echo $show_all ? '&show_all=1' : ''; ?>" 
                                        class="list-group-item list-group-item-action version-item <?php echo $is_active ? 'active' : ''; ?>">
                                         <div class="d-flex w-100 justify-content-between align-items-center">
-                                            <h6 class="mb-1">版本 <?php echo $total_versions - $index; ?></h6>
+                                            <h6 class="mb-1">版本 <?php echo $version['version_number']; ?></h6>
                                             <?php if ($is_latest): ?>
                                                 <span class="badge bg-success">最新</span>
                                             <?php endif; ?>
@@ -345,7 +348,7 @@ include '../sidebar.php';
                                                  <button type="button" 
                                                          class="btn btn-sm btn-outline-primary rollback-btn"
                                                          data-version-id="<?php echo $version['id']; ?>"
-                                                         data-version-number="<?php echo $total_versions - $index; ?>">
+                                                         data-version-number="<?php echo $version['version_number']; ?>">
                                                      <i class="bi bi-arrow-clockwise"></i> 回滚到此版本
                                                  </button>
                                              </div>

@@ -22,6 +22,8 @@ $current_site_subtitle = $site_subtitle ?? '简洁高效的文档管理系统';
 $current_site_url = $site_url;
 $current_logo_type = $logo_type;
 $current_logo_path = $logo_path;
+$current_max_history_versions = $max_history_versions ?? 20;
+$current_max_operation_logs = $max_operation_logs ?? 100;
 
 $message = '';
 $message_type = '';
@@ -32,6 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_site_subtitle = trim($_POST['site_subtitle'] ?? '');
     $new_site_url = trim($_POST['site_url'] ?? '');
     $new_logo_type = trim($_POST['logo_type'] ?? '');
+    $new_max_history_versions = intval($_POST['max_history_versions'] ?? 20);
+    $new_max_operation_logs = intval($_POST['max_operation_logs'] ?? 100);
         
         // 验证输入
         if (empty($new_site_name)) {
@@ -45,6 +49,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message_type = 'error';
         } elseif (!in_array($new_logo_type, ['text', 'img'])) {
             $message = '请选择有效的Logo类型';
+            $message_type = 'error';
+        } elseif ($new_max_history_versions < 0) {
+            $message = '最大历史版本数不能为负数';
+            $message_type = 'error';
+        } elseif ($new_max_operation_logs < 0) {
+            $message = '最大操作记录数不能为负数';
             $message_type = 'error';
         } else {
             $new_logo_path = $current_logo_path; // 默认保持现有路径
@@ -132,6 +142,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $config_content
             );
             
+            $config_content = preg_replace(
+                '/(\$max_history_versions\s*=\s*).*?(;)/',
+                '$1' . $new_max_history_versions . '$2',
+                $config_content
+            );
+            
+            $config_content = preg_replace(
+                '/(\$max_operation_logs\s*=\s*).*?(;)/',
+                '$1' . $new_max_operation_logs . '$2',
+                $config_content
+            );
+            
             if (file_put_contents($config_path, $config_content) !== false) {
                 $message = '系统设置已成功更新';
                 $message_type = 'success';
@@ -143,6 +165,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $current_site_url = $site_url;
                 $current_logo_type = $logo_type;
                 $current_logo_path = $logo_path;
+                $current_max_history_versions = $max_history_versions;
+                $current_max_operation_logs = $max_operation_logs;
             } else {
                 $message = '配置文件写入失败，请检查文件权限';
                 $message_type = 'error';
@@ -276,6 +300,42 @@ include 'sidebar.php';
                                     </div>
                                 </div>
                             <?php endif; ?>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="max_history_versions" class="form-label">
+                                <i class="bi bi-clock-history"></i> 最大历史版本数
+                            </label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="max_history_versions" 
+                                   name="max_history_versions" 
+                                   value="<?php echo htmlspecialchars($current_max_history_versions); ?>" 
+                                   min="0" 
+                                   step="1" 
+                                   required>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i> 
+                                每个文档保留的最大历史版本数量，0表示不限制
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="max_operation_logs" class="form-label">
+                                <i class="bi bi-list-check"></i> 最大操作记录数
+                            </label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   id="max_operation_logs" 
+                                   name="max_operation_logs" 
+                                   value="<?php echo htmlspecialchars($current_max_operation_logs); ?>" 
+                                   min="0" 
+                                   step="1" 
+                                   required>
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i> 
+                                每个文档保留的最大操作记录数量，0表示不限制
+                            </div>
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
