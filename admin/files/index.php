@@ -569,7 +569,7 @@ $stats = get_file_stats($db);
                                             <input type="checkbox" id="selectAll" class="form-check-input">
                                         </th>
                                         <th width="5%" class="text-center">图标</th>
-                                        <th width="22%" class="sortable-header">
+                                        <th width="25%" class="sortable-header">
                                             <a href="?<?php 
                                         $sort_params = [];
                                         if ($filter_type !== '') $sort_params['type'] = $filter_type;
@@ -623,8 +623,8 @@ $stats = get_file_stats($db);
                                                 <?php endif; ?>
                                             </a>
                                         </th>
-                                        <th width="15%">关联文档</th>
-                                        <th width="15%" class="sortable-header">
+                                        <th width="22%">关联文档</th>
+                                        <th width="8%" class="sortable-header">
                                             <a href="?<?php 
                                         $sort_params = [];
                                         if ($filter_type !== '') $sort_params['type'] = $filter_type;
@@ -642,7 +642,7 @@ $stats = get_file_stats($db);
                                                 <?php endif; ?>
                                             </a>
                                         </th>
-                                        <th width="15%" class="sortable-header">
+                                        <th width="12%" class="sortable-header">
                                             <a href="?<?php 
                                         $sort_params = [];
                                         if ($filter_type !== '') $sort_params['type'] = $filter_type;

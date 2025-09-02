@@ -248,7 +248,7 @@ function format_file_size($size) {
                             <form method="post" id="fileForm">
                                 <div class="mb-3">
                                     <label for="fileName" class="form-label">文件名</label>
-                                    <input type="text" class="form-control" id="fileName" name="fileName" value="<?php echo htmlspecialchars($file['alias'] ?? pathinfo($file['file_path'], PATHINFO_FILENAME)); ?>">
+                                    <input type="text" class="form-control" id="fileName" name="fileName" value="<?php echo htmlspecialchars(pathinfo($file['alias'] ?? $file['file_path'], PATHINFO_FILENAME)); ?>">
                                     <input type="hidden" id="fileExtension" name="fileExtension" value="<?php echo pathinfo($file['file_path'], PATHINFO_EXTENSION); ?>">
                                 </div>
                                 

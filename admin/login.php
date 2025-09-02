@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="col-md-6">
                 <div class="card">
                     <div class="card-header">
-                        <h4 class="text-center mb-0">管理员登录</h4>
+                        <h4 class="text-center mb-0">用户登录</h4>
                     </div>
                     <div class="card-body">
                         <?php if (!empty($errors)): ?>
@@ -72,9 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <button type="submit" class="btn btn-primary w-100">登录</button>
                         </form>
                         
-                        <div class="text-center mt-3">
-                            <small class="text-muted">默认账号: admin / admin123</small>
-                        </div>
+
                     </div>
                 </div>
             </div>
