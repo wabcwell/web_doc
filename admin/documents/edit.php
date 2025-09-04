@@ -108,7 +108,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             save_document_version($id, $title, $content, $_SESSION['user_id'], $tags, $update_code);
         }
         
-        header('Location: index.php?success=update');
+        // 使用POST-REDIRECT-GET模式避免表单重复提交
+        header('Location: edit.php?id=' . $id . '&updated=1');
         exit;
     }
 }
@@ -188,6 +189,18 @@ include '../sidebar.php';
 <body>
     <div class="main-content">
         <div class="container-fluid">
+            <?php if (isset($_GET['updated']) && $_GET['updated'] == '1'): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill"></i> 文档已更新！
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="关闭"></button>
+            </div>
+            <?php elseif (isset($_GET['success']) && $_GET['success'] === 'add'): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill"></i> 文档添加完成！现在您可以继续编辑文档内容。
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="关闭"></button>
+            </div>
+            <?php endif; ?>
+            
             <h1><i class="bi bi-pencil-square"></i> 编辑文档</h1>
             
             <form method="post" id="documentForm">
@@ -303,6 +316,9 @@ include '../sidebar.php';
         </div>
     </div>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
     <!-- UEditorPlus脚本 -->
     <script>
     // 必须在加载ueditor.config.js之前设置UEDITOR_HOME_URL

@@ -98,7 +98,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // 将document_id_apportion中的ID标记为已使用
         mark_document_id_used($new_document_id, $_SESSION['user_id'] ?? 1);
         
-        header('Location: index.php?success=add');
+        // 跳转到编辑页面并显示添加完成提示
+        header('Location: edit.php?id=' . $document_id . '&success=add');
         exit;
     }
 }

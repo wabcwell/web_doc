@@ -546,9 +546,6 @@ $stats = get_file_stats($db);
                                 <button type="button" class="btn btn-danger btn-sm" onclick="batchDelete()">
                                     <i class="bi bi-trash"></i> 批量删除
                                 </button>
-                                <button type="button" class="btn btn-primary btn-sm ms-1" onclick="batchDownload()">
-                                    <i class="bi bi-download"></i> 批量下载
-                                </button>
                             </div>
                             <span class="text-muted">共 <?php echo number_format($total_files); ?> 个文件</span>
                         </div>
@@ -623,8 +620,8 @@ $stats = get_file_stats($db);
                                                 <?php endif; ?>
                                             </a>
                                         </th>
-                                        <th width="22%">关联文档</th>
-                                        <th width="8%" class="sortable-header">
+                                        <th width="20%">关联文档</th>
+                                        <th width="10%" class="sortable-header">
                                             <a href="?<?php 
                                         $sort_params = [];
                                         if ($filter_type !== '') $sort_params['type'] = $filter_type;
@@ -1011,19 +1008,7 @@ $stats = get_file_stats($db);
             batchDeleteModal.show();
         }
 
-        // 批量下载
-        function batchDownload() {
-            const selectedFiles = Array.from(document.querySelectorAll('.file-checkbox:checked'))
-                .map(cb => cb.value);
-            
-            if (selectedFiles.length === 0) {
-                alert('请选择要下载的文件');
-                return;
-            }
 
-            // 这里可以添加批量下载的逻辑
-            alert(`正在准备下载 ${selectedFiles.length} 个文件...\n文件ID: ${selectedFiles.join(', ')}`);
-        }
 
         // 下载单个文件
         function downloadFile(fileId) {

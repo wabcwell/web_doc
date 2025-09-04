@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据库表结构说明文档</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .section {
+            margin-bottom: 40px;
+        }
+        .table-overview {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>e:\Trae\web_doc\database\docs.db 数据库表结构说明文档</h1>
+
+    <div class="table-overview">
+        <h2>表结构总览</h2>
+        <p>该SQLite数据库包含6个主要表，用于支持文档管理系统：</p>
+        
+        <table>
+            <tr>
+                <th>表名</th>
+                <th>中文描述</th>
+                <th>主要功能</th>
+            </tr>
+            <tr>
+                <td>documents</td>
+                <td>文档表</td>
+                <td>存储文档基本信息</td>
+            </tr>
+            <tr>
+                <td>users</td>
+                <td>用户表</td>
+                <td>存储系统用户信息</td>
+            </tr>
+            <tr>
+                <td>edit_log</td>
+                <td>编辑日志表</td>
+                <td>记录文档操作历史</td>
+            </tr>
+            <tr>
+                <td>documents_version</td>
+                <td>文档版本表</td>
+                <td>存储文档历史版本</td>
+            </tr>
+            <tr>
+                <td>file_upload</td>
+                <td>文件上传表</td>
+                <td>管理上传的文件信息</td>
+            </tr>
+            <tr>
+                <td>document_id_apportion</td>
+                <td>文档ID分配表</td>
+                <td>管理文档ID分配状态</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>详细表结构</h2>
+
+        <h3>1. documents（文档表）</h3>
+        <table>
+            <tr>
+                <th>字段名</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>默认值</th>
+                <th>描述</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>INTEGER</td>
+                <td>PRIMARY KEY AUTOINCREMENT</td>
+                <td>-</td>
+                <td>主键ID</td>
+            </tr>
+            <tr>
+                <td>title</td>
+                <td>TEXT</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>文档标题</td>
+            </tr>
+            <tr>
+                <td>content</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>文档内容</td>
+            </tr>
+            <tr>
+                <td>parent_id</td>
+                <td>INTEGER</td>
+                <td>-</td>
+                <td>-</td>
+                <td>父文档ID</td>
+            </tr>
+            <tr>
+                <td>sort_order</td>
+                <td>INTEGER</td>
+                <td>-</td>
+                <td>0</td>
+                <td>排序顺序</td>
+            </tr>
+            <tr>
+                <td>user_id</td>
+                <td>INTEGER</td>
+                <td>-</td>
+                <td>1</td>
+                <td>用户ID</td>
+            </tr>
+            <tr>
+                <td>is_public</td>
+                <td>INTEGER</td>
+                <td>-</td>
+                <td>1</td>
+                <td>是否公开</td>
+            </tr>
+            <tr>
+                <td>tags</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>标签</td>
+            </tr>
+            <tr>
+                <td>view_count</td>
+                <td>INTEGER</td>
+                <td>-</td>
+                <td>0</td>
+                <td>查看次数</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>创建时间</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新时间</td>
+            </tr>
+            <tr>
+                <td>del_status</td>
+                <td>INTEGER</td>
+                <td>-</td>
+                <td>0</td>
+                <td>删除状态</td>
+            </tr>
+            <tr>
+                <td>deleted_at</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>删除时间</td>
+            </tr>
+            <tr>
+                <td>is_formal</td>
+                <td>INTEGER</td>
+                <td>-</td>
+                <td>0</td>
+                <td>是否正式</td>
+            </tr>
+            <tr>
+                <td>update_code</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>更新代码</td>
+            </tr>
+            <tr>
+                <td>document_id</td>
+                <td>INTEGER</td>
+                <td>-</td>
+                <td>-</td>
+                <td>文档ID</td>
+            </tr>
+        </table>
+        <p><strong>外键约束：</strong></p>
+        <ul>
+            <li>FOREIGN KEY (parent_id) REFERENCES documents(id) ON DELETE SET NULL</li>
+            <li>FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL</li>
+        </ul>
+        <p><strong>索引：</strong></p>
+        <ul>
+            <li>CREATE INDEX idx_documents_document_id ON documents(document_id)</li>
+        </ul>
+
+        <h3>2. users（用户表）</h3>
+        <table>
+            <tr>
+                <th>字段名</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>默认值</th>
+                <th>描述</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>INTEGER</td>
+                <td>PRIMARY KEY AUTOINCREMENT</td>
+                <td>-</td>
+                <td>主键ID</td>
+            </tr>
+            <tr>
+                <td>username</td>
+                <td>TEXT</td>
+                <td>UNIQUE NOT NULL</td>
+                <td>-</td>
+                <td>用户名</td>
+            </tr>
+            <tr>
+                <td>email</td>
+                <td>TEXT</td>
+                <td>UNIQUE NOT NULL</td>
+                <td>-</td>
+                <td>邮箱</td>
+            </tr>
+            <tr>
+                <td>password</td>
+                <td>TEXT</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>密码</td>
+            </tr>
+            <tr>
+                <td>role</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>'editor'</td>
+                <td>角色</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>DATETIME</td>
+                <td>-</td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>创建时间</td>
+            </tr>
+        </table>
+
+        <h3>3. edit_log（编辑日志表）</h3>
+        <table>
+            <tr>
+                <th>字段名</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>默认值</th>
+                <th>描述</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>INTEGER</td>
+                <td>PRIMARY KEY AUTOINCREMENT</td>
+                <td>-</td>
+                <td>主键ID</td>
+            </tr>
+            <tr>
+                <td>document_id</td>
+                <td>INTEGER</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>文档ID</td>
+            </tr>
+            <tr>
+                <td>user_id</td>
+                <td>INTEGER</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>用户ID</td>
+            </tr>
+            <tr>
+                <td>action</td>
+                <td>TEXT</td>
+                <td>NOT NULL CHECK</td>
+                <td>-</td>
+                <td>操作类型</td>
+            </tr>
+            <tr>
+                <td>op_title</td>
+                <td>INTEGER</td>
+                <td>CHECK</td>
+                <td>0</td>
+                <td>标题操作</td>
+            </tr>
+            <tr>
+                <td>op_content</td>
+                <td>INTEGER</td>
+                <td>CHECK</td>
+                <td>0</td>
+                <td>内容操作</td>
+            </tr>
+            <tr>
+                <td>op_tags</td>
+                <td>INTEGER</td>
+                <td>CHECK</td>
+                <td>0</td>
+                <td>标签操作</td>
+            </tr>
+            <tr>
+                <td>op_parent</td>
+                <td>INTEGER</td>
+                <td>CHECK</td>
+                <td>0</td>
+                <td>父级操作</td>
+            </tr>
+            <tr>
+                <td>op_corder</td>
+                <td>INTEGER</td>
+                <td>CHECK</td>
+                <td>0</td>
+                <td>排序操作</td>
+            </tr>
+            <tr>
+                <td>op_public</td>
+                <td>INTEGER</td>
+                <td>CHECK</td>
+                <td>0</td>
+                <td>公开操作</td>
+            </tr>
+            <tr>
+                <td>op_formal</td>
+                <td>INTEGER</td>
+                <td>CHECK</td>
+                <td>0</td>
+                <td>正式操作</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>DATETIME</td>
+                <td>-</td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>创建时间</td>
+            </tr>
+            <tr>
+                <td>temp_action</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>临时操作</td>
+            </tr>
+            <tr>
+                <td>update_code</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>更新代码</td>
+            </tr>
+        </table>
+        <p><strong>外键约束：</strong></p>
+        <ul>
+            <li>FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE</li>
+            <li>FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE</li>
+        </ul>
+        <p><strong>索引：</strong></p>
+        <ul>
+            <li>CREATE INDEX idx_edit_log_document_id ON edit_log(document_id)</li>
+            <li>CREATE INDEX idx_edit_log_user_id ON edit_log(user_id)</li>
+            <li>CREATE INDEX idx_edit_log_created_at ON edit_log(created_at)</li>
+        </ul>
+
+        <h3>4. documents_version（文档版本表）</h3>
+        <table>
+            <tr>
+                <th>字段名</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>默认值</th>
+                <th>描述</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>INTEGER</td>
+                <td>PRIMARY KEY AUTOINCREMENT</td>
+                <td>-</td>
+                <td>主键ID</td>
+            </tr>
+            <tr>
+                <td>document_id</td>
+                <td>INTEGER</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>文档ID</td>
+            </tr>
+            <tr>
+                <td>title</td>
+                <td>TEXT</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>版本标题</td>
+            </tr>
+            <tr>
+                <td>content</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>版本内容</td>
+            </tr>
+            <tr>
+                <td>version_number</td>
+                <td>INTEGER</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>版本号</td>
+            </tr>
+            <tr>
+                <td>created_by</td>
+                <td>INTEGER</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>创建者</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>DATETIME</td>
+                <td>-</td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>创建时间</td>
+            </tr>
+            <tr>
+                <td>tags</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>标签</td>
+            </tr>
+            <tr>
+                <td>update_code</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>更新代码</td>
+            </tr>
+        </table>
+        <p><strong>外键约束：</strong></p>
+        <ul>
+            <li>FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE CASCADE</li>
+            <li>FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE</li>
+        </ul>
+        <p><strong>索引：</strong></p>
+        <ul>
+            <li>CREATE INDEX idx_documents_version_document_id ON documents_version(document_id)</li>
+            <li>CREATE INDEX idx_documents_version_created_by ON documents_version(created_by)</li>
+        </ul>
+
+        <h3>5. file_upload（文件上传表）</h3>
+        <table>
+            <tr>
+                <th>字段名</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>默认值</th>
+                <th>描述</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>INTEGER</td>
+                <td>PRIMARY KEY AUTOINCREMENT</td>
+                <td>-</td>
+                <td>主键ID</td>
+            </tr>
+            <tr>
+                <td>file_type</td>
+                <td>TEXT</td>
+                <td>NOT NULL CHECK</td>
+                <td>-</td>
+                <td>文件类型</td>
+            </tr>
+            <tr>
+                <td>file_format</td>
+                <td>TEXT</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>文件格式</td>
+            </tr>
+            <tr>
+                <td>file_size</td>
+                <td>INTEGER</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>文件大小</td>
+            </tr>
+            <tr>
+                <td>file_path</td>
+                <td>TEXT</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>文件路径</td>
+            </tr>
+            <tr>
+                <td>alias</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>别名</td>
+            </tr>
+            <tr>
+                <td>document_id</td>
+                <td>INTEGER</td>
+                <td>-</td>
+                <td>-</td>
+                <td>文档ID</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>描述</td>
+            </tr>
+            <tr>
+                <td>notes</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>备注</td>
+            </tr>
+            <tr>
+                <td>uploaded_by</td>
+                <td>INTEGER</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>上传者</td>
+            </tr>
+            <tr>
+                <td>uploaded_at</td>
+                <td>DATETIME</td>
+                <td>-</td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>上传时间</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>DATETIME</td>
+                <td>-</td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新时间</td>
+            </tr>
+            <tr>
+                <td>del_status</td>
+                <td>INTEGER</td>
+                <td>-</td>
+                <td>0</td>
+                <td>删除状态</td>
+            </tr>
+            <tr>
+                <td>deleted_at</td>
+                <td>TEXT</td>
+                <td>-</td>
+                <td>-</td>
+                <td>删除时间</td>
+            </tr>
+            <tr>
+                <td>image_width</td>
+                <td>INTEGER</td>
+                <td>-</td>
+                <td>-</td>
+                <td>图片宽度</td>
+            </tr>
+            <tr>
+                <td>image_height</td>
+                <td>INTEGER</td>
+                <td>-</td>
+                <td>-</td>
+                <td>图片高度</td>
+            </tr>
+        </table>
+        <p><strong>外键约束：</strong></p>
+        <ul>
+            <li>FOREIGN KEY (document_id) REFERENCES documents(id) ON DELETE SET NULL</li>
+            <li>FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE</li>
+        </ul>
+        <p><strong>索引：</strong></p>
+        <ul>
+            <li>CREATE INDEX idx_file_upload_document_id ON file_upload(document_id)</li>
+            <li>CREATE INDEX idx_file_upload_uploaded_by ON file_upload(uploaded_by)</li>
+            <li>CREATE INDEX idx_file_upload_file_type ON file_upload(file_type)</li>
+            <li>CREATE INDEX idx_file_upload_uploaded_at ON file_upload(uploaded_at)</li>
+            <li>CREATE INDEX idx_file_upload_del_status ON file_upload(del_status)</li>
+        </ul>
+
+        <h3>6. document_id_apportion（文档ID分配表）</h3>
+        <table>
+            <tr>
+                <th>字段名</th>
+                <th>数据类型</th>
+                <th>约束</th>
+                <th>默认值</th>
+                <th>描述</th>
+            </tr>
+            <tr>
+                <td>document_id</td>
+                <td>INTEGER</td>
+                <td>PRIMARY KEY AUTOINCREMENT</td>
+                <td>-</td>
+                <td>文档ID</td>
+            </tr>
+            <tr>
+                <td>usage_status</td>
+                <td>INTEGER</td>
+                <td>CHECK</td>
+                <td>0</td>
+                <td>使用状态</td>
+            </tr>
+            <tr>
+                <td>created_by</td>
+                <td>INTEGER</td>
+                <td>NOT NULL</td>
+                <td>-</td>
+                <td>创建者</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>DATETIME</td>
+                <td>-</td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>创建时间</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>DATETIME</td>
+                <td>-</td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新时间</td>
+            </tr>
+        </table>
+        <p><strong>外键约束：</strong></p>
+        <ul>
+            <li>FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE</li>
+        </ul>
+        <p><strong>索引：</strong></p>
+        <ul>
+            <li>CREATE INDEX idx_document_id_apportion_status ON document_id_apportion(usage_status)</li>
+            <li>CREATE INDEX idx_document_id_apportion_created_by ON document_id_apportion(created_by)</li>
+            <li>CREATE INDEX idx_document_id_apportion_created_at ON document_id_apportion(created_at)</li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>系统特性</h2>
+        <ol>
+            <li><strong>自动时间戳</strong>：所有表都包含创建时间和更新时间字段</li>
+            <li><strong>外键约束</strong>：完善的表间关系约束</li>
+            <li><strong>数据完整性</strong>：使用CHECK约束确保数据有效性</li>
+            <li><strong>索引优化</strong>：为常用查询字段创建索引</li>
+            <li><strong>软删除支持</strong>：通过del_status和deleted_at字段支持软删除</li>
+            <li><strong>版本控制</strong>：通过documents_version表支持文档版本管理</li>
+        </ol>
+        <p>这个数据库结构设计完善，支持完整的文档管理、用户权限、文件上传和版本控制功能。</p>
+    </div>
+</body>
+</html>
