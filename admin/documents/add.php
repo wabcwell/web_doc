@@ -310,7 +310,7 @@ include '../sidebar.php';
         });
     }
 
-    // 初始化UEditorPlus - 启用自动增高
+    // 初始化UEditorPlus - 启用自动增高并支持Excel表格粘贴
     const ue = UE.getEditor('editor', {
         autoHeightEnabled: true,
         initialFrameHeight: 500,
@@ -322,8 +322,21 @@ include '../sidebar.php';
         autoFloatEnabled: false,
         minFrameHeight: 500,
         maxFrameHeight: 1200,
-        serverUrl: '/admin/ueditor_upload.php?document_id=<?php echo $pre_generated_document_id; ?>'
+        serverUrl: '/admin/ueditor_upload.php?document_id=<?php echo $pre_generated_document_id; ?>',
+        retainOnlyLabelPasted: false,
+        pasteplain: false,
+        enableAutoSave: false,
+        // 禁用Word图片转存功能，防止Excel表格被转换为图片
+        wordImage: {
+            enabled: false
+        },
+        // 禁用所有粘贴过滤和转换功能
+        pasteFilter: false,
+        enablePasteUpload: false,
+        catchRemoteImageEnable: false
     });
+    
+
 
     // 表单提交处理
     document.getElementById('documentForm').addEventListener('submit', function(e) {
@@ -340,6 +353,80 @@ include '../sidebar.php';
     
     // 启用自动增高功能
     autoHeight();
+    
+    // 监听粘贴事件，确保Excel表格不被转换为图片
+    ue.ready(function() {
+        ue.addListener('beforepaste', function(type, data) {
+            console.log('Paste event detected:', type, data);
+            // 检查粘贴内容是否包含表格标签
+            if (data.html && data.html.includes('<table')) {
+                console.log('Table content detected, bypassing UEditor processing');
+                // 如果是表格内容，完全阻止UEditor处理，使用原生方式插入
+                setTimeout(function() {
+                    // 使用document.execCommand直接插入HTML，完全绕过UEditor
+                    ue.focus();
+                    var range = ue.selection.getRange();
+                    range.select();
+                    document.execCommand('insertHTML', false, data.html);
+                    console.log('Table inserted successfully');
+                }, 10);
+                return false; // 阻止默认粘贴行为
+            }
+        });
+        
+        // 监听afterpaste事件，确保表格没有被转换
+        ue.addListener('afterpaste', function() {
+            setTimeout(function() {
+                // 检查编辑器内容中是否有被转换为图片的表格
+                var content = ue.getContent();
+                if (content.includes('<img') && content.includes('data-table')) {
+                    console.log('Detected table converted to image, attempting to restore');
+                    // 这里可以添加恢复逻辑，如果需要的话
+                }
+            }, 100);
+        });
+        
+        // 监听afterpaste事件，为表头添加浅灰色背景
+         ue.addListener('afterpaste', function() {
+             // 获取UEditor的iframe文档对象
+             var iframe = ue.iframe;
+             var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+             
+             // 添加调试日志
+             console.log('afterpaste事件触发');
+             
+             // 查找所有表格
+             var tables = iframeDoc.querySelectorAll('table');
+             console.log('找到表格数量:', tables.length);
+             
+             tables.forEach(function(table) {
+                 // 查找所有表头单元格（th元素）
+                 var thCells = table.querySelectorAll('th');
+                 console.log('表格中找到th表头数量:', thCells.length);
+                 
+                 thCells.forEach(function(th) {
+                     th.style.backgroundColor = '#f8f9fa';
+                     console.log('设置th表头背景色:', th.style.backgroundColor);
+                 });
+                 
+                 // 处理第一行作为表头的情况（如果使用td而不是th）
+                 var firstRow = table.querySelector('tr');
+                 if (firstRow && thCells.length === 0) {
+                     var firstRowCells = firstRow.querySelectorAll('td');
+                     console.log('第一行中找到td单元格数量:', firstRowCells.length);
+                     
+                     firstRowCells.forEach(function(td) {
+                         td.style.backgroundColor = '#f8f9fa';
+                         console.log('设置第一行td背景色:', td.style.backgroundColor);
+                     });
+                 }
+             });
+             
+             if (tables.length > 0) {
+                 console.log('Applied header background to', tables.length, 'tables');
+             }
+         });
+    });
     </script>
 </body>
 </html>

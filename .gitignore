@@ -37,6 +37,8 @@ init_docs.php
 
 # 忽略功能逻辑文档（仅用于开发参考）
 功能逻辑.md
+Excel表格粘贴修复方案.md
+db.html
 
 # 忽略安全配置文件（允许模板存在）
 database/.htaccess

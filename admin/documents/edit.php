@@ -338,7 +338,7 @@ include '../sidebar.php';
         });
     }
 
-    // 初始化UEditorPlus
+    // 初始化UEditorPlus - 启用自动增高并支持Excel表格粘贴
     const ue = UE.getEditor('editor', {
         autoHeightEnabled: true,
         initialFrameHeight: 500,
@@ -350,7 +350,18 @@ include '../sidebar.php';
         autoFloatEnabled: false,
         minFrameHeight: 500,
         maxFrameHeight: 1200,
-        serverUrl: '/admin/ueditor_upload.php?document_id=<?php echo $id; ?>'
+        serverUrl: '/admin/ueditor_upload.php?document_id=<?php echo $id; ?>',
+        retainOnlyLabelPasted: false,
+        pasteplain: false,
+        enableAutoSave: false,
+        // 禁用Word图片转存功能，防止Excel表格被转换为图片
+        wordImage: {
+            enabled: false
+        },
+        // 禁用所有粘贴过滤和转换功能
+        pasteFilter: false,
+        enablePasteUpload: false,
+        catchRemoteImageEnable: false
     });
 
     // 表单提交处理
@@ -368,6 +379,80 @@ include '../sidebar.php';
     
     // 启用自动增高功能
     autoHeight();
+    
+    // Excel表格粘贴处理 - 检测并直接插入HTML表格
+    ue.ready(function() {
+        // 监听beforepaste事件
+        ue.addListener('beforepaste', function(type, args) {
+            console.log('Paste event detected, type:', type);
+            
+            // 检查粘贴内容是否包含表格
+            if (args && args.content && args.content.includes('<table')) {
+                console.log('Table content detected in paste');
+                
+                // 获取当前选区
+                var range = ue.selection.getRange();
+                range.select();
+                
+                // 使用setTimeout确保在默认粘贴行为之前执行
+                setTimeout(function() {
+                    try {
+                        // 直接插入HTML表格内容，绕过UEditor的默认处理
+                        document.execCommand('insertHTML', false, args.content);
+                        console.log('Table inserted successfully via insertHTML');
+                    } catch (e) {
+                        console.error('Error inserting table:', e);
+                    }
+                }, 100);
+                
+                // 阻止默认的粘贴行为
+                return false;
+            }
+        });
+        
+        // 监听afterpaste事件，为表头添加浅灰色背景
+         ue.addListener('afterpaste', function() {
+             // 获取UEditor的iframe文档对象
+             var iframe = ue.iframe;
+             var iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+             
+             // 添加调试日志
+             console.log('afterpaste事件触发');
+             
+             // 查找所有表格
+             var tables = iframeDoc.getElementsByTagName('table');
+             console.log('找到表格数量:', tables.length);
+             
+             for (var i = 0; i < tables.length; i++) {
+                 // 只为表头添加浅灰色背景（th元素）
+                 var headers = tables[i].getElementsByTagName('th');
+                 console.log('表格中找到th表头数量:', headers.length);
+                 
+                 for (var j = 0; j < headers.length; j++) {
+                     headers[j].style.backgroundColor = '#f8f9fa';
+                     console.log('设置th表头背景色:', headers[j].style.backgroundColor);
+                 }
+                 
+                 // 处理第一行作为表头的情况（如果使用td而不是th）
+                 if (headers.length === 0) {
+                     var firstRow = tables[i].querySelector('tr');
+                     if (firstRow) {
+                         var firstRowCells = firstRow.getElementsByTagName('td');
+                         console.log('第一行中找到td单元格数量:', firstRowCells.length);
+                         
+                         for (var k = 0; k < firstRowCells.length; k++) {
+                             firstRowCells[k].style.backgroundColor = '#f8f9fa';
+                             console.log('设置第一行td背景色:', firstRowCells[k].style.backgroundColor);
+                         }
+                     }
+                 }
+             }
+             
+             if (tables.length > 0) {
+                 console.log('Applied header background to', tables.length, 'tables');
+             }
+         });
+    });
     </script>
 </body>
 </html>
