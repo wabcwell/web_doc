@@ -48,3 +48,4 @@ database/Web.config
 database/index.html
 .htaccess
 Web.config
+config.php
