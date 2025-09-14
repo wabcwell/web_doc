@@ -82,9 +82,9 @@ include '../sidebar.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $title; ?></title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="../../assets/css/static/bootstrap.min.css">
     <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism.min.css">
+    <link rel="stylesheet" href="../../assets/css/static/prism.min.css">
     <link rel="stylesheet" href="../../assets/css/admin.css">
     <style>
         .container-fluid {
@@ -469,12 +469,12 @@ include '../sidebar.php';
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-php.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-sql.min.js"></script>
+    <script src="../../assets/js/static/bootstrap.bundle.min.js"></script>
+    <script src="../../assets/js/static/prism.min.js"></script>
+    <script src="../../assets/js/static/prism-javascript.min.js"></script>
+    <script src="../../assets/js/static/third-party/prism-css.min.js"></script>
+    <script src="../../assets/js/static/prism-php.min.js"></script>
+    <script src="../../assets/js/static/third-party/prism-sql.min.js"></script>
     
     <script>
         // 回滚确认函数

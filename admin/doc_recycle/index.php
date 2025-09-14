@@ -95,8 +95,8 @@ function render_action_buttons(array $doc, bool $is_admin): string {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $title; ?> - 管理后台</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="../assets/css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/static/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../../assets/css/admin.css">
     <style>
         .btn-group .btn {
@@ -358,7 +358,7 @@ function render_action_buttons(array $doc, bool $is_admin): string {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/static/bootstrap.bundle.min.js"></script>
     <script>
         // 全局变量
         let currentDocumentId = null;

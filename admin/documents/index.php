@@ -71,8 +71,8 @@ include '../sidebar.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $title; ?></title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="../assets/css/static/bootstrap.min.css">
+    <link rel="stylesheet" href="../assets/css/static/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../../assets/css/admin.css">
     <style>
         .btn-group .btn {
@@ -286,7 +286,7 @@ include '../sidebar.php';
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/static/bootstrap.bundle.min.js"></script>
     <script>
         // 删除确认函数
         function confirmDelete(id, title) {

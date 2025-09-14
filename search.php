@@ -19,7 +19,7 @@ if ($query) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>搜索 - <?php echo htmlspecialchars($query ?: '文档搜索'); ?> - 文档系统</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./assets/css/static/bootstrap.min.css">
     <style>
         .search-highlight {
             background-color: yellow;
@@ -134,6 +134,6 @@ if ($query) {
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./assets/js/static/bootstrap.bundle.min.js"></script>
 </body>
 </html>

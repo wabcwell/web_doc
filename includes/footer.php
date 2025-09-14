@@ -2,7 +2,7 @@
     </div> <!-- .main-content -->
     <?php endif; ?>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../assets/js/static/bootstrap.bundle.min.js"></script>
     <script>
         // 自动隐藏提示消息
         setTimeout(function() {

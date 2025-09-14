@@ -485,6 +485,7 @@
            // "ai",           // AI智能
             // "fontfamily",   // 字体
             // "fontsize",     // 字号
+            "paragraph",           // 段落格式
             "bold",            // 加粗
             "italic",          // 斜体
             "underline",       // 下划线

@@ -695,8 +695,8 @@ $stats = $stmt->fetch();
     <script src="assets/js/static/prism-javascript.min.js"></script>
     <script src="assets/js/static/prism-python.min.js"></script>
     <script src="assets/js/static/prism-php.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="assets/js/static/third-party/html2canvas.min.js"></script>
+    <script src="assets/js/static/third-party/jspdf.umd.min.js"></script>
     <script>
         // 侧边栏收起/展开功能
             const sidebarToggle = document.getElementById('sidebarToggle');
