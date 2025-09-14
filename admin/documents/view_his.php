@@ -471,10 +471,6 @@ include '../sidebar.php';
 
     <script src="../../assets/js/static/bootstrap.bundle.min.js"></script>
     <script src="../../assets/js/static/prism.min.js"></script>
-    <script src="../../assets/js/static/prism-javascript.min.js"></script>
-    <script src="../../assets/js/static/third-party/prism-css.min.js"></script>
-    <script src="../../assets/js/static/prism-php.min.js"></script>
-    <script src="../../assets/js/static/third-party/prism-sql.min.js"></script>
     
     <script>
         // 回滚确认函数

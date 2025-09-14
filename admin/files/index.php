@@ -347,6 +347,10 @@ $stats = get_file_stats($db);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
             border: 1px solid #e9ecef;
             height: 100%;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         
         .stats-card-primary {
@@ -379,17 +383,95 @@ $stats = get_file_stats($db);
         }
         
         .stats-card .type-distribution {
-            margin-top: 10px;
-            padding-top: 10px;
+            margin-top: 8px;
+            padding-top: 8px;
             border-top: 1px solid #e9ecef;
         }
         
-        .stats-card .type-item {
+        .stats-card .stacked-bar-container {
+            margin-bottom: 8px;
+        }
+        
+        .stats-card .stacked-bar {
+            height: 24px;
+            background-color: #e9ecef;
+            border-radius: 12px;
+            overflow: hidden;
             display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            padding: 3px 0;
-            font-size: 0.85rem;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .stats-card .stacked-segment {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+            min-width: 20px;
+        }
+        
+        .stats-card .stacked-segment:hover {
+            filter: brightness(1.1);
+            transform: scaleY(1.05);
+        }
+        
+        .stats-card .segment-text {
+            font-size: 0.65rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 0 0 3px rgba(0,0,0,0.8), 0 0 2px rgba(0,0,0,0.6);
+            white-space: nowrap;
+        }
+        
+        /* 针对黄色背景的深色文字 */
+        .stats-card .stacked-segment[style*="#ffc107"] .segment-text {
+            color: #212529;
+            text-shadow: 0 0 2px rgba(255,255,255,0.8), 0 0 1px rgba(255,255,255,0.6);
+        }
+        
+        /* 针对浅青色背景的深色文字 */
+        .stats-card .stacked-segment[style*="#0dcaf0"] .segment-text {
+            color: #212529;
+            text-shadow: 0 0 2px rgba(255,255,255,0.8), 0 0 1px rgba(255,255,255,0.6);
+        }
+        
+        .stats-card .type-legend {
+            font-size: 0.7rem;
+        }
+        
+        .stats-card .type-legend.compact {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            align-items: center;
+            margin-top: 6px;
+        }
+        
+        .stats-card .legend-item-inline {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: opacity 0.2s ease;
+        }
+        
+        .stats-card .legend-item-inline:hover {
+            opacity: 0.8;
+        }
+        
+        .stats-card .legend-color {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            flex-shrink: 0;
+        }
+        
+        .stats-card .legend-text {
+            font-weight: 500;
+            color: #495057;
+            white-space: nowrap;
         }
         
         .filter-section {
@@ -426,27 +508,60 @@ $stats = get_file_stats($db);
             <!-- 统计信息卡片 -->
             <div class="row mb-3">
                 <div class="col-md-3 mb-2 mb-md-0">
-                    <div class="stats-card stats-card-primary h-100">
+                    <div class="stats-card stats-card-primary">
                         <h4>总文件数</h4>
                         <div class="display-4"><?php echo number_format($stats['total_files']); ?></div>
+                        <div class="mt-1"><small class="text-muted">总计文件数量</small></div>
                     </div>
                 </div>
                 <div class="col-md-3 mb-2 mb-md-0">
-                    <div class="stats-card stats-card-secondary h-100">
+                    <div class="stats-card stats-card-secondary">
                         <h4>总大小</h4>
                         <div class="display-4"><?php echo format_file_size($stats['total_size']); ?></div>
+                        <div class="mt-1"><small class="text-muted">占用存储空间</small></div>
                     </div>
                 </div>
                 <div class="col-md-6">
-                    <div class="stats-card stats-card-tertiary h-100">
+                    <div class="stats-card stats-card-tertiary">
                         <h4>文件类型分布</h4>
                         <div class="type-distribution">
-                            <?php foreach ($stats['type_stats'] as $type): ?>
-                                <div class="type-item">
-                                    <span><?php echo get_file_type_chinese($type['file_type']); ?></span>
-                                    <span><?php echo $type['count']; ?>个</span>
+                            <div class="stacked-bar-container">
+                                <div class="stacked-bar">
+                                    <?php 
+                                    $colors = ['#20c997', '#0d6efd', '#ffc107', '#dc3545', '#6f42c1', '#fd7e14', '#0dcaf0', '#198754'];
+                                    $total_files = $stats['total_files'] ?: 1;
+                                    $color_index = 0;
+                                    
+                                    foreach ($stats['type_stats'] as $type): 
+                                        $percentage = round(($type['count'] / $total_files) * 100, 1);
+                                        if ($percentage < 1) continue; // 跳过占比太小的类型
+                                        $color = $colors[$color_index % count($colors)];
+                                        $color_index++;
+                                    ?>
+                                        <div class="stacked-segment" 
+                                             style="width: <?php echo $percentage; ?>%; background-color: <?php echo $color; ?>" 
+                                             data-bs-toggle="tooltip" 
+                                             title="<?php echo get_file_type_chinese($type['file_type']); ?>: <?php echo $type['count']; ?>个 (<?php echo $percentage; ?>%)">
+                                            <span class="segment-text"><?php echo $percentage > 8 ? $percentage.'%' : ''; ?></span>
+                                        </div>
+                                    <?php endforeach; ?>
                                 </div>
-                            <?php endforeach; ?>
+                            </div>
+                            <div class="type-legend compact">
+                                <?php 
+                                $color_index = 0;
+                                foreach ($stats['type_stats'] as $type): 
+                                    $percentage = round(($type['count'] / $total_files) * 100, 1);
+                                    if ($percentage < 1) continue;
+                                    $color = $colors[$color_index % count($colors)];
+                                    $color_index++;
+                                ?>
+                                    <span class="legend-item-inline" data-bs-toggle="tooltip" title="<?php echo $type['count']; ?>个">
+                                        <span class="legend-color" style="background-color: <?php echo $color; ?>"></span>
+                                        <span class="legend-text"><?php echo get_file_type_chinese($type['file_type']); ?> <?php echo $type['count']; ?>个</span>
+                                    </span>
+                                <?php endforeach; ?>
+                            </div>
                         </div>
                     </div>
                 </div>

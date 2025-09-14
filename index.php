@@ -692,9 +692,6 @@ $stats = $stmt->fetch();
 
     <script src="assets/js/static/bootstrap.bundle.min.js"></script>
     <script src="assets/js/static/prism.min.js"></script>
-    <script src="assets/js/static/prism-javascript.min.js"></script>
-    <script src="assets/js/static/prism-python.min.js"></script>
-    <script src="assets/js/static/prism-php.min.js"></script>
     <script src="assets/js/static/third-party/html2canvas.min.js"></script>
     <script src="assets/js/static/third-party/jspdf.umd.min.js"></script>
     <script>

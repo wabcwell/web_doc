@@ -935,7 +935,6 @@ tr:hover {
 
 /* container-fluid样式调整 */
 .container-fluid {
-    padding-left: 0;
-    padding-right: 0;
+    /* 移除了padding-left: 0和padding-right: 0的设置，保留Bootstrap默认的15px左右内边距 */
     width: 100%;
 }

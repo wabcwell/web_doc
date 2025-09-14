@@ -41,6 +41,7 @@ Excel表格粘贴修复方案.md
 db.html
 操作.md
 页面.md
+static_resources_audit.md
 
 # 忽略安全配置文件（允许模板存在）
 database/.htaccess

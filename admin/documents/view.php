@@ -319,10 +319,6 @@ include '../sidebar.php';
 
     <script src="../../assets/js/static/bootstrap.bundle.min.js"></script>
     <script src="../../assets/js/static/prism.min.js"></script>
-    <script src="../../assets/js/static/prism-javascript.min.js"></script>
-    <script src="../../assets/js/static/third-party/prism-css.min.js"></script>
-    <script src="../../assets/js/static/prism-php.min.js"></script>
-    <script src="../../assets/js/static/third-party/prism-sql.min.js"></script>
     
     <!-- 删除确认模态框 -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
