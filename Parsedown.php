@@ -23,7 +23,7 @@ class Parsedown
         $text = preg_replace('/`(.*?)`/', '<code>$1</code>', $text);
         
         // Links
-        $text = preg_replace('/\[([^\]]+)\]\(([^)]+)\)/', '<a href="$2">$1</a>', $text);
+        $text = preg_replace('/\[([^\]]+)\]\(([^\)]+)\)/', '<a href="$2">$1</a>', $text);
         
         // Images
         $text = preg_replace('/!\[([^\]]*)\]\(([^)]+)\)/', '<img alt="$1" src="$2">', $text);
