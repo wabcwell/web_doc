@@ -75,7 +75,7 @@ $stats = $stmt->fetch();
     <title><?php echo htmlspecialchars($title); ?> - 文档系统</title>
     <link href="assets/css/static/bootstrap.min.css" rel="stylesheet">
     <link href="assets/css/static/bootstrap-icons.min.css" rel="stylesheet">
-    <link href="prism-1.30.0/themes/prism-twilight.css" rel="stylesheet">
+    <link href="admin/assets/ueditorplus/third-party/SyntaxHighlighter/shCoreDefault.css" rel="stylesheet">
     <style>
         :root {
             --sidebar-width: 260px;
@@ -518,17 +518,60 @@ $stats = $stmt->fetch();
             font-family: 'Consolas', 'Monaco', 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Courier New', monospace;
         }
         
-        /* 通用代码块样式 */
-        .markdown-content pre {
-            background-color: #f8f9fa;
-            border: 1px solid #e1e5e9;
-            border-radius: 6px;
-            padding: 15px;
-            margin: 15px 0;
+        /* SyntaxHighlighter 样式调整 */
+        .syntaxhighlighter {
+            border-radius: 8px;
+            font-size: 14px !important;
+            line-height: 1.6 !important;
+            margin: 1em 0 !important;
             overflow-x: auto;
-            font-family: 'Consolas', 'Monaco', 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.5;
+            position: relative;
+        }
+
+        .syntaxhighlighter table {
+            border-radius: 8px;
+        }
+
+        .syntaxhighlighter .line {
+            font-size: 14px !important;
+            line-height: 1.6 !important;
+        }
+
+        /* 复制按钮样式 */
+        .code-block-wrapper {
+            position: relative;
+            margin: 1em 0;
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            z-index: 10;
+            transition: all 0.2s ease;
+            opacity: 0.7;
+        }
+
+        .copy-button:hover {
+            background: rgba(255, 255, 255, 1);
+            border-color: #007bff;
+            opacity: 1;
+        }
+
+        .copy-button.copied {
+            background: #28a745;
+            color: white;
+            border-color: #28a745;
+        }
+
+        .copy-button i {
+            margin-right: 2px;
         }
 
 
@@ -725,7 +768,10 @@ $stats = $stmt->fetch();
 
     <script src="assets/js/static/bootstrap.bundle.min.js"></script>
     <!-- 使用Prism.js替代SyntaxHighlighter -->
-    <script src="assets/js/static/prism-full.js"></script>
+    <script src="admin/assets/ueditorplus/third-party/SyntaxHighlighter/shCore.js"></script>
+    <script>
+        SyntaxHighlighter.all();
+    </script>
     <script>
         // 将SyntaxHighlighter格式转换为Prism.js格式
         function convertAndHighlightCode() {
@@ -814,5 +860,117 @@ $stats = $stmt->fetch();
     <script src="assets/js/static/third-party/jspdf.umd.min.js"></script>
     <script src="assets/js/static/third-party/html2pdf.bundle.min.js"></script>
     <script src="assets/js/export/export-functions.js"></script>
+    <script>
+        // 添加复制按钮功能
+        function addCopyButtons() {
+            // 查找所有代码块
+            const codeBlocks = document.querySelectorAll('.syntaxhighlighter, pre[class*="language-"], .markdown-content pre');
+            
+            codeBlocks.forEach(block => {
+                // 避免重复添加
+                if (block.parentNode.classList.contains('code-block-wrapper')) {
+                    return;
+                }
+                
+                // 创建包装器
+                const wrapper = document.createElement('div');
+                wrapper.className = 'code-block-wrapper';
+                
+                // 创建复制按钮
+                const copyButton = document.createElement('button');
+                copyButton.className = 'copy-button';
+                copyButton.innerHTML = '<i class="bi bi-clipboard"></i> 复制';
+                copyButton.title = '复制代码';
+                
+                // 插入包装器
+                block.parentNode.insertBefore(wrapper, block);
+                wrapper.appendChild(block);
+                wrapper.appendChild(copyButton);
+                
+                // 添加点击事件
+                copyButton.addEventListener('click', function() {
+                    let codeText = '';
+                    
+                    // 根据不同类型获取代码内容
+                    if (block.classList.contains('syntaxhighlighter')) {
+                        // SyntaxHighlighter
+                        const lines = block.querySelectorAll('.line');
+                        codeText = Array.from(lines).map(line => line.textContent).join('\n');
+                    } else if (block.querySelector('code')) {
+                        // Prism.js 或其他带code标签的
+                        codeText = block.querySelector('code').textContent;
+                    } else {
+                        // 普通pre标签
+                        codeText = block.textContent;
+                    }
+                    
+                    // 复制到剪贴板
+                    navigator.clipboard.writeText(codeText.trim()).then(() => {
+                        // 显示成功状态
+                        copyButton.innerHTML = '<i class="bi bi-check"></i> 已复制';
+                        copyButton.classList.add('copied');
+                        
+                        // 2秒后恢复原状
+                        setTimeout(() => {
+                            copyButton.innerHTML = '<i class="bi bi-clipboard"></i> 复制';
+                            copyButton.classList.remove('copied');
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('复制失败:', err);
+                        // 备用复制方法
+                        const textArea = document.createElement('textarea');
+                        textArea.value = codeText.trim();
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        copyButton.innerHTML = '<i class="bi bi-check"></i> 已复制';
+                        copyButton.classList.add('copied');
+                        setTimeout(() => {
+                            copyButton.innerHTML = '<i class="bi bi-clipboard"></i> 复制';
+                            copyButton.classList.remove('copied');
+                        }, 2000);
+                    });
+                });
+            });
+        }
+
+        // 在页面加载完成后添加复制按钮
+        document.addEventListener('DOMContentLoaded', function() {
+            // 延迟执行，确保代码块已渲染完成
+            setTimeout(addCopyButtons, 1000);
+            
+            // 为动态内容也添加复制按钮
+            window.addCopyButtons = addCopyButtons;
+        });
+
+        // 监听内容变化，为新增代码块添加复制按钮
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childList') {
+                    let hasCodeBlocks = false;
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // 元素节点
+                            if (node.matches && (node.matches('.syntaxhighlighter, pre[class*="language-"], .markdown-content pre') || 
+                                node.querySelector && node.querySelector('.syntaxhighlighter, pre[class*="language-"], .markdown-content pre'))) {
+                                hasCodeBlocks = true;
+                            }
+                        }
+                    });
+                    
+                    if (hasCodeBlocks) {
+                        setTimeout(addCopyButtons, 500);
+                    }
+                }
+            });
+        });
+
+        // 开始监听
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    </script>
 </body>
 </html>
