@@ -175,7 +175,7 @@ function get_action_text($action) {
     <title><?php echo $title; ?></title>
     <link rel="stylesheet" href="../../assets/css/static/bootstrap.min.css">
     <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
     <style>
         .log-item {
             border-left: 3px solid #ddd;

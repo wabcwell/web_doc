@@ -97,7 +97,7 @@ function render_action_buttons(array $doc, bool $is_admin): string {
     <title><?php echo $title; ?> - 管理后台</title>
     <link rel="stylesheet" href="../assets/css/static/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/css/static/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
     <style>
         .btn-group .btn {
             width: 32px;

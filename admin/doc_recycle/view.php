@@ -56,7 +56,7 @@ include '../sidebar.php';
     <link rel="stylesheet" href="../../assets/css/static/bootstrap.min.css">
     <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../../admin/assets/ueditorplus/third-party/SyntaxHighlighter/shCoreDefault.css">
-    <link rel="stylesheet" href="../../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
     <style>
         /* 保持与documents/view.php一致的布局样式 */
         .container-fluid {

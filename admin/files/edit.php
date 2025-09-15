@@ -87,7 +87,7 @@ function format_file_size($size) {
     <title><?php echo $title; ?></title>
     <link rel="stylesheet" href="../assets/css/static/bootstrap.min.css">
     <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
     <style>
         /* 图片预览样式 */
         .preview-image {

@@ -30,7 +30,7 @@ include __DIR__ . '/../sidebar.php';
     <title><?php echo $title; ?></title>
     <link rel="stylesheet" href="../assets/css/static/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/css/static/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
     <style>
         .table td, .table th {
             vertical-align: middle;

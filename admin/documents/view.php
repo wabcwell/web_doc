@@ -44,7 +44,7 @@ include '../sidebar.php';
     <link rel="stylesheet" href="../../assets/css/static/bootstrap.min.css">
     <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
     <link rel="stylesheet" href="../../admin/assets/ueditorplus/third-party/SyntaxHighlighter/shCoreDefault.css">
-    <link rel="stylesheet" href="../../assets/css/admin.css">
+    <link rel="stylesheet" href="../assets/css/admin.css">
     <style>
         .container-fluid {
             padding-left: 0;
