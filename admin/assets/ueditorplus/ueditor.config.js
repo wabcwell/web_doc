@@ -483,9 +483,9 @@
         //快捷菜单
         , shortcutMenu: [
            // "ai",           // AI智能
-            // "fontfamily",   // 字体
-            // "fontsize",     // 字号
-            "paragraph",           // 段落格式
+            //"fontfamily",   // 字体
+            //"fontsize",     // 字号
+            // "paragraph",        // 段落格式 - 暂时移除，避免单击时出现
             "bold",            // 加粗
             "italic",          // 斜体
             "underline",       // 下划线
@@ -525,7 +525,7 @@
         // 是否开启字数统计
         , wordCount: true
         // 允许的最大字符数
-        , maximumWords: 10000
+        , maximumWords: 100000
         //字数统计提示，{#count} 代表当前字数，{#leave}代表还可以输入多少字符数,留空支持多语言自动切换，否则按此配置显示
         //,wordCountMsg:''   //当前已输入 {#count} 个字符，您还可以输入{#leave} 个字符
         //超出字数限制提示  留空支持多语言自动切换，否则按此配置显示

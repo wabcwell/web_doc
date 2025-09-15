@@ -278,7 +278,11 @@ include '../sidebar.php';
                                         ?>
                                             <option value="<?php echo $doc['document_id']; ?>" 
                                                 <?php echo $doc['document_id'] == $document['parent_id'] ? 'selected' : ''; ?>>
-                                            <?php echo str_repeat('&nbsp;&nbsp;', $doc['level']) . htmlspecialchars($doc['title']); ?>
+                                            <?php 
+                                                $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $doc['level']);
+                                                $prefix = $doc['level'] > 0 ? '├─ ' : '';
+                                                echo $indent . $prefix . htmlspecialchars($doc['title']); 
+                                            ?>
                                         </option>
                                         <?php 
                                             endforeach; 
