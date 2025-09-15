@@ -55,7 +55,7 @@ include '../sidebar.php';
     <title><?php echo $title; ?></title>
     <link rel="stylesheet" href="../../assets/css/static/bootstrap.min.css">
     <link rel="stylesheet" href="../../assets/css/static/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="../assets/css/static/prism.min.css">
+    <link rel="stylesheet" href="../../admin/assets/ueditorplus/third-party/SyntaxHighlighter/shCoreDefault.css">
     <link rel="stylesheet" href="../../assets/css/admin.css">
     <style>
         /* 保持与documents/view.php一致的布局样式 */
@@ -362,7 +362,7 @@ include '../sidebar.php';
     </div>
 
     <script src="../../assets/js/static/bootstrap.bundle.min.js"></script>
-    <script src="../assets/js/static/prism.min.js"></script>
+    <script src="../../admin/assets/ueditorplus/third-party/SyntaxHighlighter/shCore.js"></script>
     
     <script>
         // 全局变量
@@ -511,6 +511,13 @@ include '../sidebar.php';
         document.getElementById('deleteModal').addEventListener('hidden.bs.modal', function () {
             currentDocumentId = null;
             currentDocumentTitle = null;
+        });
+
+        // 初始化SyntaxHighlighter
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof SyntaxHighlighter !== 'undefined') {
+                SyntaxHighlighter.highlight();
+            }
         });
     </script>
 </body>

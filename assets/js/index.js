@@ -36,7 +36,7 @@ function convertAndHighlightCode() {
             
             console.log('Content length after cleanup:', content.length);
             
-            // 替换class为Prism.js格式
+            // 处理代码高亮
             pre.className = `language-${language}`;
             
             // 确保有code标签
@@ -50,14 +50,14 @@ function convertAndHighlightCode() {
         }
     });
     
-    // 初始化Prism.js
+    // 初始化SyntaxHighlighter
     setTimeout(() => {
-        if (typeof Prism !== 'undefined') {
-            console.log('Prism loaded, highlighting...');
-            Prism.highlightAll();
+        if (typeof SyntaxHighlighter !== 'undefined') {
+            console.log('SyntaxHighlighter loaded, highlighting...');
+            SyntaxHighlighter.highlight();
             console.log('Highlighting completed');
         } else {
-            console.error('Prism not loaded');
+            console.error('SyntaxHighlighter not loaded');
         }
     }, 100);
 }
@@ -98,7 +98,7 @@ function addCopyButtons() {
                 const lines = block.querySelectorAll('.line');
                 codeText = Array.from(lines).map(line => line.textContent).join('\n');
             } else if (block.querySelector('code')) {
-                // Prism.js 或其他带code标签的
+                // 处理代码高亮
                 codeText = block.querySelector('code').textContent;
             } else {
                 // 普通pre标签

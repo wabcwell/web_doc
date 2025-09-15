@@ -218,94 +218,14 @@ $stats = $stmt->fetch();
     </div>
 
     <script src="assets/js/static/bootstrap.bundle.min.js"></script>
-    <!-- 使用Prism.js替代SyntaxHighlighter -->
     <script src="admin/assets/ueditorplus/third-party/SyntaxHighlighter/shCore.js"></script>
     <script>
-        SyntaxHighlighter.all();
-    </script>
-    <script>
-        // 将SyntaxHighlighter格式转换为Prism.js格式
-        function convertAndHighlightCode() {
-            console.log('Starting code highlighting conversion...');
-            
-            // 查找所有使用SyntaxHighlighter格式的pre标签
-            const pres = document.querySelectorAll('pre[class*="brush:"]');
-            console.log('Found', pres.length, 'code blocks to convert');
-            
-            if (pres.length === 0) {
-                console.log('No SyntaxHighlighter format found, checking for other formats...');
-                return;
-            }
-            
-            pres.forEach((pre, index) => {
-                console.log('Processing block', index + 1, 'class:', pre.className);
-                
-                const className = pre.className;
-                const match = className.match(/brush:\s*(\w+)/);
-                if (match) {
-                    const language = match[1].toLowerCase();
-                    console.log('Converting to language:', language);
-                    
-                    // 获取原始内容 - 优先使用textContent避免HTML实体问题
-                    let content = pre.textContent || pre.innerText || '';
-                    
-                    // 清理内容：替换所有类型的空格和HTML实体
-                    content = content
-                        .replace(/&nbsp;/g, ' ')
-                        .replace(/\u00A0/g, ' ')
-                        .replace(/&amp;/g, '&')
-                        .replace(/&lt;/g, '<')
-                        .replace(/&gt;/g, '>')
-                        .replace(/&quot;/g, '"')
-                        .replace(/&#39;/g, "'")
-                        .trim();
-                    
-                    console.log('Content length after cleanup:', content.length);
-                    
-                    // 替换class为Prism.js格式
-                    pre.className = `language-${language}`;
-                    
-                    // 确保有code标签
-                    if (!pre.querySelector('code')) {
-                        const code = document.createElement('code');
-                        code.className = `language-${language}`;
-                        code.textContent = content;
-                        pre.innerHTML = '';
-                        pre.appendChild(code);
-                    }
-                }
-            });
-            
-            // 初始化Prism.js
-            setTimeout(() => {
-                if (typeof Prism !== 'undefined') {
-                    console.log('Prism loaded, highlighting...');
-                    Prism.highlightAll();
-                    console.log('Highlighting completed');
-                } else {
-                    console.error('Prism not loaded');
-                }
-            }, 100);
-        }
-
-        // 确保在DOM加载完成后执行
+        // 初始化SyntaxHighlighter
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOMContentLoaded fired');
-            // 延迟执行，确保所有内容都已加载
-            setTimeout(convertAndHighlightCode, 500);
+            if (typeof SyntaxHighlighter !== 'undefined') {
+                SyntaxHighlighter.highlight();
+            }
         });
-
-        // 对于动态内容，也执行转换
-        window.addEventListener('load', function() {
-            console.log('window.load fired');
-            setTimeout(convertAndHighlightCode, 1000);
-        });
-
-        // 对于AJAX加载的内容，提供一个手动触发的方法
-        window.refreshCodeHighlighting = function() {
-            console.log('Manual refresh triggered');
-            convertAndHighlightCode();
-        };
     </script>
     <script src="assets/js/static/third-party/html2canvas.min.js"></script>
     <script src="assets/js/static/third-party/jspdf.umd.min.js"></script>

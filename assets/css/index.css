@@ -418,21 +418,23 @@ body {
     border-radius: 0;
 }
 
-/* Prism.js样式 */
-pre[class*="language-"] {
-    font-size: 14px;
-    line-height: 1.5;
-    margin: 15px 0;
-    border-radius: 6px;
-    border: 1px solid #e1e5e9;
-    background-color: #f8f9fa;
-    padding: 15px;
+/* SyntaxHighlighter 样式 */
+.syntaxhighlighter {
+    border-radius: 8px;
+    font-size: 14px !important;
+    line-height: 1.6 !important;
+    margin: 1em 0 !important;
     overflow-x: auto;
+    position: relative;
 }
 
-code[class*="language-"] {
-    color: #333;
-    font-family: 'Consolas', 'Monaco', 'Lucida Console', 'Liberation Mono', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Courier New', monospace;
+.syntaxhighlighter table {
+    border-radius: 8px;
+}
+
+.syntaxhighlighter .line {
+    font-size: 14px !important;
+    line-height: 1.6 !important;
 }
 
 /* SyntaxHighlighter 样式调整 */

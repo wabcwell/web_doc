@@ -56,11 +56,11 @@
 ### 🎨 样式资源
 - **Bootstrap 5.3.0**: 本地CSS文件 `assets/css/static/bootstrap.min.css`
 - **Bootstrap Icons**: 本地字体文件 `assets/fonts/bootstrap-icons.woff2` 和 `assets/fonts/bootstrap-icons.woff`
-- **Prism代码高亮**: 本地CSS文件 `assets/css/static/prism.min.css`
+- **SyntaxHighlighter代码高亮**: 本地CSS文件 `admin/assets/ueditorplus/third-party/SyntaxHighlighter/shCoreDefault.css`
 
 ### 📜 脚本资源
 - **Bootstrap JS**: 本地JS文件 `assets/js/static/bootstrap.bundle.min.js`
-- **Prism代码高亮**: 本地JS文件 `assets/js/static/prism.min.js`
+- **SyntaxHighlighter代码高亮**: 本地JS文件 `admin/assets/ueditorplus/third-party/SyntaxHighlighter/shCore.js`
 - **Toast UI Editor**: 本地JS文件
 
 ### 🗂️ 本地化优势

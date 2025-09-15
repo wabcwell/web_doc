@@ -1,8 +1,8 @@
 // 导出功能实现
 document.addEventListener('DOMContentLoaded', function() {
     // 代码高亮相关
-    if (typeof Prism !== 'undefined') {
-        Prism.highlightAll();
+    if (typeof SyntaxHighlighter !== 'undefined') {
+        SyntaxHighlighter.highlight();
     }
 
     // 导出菜单相关函数
