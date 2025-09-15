@@ -384,20 +384,25 @@ class DocumentTree {
      * 获取所有文档（按层级关系排序，用于管理后台）
      */
     public function getAllDocumentsByHierarchy($limit = null) {
+        // 使用分页和限制来减少内存使用
         $sql = "SELECT d.*, u.username
                 FROM documents d 
                 LEFT JOIN users u ON d.user_id = u.id 
                 WHERE d.del_status = 0
                 ORDER BY d.parent_id ASC, d.sort_order ASC, d.document_id ASC";
         
-        if ($limit !== null) {
-            $sql .= " LIMIT " . intval($limit);
+        // 确保有一个合理的限制来防止内存溢出
+        $effectiveLimit = 100; // 默认限制
+        if ($limit !== null && $limit > 0) {
+            $effectiveLimit = min(intval($limit), 100); // 最大不超过100
         }
+        
+        $sql .= " LIMIT " . $effectiveLimit;
         
         $stmt = $this->db->query($sql);
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // 构建树形结构，使用document_id作为层级基础
+        // 构建层级结构（内存优化版本）
         return $this->buildHierarchy($documents);
     }
     
@@ -442,54 +447,69 @@ class DocumentTree {
     }
     
     /**
-     * 构建层级结构
+     * 构建层级结构（内存优化版本）
      */
-    private function buildHierarchy($documents, $parent_document_id = 0, $level = 0) {
-        static $documentIdMap = null;
-        static $childrenMap = null;
+    private function buildHierarchy($documents) {
+        // 如果文档数量过多，只处理前100个以避免内存问题
+        if (count($documents) > 100) {
+            $documents = array_slice($documents, 0, 100);
+        }
         
-        // 只在第一次调用时初始化映射
-        if ($documentIdMap === null || $childrenMap === null) {
-            $documentIdMap = [];
-            $childrenMap = [];
-            
-            // 预处理文档，建立父子关系映射
-            foreach ($documents as $doc) {
-                $documentIdMap[$doc['document_id']] = $doc['id'];
-                
-                // 将文档按parent_id分组
+        // 创建文档ID到文档的映射
+        $documentMap = [];
+        foreach ($documents as $doc) {
+            $documentMap[$doc['document_id']] = $doc;
+        }
+        
+        // 构建父子关系
+        $tree = [];
+        foreach ($documents as $doc) {
+            if ($doc['parent_id'] == 0) {
+                // 根节点
+                $doc['level'] = 0;
+                $tree[] = $doc;
+            } else {
+                // 尝试找到父节点
+                // 注意：数据库中的parent_id对应的是documents表的id字段，不是document_id字段
+                // 所以我们需要通过数据库查询来找到父文档
                 $parentId = $doc['parent_id'];
-                if (!isset($childrenMap[$parentId])) {
-                    $childrenMap[$parentId] = [];
-                }
-                $childrenMap[$parentId][] = $doc;
-            }
-        }
-        
-        $result = [];
-        
-        // 递归构建树形结构
-        $current_parent_internal_id = $parent_document_id == 0 ? 0 : ($documentIdMap[$parent_document_id] ?? 0);
-        if (isset($childrenMap[$current_parent_internal_id])) {
-            foreach ($childrenMap[$current_parent_internal_id] as $doc) {
-                $doc['level'] = $level;
-                $result[] = $doc;
+                $parentDoc = null;
                 
-                // 递归获取子文档
-                $children = $this->buildHierarchy([], $doc['document_id'], $level + 1);
-                if (!empty($children)) {
-                    $result = array_merge($result, $children);
+                // 在文档列表中查找父文档
+                foreach ($documents as $potentialParent) {
+                    if ($potentialParent['id'] == $parentId) {
+                        $parentDoc = $potentialParent;
+                        break;
+                    }
+                }
+                
+                if ($parentDoc) {
+                    // 计算层级深度
+                    $doc['level'] = isset($parentDoc['level']) ? $parentDoc['level'] + 1 : 1;
+                    $tree[] = $doc;
+                } else {
+                    // 没有找到父节点，作为根节点处理
+                    $doc['level'] = 0;
+                    $tree[] = $doc;
                 }
             }
         }
         
-        // 重置静态变量，以便下次调用时重新初始化
-        if ($parent_document_id == 0) {
-            $documentIdMap = null;
-            $childrenMap = null;
-        }
+        // 按层级和排序字段排序
+        usort($tree, function($a, $b) {
+            if ($a['level'] == $b['level']) {
+                if ($a['parent_id'] == $b['parent_id']) {
+                    if ($a['sort_order'] == $b['sort_order']) {
+                        return (int)$a['document_id'] - (int)$b['document_id'];
+                    }
+                    return (int)$a['sort_order'] - (int)$b['sort_order'];
+                }
+                return (int)$a['parent_id'] - (int)$b['parent_id'];
+            }
+            return (int)$a['level'] - (int)$b['level'];
+        });
         
-        return $result;
+        return $tree;
     }
     
     /**

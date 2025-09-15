@@ -7,6 +7,52 @@ require_once '../../includes/DocumentTree.php';
 // 检查用户权限
 Auth::requireLogin();
 
+// 获取父文档选项
+$db = get_db();
+$tree = new DocumentTree($db);
+$documents = $tree->getAllDocumentsByHierarchy();
+
+// 获取URL参数用于自动填充
+$parent_id_param = $_GET['parent_id'] ?? 0;
+$sort_order_param = $_GET['sort_order'] ?? 0;
+
+// 进入页面时获取document_id并标记为已分配
+// =============================================================================
+// 防重复机制：防止document_id重复分配的核心逻辑
+// =============================================================================
+// 步骤1：获取当前时间戳，用于时间间隔判断
+$current_time = time(); // 当前Unix时间戳（秒）
+$last_gen_time = $_SESSION['last_document_gen_time'] ?? 0; // 上次生成ID的时间，默认为0（新会话）
+
+// 步骤2：判断是否需要生成新的document_id
+// 条件1：必须是GET请求（正常页面访问）
+// 条件2：不能是AJAX请求（防止异步请求重复生成）
+// 条件3：距离上次生成必须超过3秒（防止快速刷新/预加载）
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && 
+    empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+    ($current_time - $last_gen_time > 3)) {
+    
+    // 步骤3：生成新的document_id并标记为已分配
+    $pre_generated_document_id = get_next_available_document_id(); // 获取下一个可用ID
+    mark_document_id_allocated($pre_generated_document_id, $_SESSION['user_id'] ?? 1); // 标记为已分配
+    
+    // 步骤4：将生成的ID保存到会话，供后续使用
+    $_SESSION['pre_generated_document_id'] = $pre_generated_document_id;
+    $_SESSION['last_document_gen_time'] = $current_time; // 记录本次生成时间
+    $_SESSION['gen_token'] = uniqid('doc_', true); // 生成唯一令牌（可选，用于调试）
+    
+// 步骤5：会话中已有预生成的ID，直接复用
+} elseif (isset($_SESSION['pre_generated_document_id'])) {
+    $pre_generated_document_id = $_SESSION['pre_generated_document_id']; // 复用会话中保存的ID
+    
+// 步骤6：回退方案（会话失效或特殊情况）
+} else {
+    $pre_generated_document_id = get_next_available_document_id(); // 获取新的ID
+    mark_document_id_allocated($pre_generated_document_id, $_SESSION['user_id'] ?? 1); // 标记为已分配
+    $_SESSION['pre_generated_document_id'] = $pre_generated_document_id; // 保存到会话
+    $_SESSION['last_document_gen_time'] = $current_time; // 记录生成时间
+}
+
 // 处理表单提交
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = $_POST['title'] ?? '';
@@ -18,43 +64,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $is_formal = isset($_POST['is_formal']) ? intval($_POST['is_formal']) : 0;
     
     if (!empty($title)) {
-        $db = get_db();
+        // 生成唯一的update_code
         $update_code = uniqid() . '_' . time();
         
-        $stmt = $db->prepare("INSERT INTO documents (title, content, parent_id, sort_order, tags, is_public, is_formal, created_at, updated_at, update_code, author_id) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?, ?)");
-        $stmt->execute([$title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal, $update_code, $_SESSION['user_id']]);
+        // 使用预生成的document_id
+        $document_id = $pre_generated_document_id;
         
-        $document_id = $db->lastInsertId();
+        $stmt = $db->prepare("INSERT INTO documents (document_id, title, content, parent_id, sort_order, tags, is_public, is_formal, created_at, updated_at, update_code) VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'), ?)");
+        $stmt->execute([$document_id, $title, $content, $parent_id, $sort_order, $tags, $is_public, $is_formal, $update_code]);
         
-        // 记录创建日志
+        // 记录创建日志（创建操作不需要记录变更状态）
         log_edit(
             $document_id,
             $_SESSION['user_id'],
             'create',
-            [
-                'op_title' => 1,
-                'op_content' => 1,
-                'op_tags' => 1,
-                'op_parent' => 1,
-                'op_corder' => 1,
-                'op_public' => 1,
-                'op_formal' => 1
-            ],
+            [],
             $update_code
         );
         
         // 保存初始版本
         save_document_version($document_id, $title, $content, $_SESSION['user_id'], $tags, $update_code);
         
+        // 将document_id_apportion中的ID标记为已使用
+        mark_document_id_used($document_id, $_SESSION['user_id'] ?? 1);
+        
+        // 跳转到编辑页面并显示添加完成提示
         header('Location: edit.php?id=' . $document_id . '&success=add');
         exit;
     }
 }
-
-// 获取父文档选项
-$db = get_db();
-$tree = new DocumentTree($db);
-$documents = $tree->getAllDocumentsByHierarchy();
 
 $title = '添加文档';
 include '../sidebar.php';
@@ -278,24 +316,27 @@ include '../sidebar.php';
                                 </div>
                                 <div class="card-body">
                                     <div class="mb-3">
-                                        <label class="form-label">状态</label>
-                                        <select name="is_public" class="form-select">
-                                            <option value="1" <?php echo ($_POST['is_public'] ?? 1) == 1 ? 'selected' : ''; ?>>公开</option>
-                                            <option value="0" <?php echo ($_POST['is_public'] ?? 1) == 0 ? 'selected' : ''; ?>>私密</option>
-                                        </select>
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <label class="form-label mb-0">状态</label>
+                                            <select name="is_public" class="form-select form-select-sm" style="width: 120px;">
+                                                <option value="1" <?php echo ($_POST['is_public'] ?? 1) == 1 ? 'selected' : ''; ?>>公开</option>
+                                                <option value="0" <?php echo ($_POST['is_public'] ?? 1) == 0 ? 'selected' : ''; ?>>私密</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    
                                     <div class="mb-3">
-                                        <label class="form-label">文档类型</label>
-                                        <select name="is_formal" class="form-select">
-                                            <option value="0" <?php echo ($_POST['is_formal'] ?? 0) == 0 ? 'selected' : ''; ?>>草稿</option>
-                                            <option value="1" <?php echo ($_POST['is_formal'] ?? 0) == 1 ? 'selected' : ''; ?>>正式文档</option>
-                                        </select>
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <label class="form-label mb-0">文档类型</label>
+                                            <select name="is_formal" class="form-select form-select-sm" style="width: 120px;">
+                                                <option value="0" <?php echo ($_POST['is_formal'] ?? 0) == 0 ? 'selected' : ''; ?>>草稿</option>
+                                                <option value="1" <?php echo ($_POST['is_formal'] ?? 0) == 1 ? 'selected' : ''; ?>>正式文档</option>
+                                            </select>
+                                        </div>
                                     </div>
                                     
-                                    <div style="padding: 15px; text-align: right;">
-                        <input type="submit" name="publish" id="publish" class="button button-primary button-large" value="发布" style="background: #0073aa; border-color: #006799; color: #fff; padding: 0 30px; font-size: 16px; height: 35px; border: 1px solid; border-radius: 4px; cursor: pointer; font-weight: 600;">
-                    </div>
+                                    <div style="padding: 4px 12px; text-align: right;">
+                                        <input type="submit" name="publish" id="publish" class="button button-primary button-large" value="发布" style="background: #0073aa; border-color: #006799; color: #fff; padding: 0 25px; font-size: 14px; height: 32px; border: 1px solid; border-radius: 3px; cursor: pointer; font-weight: 600;">
+                                    </div>
                                 </div>
                             </div>
                             
@@ -405,8 +446,17 @@ include '../sidebar.php';
             });
         });
 
-        // 页面卸载前提示
-        window.addEventListener('beforeunload', function(e) {
+
+
+        // 表单提交前清理
+        document.getElementById('post').addEventListener('submit', function() {
+            clearInterval(autosavePeriodical);
+            // 移除beforeunload事件，防止表单提交时触发离开提示
+            window.removeEventListener('beforeunload', beforeUnloadHandler);
+        });
+
+        // 定义beforeunload处理函数，便于移除
+        function beforeUnloadHandler(e) {
             var title = document.getElementById('title').value;
             var content = ue.getContent();
             
@@ -414,12 +464,10 @@ include '../sidebar.php';
                 e.preventDefault();
                 e.returnValue = '';
             }
-        });
+        }
 
-        // 表单提交前清理
-        document.getElementById('post').addEventListener('submit', function() {
-            clearInterval(autosavePeriodical);
-        });
+        // 页面卸载前提示
+        window.addEventListener('beforeunload', beforeUnloadHandler);
     </script>
 </body>
 </html>

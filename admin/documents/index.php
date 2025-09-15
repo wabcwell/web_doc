@@ -54,7 +54,7 @@ function render_document_action_buttons(array $doc, int $next_child_sort): strin
 }
 
 $documentTree = new DocumentTree();
-$documents = $documentTree->getAllDocumentsByHierarchy();
+$documents = $documentTree->getAllDocumentsByHierarchy(100); // 限制返回100个文档以减少内存使用
 
 // 获取参数用于添加按钮
 $parent_id = isset($_GET['parent_id']) ? intval($_GET['parent_id']) : 0;
