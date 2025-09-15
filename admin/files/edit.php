@@ -136,7 +136,6 @@ function format_file_size($size) {
         /* 确保模态框背景完全覆盖 */
         .modal-backdrop.show {
             opacity: 1 !important;
-        }
             background-color: rgba(0, 0, 0, 0.8) !important;
         }
         

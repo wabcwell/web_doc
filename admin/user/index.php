@@ -231,7 +231,7 @@ include __DIR__ . '/../sidebar.php';
                                                     <a href="delete_user.php?id=<?php echo $user['id']; ?>" 
                                                        class="btn btn-delete" 
                                                        data-tooltip="删除用户"
-                                                       onclick="return confirm('确定要删除用户 "<?php echo htmlspecialchars($user['username']); ?>" 吗？')">
+                                                       onclick="return confirm('确定要删除用户 \'<?php echo htmlspecialchars($user['username']); ?>\' 吗？')">
                                                         <i class="bi bi-trash"></i>
                                                     </a>
                                                 <?php else: ?>
