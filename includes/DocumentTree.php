@@ -20,19 +20,11 @@ class DocumentTree {
                     WHERE d.parent_id = 0 AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
                     ORDER BY d.sort_order ASC, d.document_id ASC";
         } else {
-            // 通过document_id找到对应的内部ID
-            $stmt = $this->db->prepare("SELECT id FROM documents WHERE document_id = ? AND del_status = 0");
-            $stmt->execute([$parent_document_id]);
-            $internal_parent_id = $stmt->fetchColumn();
-            
-            if (!$internal_parent_id) {
-                return [];
-            }
-            
+            // 直接使用document_id作为parent_id查询子文档
             $sql = "SELECT d.*, u.username, d.is_formal 
                     FROM documents d 
                     LEFT JOIN users u ON d.user_id = u.id 
-                    WHERE d.parent_id = " . intval($internal_parent_id) . " AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
+                    WHERE d.parent_id = " . intval($parent_document_id) . " AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
                     ORDER BY d.sort_order ASC, d.document_id ASC";
         }
         
@@ -59,21 +51,13 @@ class DocumentTree {
                                       ORDER BY d.sort_order ASC, d.document_id ASC");
             $stmt->execute();
         } else {
-            // 通过document_id找到对应的内部ID
-            $stmt = $this->db->prepare("SELECT id FROM documents WHERE document_id = ? AND del_status = 0");
-            $stmt->execute([$parent_document_id]);
-            $internal_parent_id = $stmt->fetchColumn();
-            
-            if (!$internal_parent_id) {
-                return [];
-            }
-            
+            // 直接使用document_id作为parent_id查询子文档
             $stmt = $this->db->prepare("SELECT d.*, u.username 
                                       FROM documents d 
                                       LEFT JOIN users u ON d.user_id = u.id 
                                       WHERE d.parent_id = ? AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
                                       ORDER BY d.sort_order ASC, d.document_id ASC");
-            $stmt->execute([$internal_parent_id]);
+            $stmt->execute([$parent_document_id]);
         }
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -82,10 +66,10 @@ class DocumentTree {
      * 获取文档的同级文档
      */
     public function getSiblings($document_id) {
-        // 首先获取当前文档的父内部ID
+        // 首先获取当前文档的父document_id
         $stmt = $this->db->prepare("SELECT parent_id FROM documents WHERE document_id = ?");
         $stmt->execute([$document_id]);
-        $parent_internal_id = $stmt->fetchColumn();
+        $parent_document_id = $stmt->fetchColumn();
         
         // 然后获取同父级的所有文档
         $stmt = $this->db->prepare("SELECT d.*, u.username 
@@ -93,7 +77,7 @@ class DocumentTree {
                                   LEFT JOIN users u ON d.user_id = u.id 
                                   WHERE d.parent_id = ? AND d.document_id != ? AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
                                   ORDER BY d.sort_order ASC, d.document_id ASC");
-        $stmt->execute([$parent_internal_id, $document_id]);
+        $stmt->execute([$parent_document_id, $document_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
@@ -105,17 +89,14 @@ class DocumentTree {
         $current_document_id = $document_id;
         
         while ($current_document_id > 0) {
-            // 获取当前文档的父文档内部ID
+            // 获取当前文档的父文档document_id
             $stmt = $this->db->prepare("SELECT parent_id FROM documents WHERE document_id = ? AND del_status = 0");
             $stmt->execute([$current_document_id]);
-            $parent_internal_id = $stmt->fetchColumn();
+            $parent_document_id = $stmt->fetchColumn();
             
-            if ($parent_internal_id && $parent_internal_id > 0) {
+            if ($parent_document_id && $parent_document_id > 0) {
                 $depth++;
-                // 通过内部ID获取对应的业务ID
-                $stmt = $this->db->prepare("SELECT document_id FROM documents WHERE id = ? AND del_status = 0");
-                $stmt->execute([$parent_internal_id]);
-                $current_document_id = $stmt->fetchColumn();
+                $current_document_id = $parent_document_id;
             } else {
                 break;
             }
@@ -143,10 +124,7 @@ class DocumentTree {
                 ]);
                 
                 if ($document['parent_id'] > 0) {
-                    // 通过内部ID获取对应的业务ID
-                    $stmt = $this->db->prepare("SELECT document_id FROM documents WHERE id = ? AND del_status = 0");
-                    $stmt->execute([$document['parent_id']]);
-                    $current_document_id = $stmt->fetchColumn();
+                    $current_document_id = $document['parent_id'];
                 } else {
                     break;
                 }
@@ -384,7 +362,7 @@ class DocumentTree {
      * 获取所有文档（按层级关系排序，用于管理后台）
      */
     public function getAllDocumentsByHierarchy($limit = null) {
-        // 使用分页和限制来减少内存使用
+        // 首先获取所有文档，按parent_id和sort_order排序，确保层级关系正确
         $sql = "SELECT d.*, u.username
                 FROM documents d 
                 LEFT JOIN users u ON d.user_id = u.id 
@@ -402,8 +380,8 @@ class DocumentTree {
         $stmt = $this->db->query($sql);
         $documents = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // 构建层级结构（内存优化版本）
-        return $this->buildHierarchy($documents);
+        // 使用递归方式构建层级结构，确保与前台getTree()方法的排序一致
+        return $this->buildHierarchyRecursive($documents);
     }
     
     /**
@@ -455,61 +433,110 @@ class DocumentTree {
             $documents = array_slice($documents, 0, 100);
         }
         
-        // 创建文档ID到文档的映射
-        $documentMap = [];
+        // 创建内部ID到文档的映射
+        $internalIdMap = [];
         foreach ($documents as $doc) {
-            $documentMap[$doc['document_id']] = $doc;
+            $internalIdMap[$doc['id']] = $doc;
         }
         
-        // 构建父子关系
+        // 构建父子关系树
         $tree = [];
+        $processedDocs = [];
+        
+        // 首先处理根节点（parent_id = 0）
         foreach ($documents as $doc) {
             if ($doc['parent_id'] == 0) {
-                // 根节点
                 $doc['level'] = 0;
                 $tree[] = $doc;
-            } else {
-                // 尝试找到父节点
-                // 注意：数据库中的parent_id对应的是documents表的id字段，不是document_id字段
-                // 所以我们需要通过数据库查询来找到父文档
-                $parentId = $doc['parent_id'];
-                $parentDoc = null;
-                
-                // 在文档列表中查找父文档
-                foreach ($documents as $potentialParent) {
-                    if ($potentialParent['id'] == $parentId) {
-                        $parentDoc = $potentialParent;
-                        break;
-                    }
-                }
-                
-                if ($parentDoc) {
-                    // 计算层级深度
-                    $doc['level'] = isset($parentDoc['level']) ? $parentDoc['level'] + 1 : 1;
-                    $tree[] = $doc;
-                } else {
-                    // 没有找到父节点，作为根节点处理
-                    $doc['level'] = 0;
-                    $tree[] = $doc;
-                }
+                $processedDocs[$doc['document_id']] = $doc;
             }
         }
         
-        // 按层级和排序字段排序
-        usort($tree, function($a, $b) {
-            if ($a['level'] == $b['level']) {
-                if ($a['parent_id'] == $b['parent_id']) {
-                    if ($a['sort_order'] == $b['sort_order']) {
-                        return (int)$a['document_id'] - (int)$b['document_id'];
-                    }
-                    return (int)$a['sort_order'] - (int)$b['sort_order'];
-                }
-                return (int)$a['parent_id'] - (int)$b['parent_id'];
-            }
-            return (int)$a['level'] - (int)$b['level'];
-        });
+        // 然后递归处理子节点
+        $this->processChildren($documents, $internalIdMap, $processedDocs, $tree, 0);
         
         return $tree;
+    }
+    
+    /**
+     * 递归构建层级结构（与前台getTree()方法排序一致）
+     */
+    private function buildHierarchyRecursive($documents) {
+        $hierarchy = [];
+        
+        // 按parent_id分组文档，便于快速查找
+        $groupedByParent = [];
+        foreach ($documents as $doc) {
+            $parentId = $doc['parent_id'];
+            if (!isset($groupedByParent[$parentId])) {
+                $groupedByParent[$parentId] = [];
+            }
+            $groupedByParent[$parentId][] = $doc;
+        }
+        
+        // 对每个parent_id组的文档按sort_order和document_id排序（与前台一致）
+        foreach ($groupedByParent as $parentId => &$children) {
+            usort($children, function($a, $b) {
+                if ($a['sort_order'] == $b['sort_order']) {
+                    return $a['document_id'] - $b['document_id'];
+                }
+                return $a['sort_order'] - $b['sort_order'];
+            });
+        }
+        
+        // 递归构建层级结构
+        $this->buildTreeRecursive(0, $groupedByParent, $hierarchy, 0);
+        
+        return $hierarchy;
+    }
+    
+    /**
+     * 递归构建树形结构（与前台getTree()方法逻辑一致）
+     */
+    private function buildTreeRecursive($parentId, $groupedByParent, &$result, $level) {
+        if (!isset($groupedByParent[$parentId])) {
+            return;
+        }
+        
+        foreach ($groupedByParent[$parentId] as $doc) {
+            $doc['level'] = $level;
+            $result[] = $doc;
+            
+            // 递归处理子节点
+            $this->buildTreeRecursive($doc['document_id'], $groupedByParent, $result, $level + 1);
+        }
+    }
+    
+    /**
+     * 递归处理子节点
+     */
+    private function processChildren($allDocuments, $internalIdMap, &$processedDocs, &$tree, $level) {
+        $level++;
+        
+        foreach ($allDocuments as $doc) {
+            // 跳过已处理的文档
+            if (isset($processedDocs[$doc['document_id']])) {
+                continue;
+            }
+            
+            // 查找父文档
+            $parentDoc = null;
+            if ($doc['parent_id'] > 0 && isset($internalIdMap[$doc['parent_id']])) {
+                $parentDoc = $internalIdMap[$doc['parent_id']];
+            }
+            
+            if ($parentDoc && isset($processedDocs[$parentDoc['document_id']])) {
+                // 父文档已处理，可以处理当前文档
+                $doc['level'] = $level;
+                $tree[] = $doc;
+                $processedDocs[$doc['document_id']] = $doc;
+            }
+        }
+        
+        // 如果还有未处理的文档，继续递归（处理深层嵌套）
+        if (count($processedDocs) < count($allDocuments) && $level < 10) {
+            $this->processChildren($allDocuments, $internalIdMap, $processedDocs, $tree, $level);
+        }
     }
     
     /**

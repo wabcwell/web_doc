@@ -54,7 +54,7 @@ function render_document_action_buttons(array $doc, int $next_child_sort): strin
 }
 
 $documentTree = new DocumentTree();
-$documents = $documentTree->getAllDocumentsByHierarchy(100); // 限制返回100个文档以减少内存使用
+$documents = $documentTree->getAllDocumentsByHierarchy(100); // 使用专门的后台层级获取方法
 
 // 获取参数用于添加按钮
 $parent_id = isset($_GET['parent_id']) ? intval($_GET['parent_id']) : 0;
@@ -126,6 +126,29 @@ include '../sidebar.php';
         /* 修复操作列的样式 */
         .table td:last-child {
             position: relative;
+        }
+        
+        /* 优化层级显示 */
+        .table td:nth-child(2) {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        .table td:nth-child(2) a {
+            font-weight: 500;
+            color: #495057;
+            transition: color 0.15s ease-in-out;
+        }
+        
+        .table td:nth-child(2) a:hover {
+            color: #0056b3;
+            text-decoration: underline !important;
+        }
+        
+        /* 层级连接线样式 */
+        .table td:nth-child(2) span[style*="font-family: monospace"] {
+            color: #6c757d;
+            font-size: 14px;
+            line-height: 1;
         }
     </style>
 </head>
@@ -204,14 +227,21 @@ include '../sidebar.php';
                                         <td><?php echo $doc['document_id']; ?></td>
                                         <td>
                                             <div style="display: flex; align-items: center;">
-                                                <?php if (isset($doc['level']) && $doc['level'] > 0): ?>
-                                                    <span style="margin-right: 5px;">
-                                                        <?php echo str_repeat('│&nbsp;&nbsp;', $doc['level']); ?>
-                                                    </span>
-                                                <?php endif; ?>
-                                                <?php if (isset($doc['level']) && $doc['level'] > 0): ?>
-                                                    └─
-                                                <?php endif; ?>
+                                                <?php 
+                                                $level = isset($doc['level']) ? $doc['level'] : 0;
+                                                if ($level > 0): 
+                                                    // 生成层级缩进和连接线
+                                                    $indent = '';
+                                                    for ($i = 0; $i < $level; $i++) {
+                                                        if ($i == $level - 1) {
+                                                            $indent .= '└─ ';
+                                                        } else {
+                                                            $indent .= '│&nbsp;&nbsp;';
+                                                        }
+                                                    }
+                                                    echo '<span style="margin-right: 5px; font-family: monospace;">' . $indent . '</span>';
+                                                endif; 
+                                                ?>
                                                 <a href="edit.php?id=<?php echo $doc['document_id']; ?>" class="text-decoration-none">
                                                     <?php echo htmlspecialchars($doc['title']); ?>
                                                 </a>

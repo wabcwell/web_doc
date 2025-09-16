@@ -387,6 +387,7 @@ include '../sidebar.php';
                                                 if ($item['document_id'] == $_GET['id']) continue; // 排除当前文档
                                                 $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $item['level']);
                                                 $prefix = $item['level'] > 0 ? '└─ ' : '';
+                                                // $selected现在是parent_id（存储的是document_id），直接与$item['document_id']比较
                                                 $selected_attr = ($item['document_id'] == $selected) ? ' selected' : '';
                                                 $title = htmlspecialchars($item['title']);
                                                 
@@ -515,7 +516,10 @@ include '../sidebar.php';
             var title = document.getElementById('title').value;
             var content = ue.getContent();
             
-            if (title !== '<?php echo addslashes($document['title']); ?>' || content !== '<?php echo addslashes($document['content']); ?>') {
+            var originalTitle = <?php echo json_encode($document['title']); ?>;
+            var originalContent = <?php echo json_encode($document['content']); ?>;
+            
+            if (title !== originalTitle || content !== originalContent) {
                 e.preventDefault();
                 e.returnValue = '';
             }

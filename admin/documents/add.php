@@ -353,13 +353,14 @@ include '../sidebar.php';
                                             foreach ($items as $item) {
                                                 $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $item['level']);
                                                 $prefix = $item['level'] > 0 ? '└─ ' : '';
+                                                // 注意：$selected是document_id，直接比较即可
                                                 $selected_attr = ($item['document_id'] == $selected) ? ' selected' : '';
                                                 $title = htmlspecialchars($item['title']);
                                                 
                                                 echo "<option value='{$item['document_id']}'{$selected_attr}>{$indent}{$prefix}{$title}</option>";
                                             }
                                         }
-                                        renderOptions($documents, $_POST['parent_id'] ?? 0);
+                                        renderOptions($documents, $_GET['parent_id'] ?? $_POST['parent_id'] ?? 0);
                                         ?>
                                     </select>
                                 </div>
