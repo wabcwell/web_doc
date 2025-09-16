@@ -18,14 +18,14 @@ class DocumentTree {
                     FROM documents d 
                     LEFT JOIN users u ON d.user_id = u.id 
                     WHERE d.parent_id = 0 AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
-                    ORDER BY d.sort_order ASC, d.document_id ASC";
+                    ORDER BY d.sort_order ASC";
         } else {
             // 直接使用document_id作为parent_id查询子文档
             $sql = "SELECT d.*, u.username, d.is_formal 
                     FROM documents d 
                     LEFT JOIN users u ON d.user_id = u.id 
                     WHERE d.parent_id = " . intval($parent_document_id) . " AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
-                    ORDER BY d.sort_order ASC, d.document_id ASC";
+                    ORDER BY d.sort_order ASC";
         }
         
         $stmt = $this->db->prepare($sql);
@@ -48,7 +48,7 @@ class DocumentTree {
                                       FROM documents d 
                                       LEFT JOIN users u ON d.user_id = u.id 
                                       WHERE d.parent_id = 0 AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
-                                      ORDER BY d.sort_order ASC, d.document_id ASC");
+                                      ORDER BY d.sort_order ASC");
             $stmt->execute();
         } else {
             // 直接使用document_id作为parent_id查询子文档
@@ -56,7 +56,7 @@ class DocumentTree {
                                       FROM documents d 
                                       LEFT JOIN users u ON d.user_id = u.id 
                                       WHERE d.parent_id = ? AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
-                                      ORDER BY d.sort_order ASC, d.document_id ASC");
+                                      ORDER BY d.sort_order ASC");
             $stmt->execute([$parent_document_id]);
         }
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -76,7 +76,7 @@ class DocumentTree {
                                   FROM documents d 
                                   LEFT JOIN users u ON d.user_id = u.id 
                                   WHERE d.parent_id = ? AND d.document_id != ? AND d.del_status = 0 AND d.is_public = 1 AND d.is_formal = 1
-                                  ORDER BY d.sort_order ASC, d.document_id ASC");
+                                  ORDER BY d.sort_order ASC");
         $stmt->execute([$parent_document_id, $document_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
@@ -367,7 +367,7 @@ class DocumentTree {
                 FROM documents d 
                 LEFT JOIN users u ON d.user_id = u.id 
                 WHERE d.del_status = 0
-                ORDER BY d.parent_id ASC, d.sort_order ASC, d.document_id ASC";
+                ORDER BY d.parent_id ASC, d.sort_order ASC";
         
         // 确保有一个合理的限制来防止内存溢出
         $effectiveLimit = 100; // 默认限制
@@ -474,12 +474,9 @@ class DocumentTree {
             $groupedByParent[$parentId][] = $doc;
         }
         
-        // 对每个parent_id组的文档按sort_order和document_id排序（与前台一致）
+        // 对每个parent_id组的文档按sort_order排序（与前台一致）
         foreach ($groupedByParent as $parentId => &$children) {
             usort($children, function($a, $b) {
-                if ($a['sort_order'] == $b['sort_order']) {
-                    return $a['document_id'] - $b['document_id'];
-                }
                 return $a['sort_order'] - $b['sort_order'];
             });
         }
@@ -553,7 +550,7 @@ class DocumentTree {
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$limit, $offset]);
         } else {
-            $sql .= " ORDER BY d.sort_order ASC, d.document_id ASC";
+            $sql .= " ORDER BY d.sort_order ASC";
             $stmt = $this->db->prepare($sql);
             $stmt->execute();
         }

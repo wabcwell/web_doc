@@ -222,7 +222,7 @@ function get_documents($parent_document_id = null) {
     
     if ($parent_document_id !== null) {
         if ($parent_document_id == 0) {
-            $stmt = $db->query("SELECT * FROM documents WHERE parent_id = 0 AND del_status = 0 ORDER BY sort_order ASC, document_id ASC");
+            $stmt = $db->query("SELECT * FROM documents WHERE parent_id = 0 AND del_status = 0 ORDER BY sort_order ASC");
         } else {
             // 通过document_id找到对应的内部ID
             $stmt = $db->prepare("SELECT id FROM documents WHERE document_id = ? AND del_status = 0");
@@ -233,11 +233,11 @@ function get_documents($parent_document_id = null) {
                 return [];
             }
             
-            $stmt = $db->prepare("SELECT * FROM documents WHERE parent_id = ? AND del_status = 0 ORDER BY sort_order ASC, document_id ASC");
+            $stmt = $db->prepare("SELECT * FROM documents WHERE parent_id = ? AND del_status = 0 ORDER BY sort_order ASC");
             $stmt->execute([$internal_parent_id]);
         }
     } else {
-        $stmt = $db->query("SELECT * FROM documents WHERE del_status = 0 ORDER BY sort_order ASC, document_id ASC");
+        $stmt = $db->query("SELECT * FROM documents WHERE del_status = 0 ORDER BY sort_order ASC");
     }
     
     return $stmt->fetchAll(PDO::FETCH_ASSOC);

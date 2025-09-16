@@ -288,6 +288,21 @@ body {
     max-width: 100%;
     overflow-x: auto;
     display: block;
+    border-collapse: collapse;
+    border-spacing: 0;
+    border: 1px solid #dee2e6;
+}
+
+.markdown-content table th,
+.markdown-content table td {
+    border: 1px solid #dee2e6;
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.markdown-content table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
 }
 
 .markdown-content pre {

@@ -205,10 +205,11 @@ include '../sidebar.php';
                                     <tr>
                                         <th style="width: 60px;">ID</th>
                                         <th>标题</th>
-                                        <th>作者</th>
-                                        <th>更新时间</th>
-                                        <th>可见性</th>
-                                        <th>状态</th>
+                                        <th style="width: 80px;">排序</th>
+                                        <th style="width: 100px;">作者</th>
+                                        <th style="width: 140px;">更新时间</th>
+                                        <th style="width: 80px;">可见性</th>
+                                        <th style="width: 80px;">状态</th>
                                         <th style="width: 200px; text-align: center;">操作</th>
                                     </tr>
                                 </thead>
@@ -247,7 +248,8 @@ include '../sidebar.php';
                                                 </a>
                                             </div>
                                         </td>
-                                        <td><?php echo htmlspecialchars($doc['username']); ?></td>
+                                        <td style="text-align: center;"><?php echo $doc['sort_order']; ?></td>
+                                        <td><?php echo htmlspecialchars($doc['username'] ?? ''); ?></td>
                                         <td><?php echo date('Y-m-d H:i', strtotime($doc['updated_at'])); ?></td>
                                         <td>
                                             <?php 

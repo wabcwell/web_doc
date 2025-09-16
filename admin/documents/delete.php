@@ -26,15 +26,10 @@ if (!$document) {
     exit;
 }
 
-// 获取被删除文档的直接子文档
-$stmt = $db->prepare("SELECT document_id, id FROM documents WHERE parent_id = ? AND del_status = 0 ORDER BY sort_order ASC");
-$stmt->execute([$document['id']]);
-$children = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// 获取被删除文档的排序值
-$stmt = $db->prepare("SELECT sort_order FROM documents WHERE document_id = ?");
+// 获取被删除文档的直接子文档（使用document_id而不是数据库内部id）
+$stmt = $db->prepare("SELECT document_id, sort_order FROM documents WHERE parent_id = ? AND del_status = 0 ORDER BY sort_order ASC");
 $stmt->execute([$id]);
-$deleted_sort_order = $stmt->fetchColumn();
+$children = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // 开始事务
 $db->beginTransaction();
@@ -44,13 +39,10 @@ try {
         // 获取新的父级ID（被删除文档的原父级）
         $new_parent_id = $document['parent_id'];
         
-        // 子文档继承被删除文档的排序值
-        $inherited_sort_order = $deleted_sort_order;
-        
-        // 更新子文档的父级和排序权重（继承被删除文档的排序值）
-        $stmt = $db->prepare("UPDATE documents SET parent_id = ?, sort_order = ? WHERE document_id = ?");
+        // 更新子文档的父级，但保持原有的排序值不变
+        $stmt = $db->prepare("UPDATE documents SET parent_id = ? WHERE document_id = ?");
         foreach ($children as $child) {
-            $stmt->execute([$new_parent_id, $inherited_sort_order, $child['document_id']]);
+            $stmt->execute([$new_parent_id, $child['document_id']]);
         }
     }
     
