@@ -268,7 +268,7 @@ include '../sidebar.php';
 <body>
     <div class="main-content">
         <div class="wrap">
-            <h1 class="wp-heading-inline">添加文档</h1>
+            <h1 class="wp-heading-inline"><i class="bi bi-plus-circle"></i> 添加文档</h1>
             <hr class="wp-header-end">
             
             <?php if (isset($_GET['success']) && $_GET['success'] === 'add'): ?>
